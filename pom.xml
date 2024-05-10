@@ -7,7 +7,7 @@
 
     <groupId>com.ancevt.d2d2</groupId>
     <artifactId>d2d2-lwjgl-opengl</artifactId>
-    <version>0.1.6.2-SNAPSHOT</version>
+    <version>0.1.6.2</version>
 
     <name>LWJGL+OpenGL D2D2 Engine</name>
 
@@ -67,7 +67,6 @@
         <lombok.version>1.18.26</lombok.version>
         <gson.version>2.9.1</gson.version>
         <args.version>2.1.4</args.version>
-        <ancevt-commons.version>1.0.2-SNAPSHOT</ancevt-commons.version>
         <logback.version>1.4.12</logback.version>
         <lwjgl.version>3.3.3</lwjgl.version>
         <lwjgl_util.version>2.9.3</lwjgl_util.version>
@@ -90,11 +89,6 @@
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.ancevt.commons</groupId>
-            <artifactId>ancevt-commons</artifactId>
-            <version>${ancevt-commons.version}</version>
         </dependency>
         <dependency>
             <groupId>com.ancevt.util</groupId>
