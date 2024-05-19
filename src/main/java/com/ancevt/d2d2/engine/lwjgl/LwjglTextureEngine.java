@@ -382,13 +382,6 @@ public class LwjglTextureEngine implements ITextureEngine {
 
     private BufferedImage textureRegionToImage(TextureAtlas textureAtlas, int x, int y, int width, int height) {
         BufferedImage bufferedImage = mapping.images().get(textureAtlas.getId());
-
-//        try {
-//            ImageIO.write(bufferedImage, "PNG", new File("/home/ancevt/tmp/tmp.png"));
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-
         return bufferedImage.getSubimage(x, y, width, height);
     }
 
