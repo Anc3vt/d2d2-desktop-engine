@@ -32,8 +32,10 @@ import com.ancevt.d2d2.input.Mouse;
 import com.ancevt.d2d2.lifecycle.SystemProperties;
 import com.ancevt.d2d2.time.Timer;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -450,6 +452,61 @@ public class LwjglEngine implements Engine {
         }
     }
 
+    @RequiredArgsConstructor
+    @Getter
+    @ToString
+    private static class Size {
+        private final int w;
+        private final int h;
+    }
+
+    /*
+    private static Size computeAtlasSize(Font font, String string, TrueTypeBitmapFontBuilder builder) {
+        FontMetrics metrics = new Canvas().getFontMetrics(font);
+        int width = 0;
+        int currentHeight = 0;
+        int maxWidth = 0;
+
+        for (int i = 0; i < string.length(); i++) {
+            char currentChar = string.charAt(i);
+            int charWidth = metrics.charWidth(currentChar);
+            width += charWidth;
+
+            if (width > 4096) {
+                maxWidth = Math.max(maxWidth, width - charWidth);
+                width = charWidth;
+                currentHeight += builder.getSpacingY();
+            }
+        }
+
+        maxWidth = Math.max(maxWidth, width);
+        currentHeight += metrics.getHeight();
+
+        return new Size(maxWidth, currentHeight);
+    }
+     */
+
+    private static Size computeAtlasSize(Font font, String string, TrueTypeBitmapFontBuilder builder) {
+        int x = 0;
+        int y = 0;
+        FontMetrics fontMetrics = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).getGraphics().getFontMetrics(font);
+
+        for (int i = 0; i < string.length(); i++) {
+            char c = string.charAt(i);
+
+            int w = fontMetrics.charWidth(c);
+            int h = fontMetrics.getHeight();
+
+            x += w + builder.getSpacingX();
+
+            if (x >= 2048) {
+                y += h + builder.getSpacingY();
+                x = 0;
+            }
+        }
+
+        return new Size(2048, y + font.getSize() * 2 + 128);
+    }
 
     @SneakyThrows
     @Override
@@ -471,56 +528,53 @@ public class LwjglEngine implements Engine {
 
         font = new Font(fontName, fontStyle, fontSize);
 
-        //TODO: compute atlas height automatically
+        String string = builder.getCharSourceString();
 
-        int atlasWidth = 32 * builder.getFontSize();
-        int atlasHeight = 32 * builder.getFontSize();
-        BufferedImage bufferedImage = new BufferedImage(atlasHeight, atlasWidth, BufferedImage.TYPE_INT_ARGB);
+        Size size = computeAtlasSize(font, string, builder);
 
-        //BufferedImage bufferedImage = new BufferedImage(builder.getAtlasWidth(), builder.getAtlasHeight(), BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = bufferedImage.createGraphics();
+        int atlasWidth = size.w;
+        int atlasHeight = size.h;
+        BufferedImage bufferedImage = new BufferedImage(atlasWidth, atlasHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = bufferedImage.createGraphics();
 
         if (builder.fractionalMetrics() != null)
-            g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, FractionalMetrics.nativeValue(builder.fractionalMetrics()));
+            g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, FractionalMetrics.nativeValue(builder.fractionalMetrics()));
 
         if (builder.isTextAntialiasOn())
-            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         if (builder.isTextAntialiasGasp())
-            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
 
         if (builder.isTextAntialiasLcdHrgb())
-            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 
         if (builder.isTextAntialiasLcdHbgr())
-            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HBGR);
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HBGR);
 
         if (builder.isTextAntialiasLcdVrgb())
-            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_VRGB);
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_VRGB);
 
         if (builder.isTextAntialiasLcdVbgr())
-            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_VBGR);
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_VBGR);
 
-        g2.setColor(Color.WHITE);
+        g.setColor(Color.WHITE);
 
         List<CharInfo> charInfos = new ArrayList<>();
 
-        String string = builder.getCharSourceString();
-
         int x = 0;
         int y = font.getSize();
+        FontMetrics fontMetrics = g.getFontMetrics(font);
 
         for (int i = 0; i < string.length(); i++) {
-
             char c = string.charAt(i);
 
-            FontMetrics fontMetrics = g2.getFontMetrics(font);
             int w = fontMetrics.charWidth(c);
             int h = fontMetrics.getHeight();
             int toY = fontMetrics.getDescent();
 
-            g2.setFont(font);
-            g2.drawString(String.valueOf(c), x, y);
+            g.setFont(font);
+            g.drawString(String.valueOf(c), x, y);
 
             CharInfo charInfo = new CharInfo();
             charInfo.character = c;
