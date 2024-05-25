@@ -174,6 +174,7 @@ public class LwjglTextureEngine implements ITextureEngine {
 
         TextureAtlas textureAtlas = createTextureAtlasFromByteBuffer(byteBuffer, width, height);
         mapping.images().put(textureAtlas.getId(), image);
+        D2D2.textureManager().addTextureAtlas(textureAtlas);
         return textureAtlas;
     }
 
