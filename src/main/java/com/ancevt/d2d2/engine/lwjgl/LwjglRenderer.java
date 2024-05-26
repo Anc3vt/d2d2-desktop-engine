@@ -19,7 +19,7 @@ package com.ancevt.d2d2.engine.lwjgl;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.display.Color;
-import com.ancevt.d2d2.display.IAnimated;
+import com.ancevt.d2d2.display.IFrameSeq;
 import com.ancevt.d2d2.display.IContainer;
 import com.ancevt.d2d2.display.IDisplayObject;
 import com.ancevt.d2d2.display.IRenderer;
@@ -228,8 +228,8 @@ public class LwjglRenderer implements IRenderer {
             }
         }
 
-        if (displayObject instanceof IAnimated f) {
-            f.processFrame();
+        if (displayObject instanceof IFrameSeq fs) {
+            fs.processFrame();
         }
 
         GL11.glPopMatrix();
