@@ -19,12 +19,14 @@ package com.ancevt.d2d2.engine.lwjgl;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.display.Color;
-import com.ancevt.d2d2.display.IFrameSeq;
+import com.ancevt.d2d2.display.IColored;
 import com.ancevt.d2d2.display.IContainer;
 import com.ancevt.d2d2.display.IDisplayObject;
+import com.ancevt.d2d2.display.IFrameSeq;
 import com.ancevt.d2d2.display.IRenderer;
 import com.ancevt.d2d2.display.ISprite;
 import com.ancevt.d2d2.display.Stage;
+import com.ancevt.d2d2.display.shape.IShape;
 import com.ancevt.d2d2.display.text.BitmapCharInfo;
 import com.ancevt.d2d2.display.text.BitmapFont;
 import com.ancevt.d2d2.display.text.BitmapText;
@@ -42,12 +44,29 @@ import org.lwjgl.util.glu.GLU;
 import static java.lang.Math.round;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_REPEAT;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
+import static org.lwjgl.opengl.GL11.glBegin;
+import static org.lwjgl.opengl.GL11.glBlendFunc;
+import static org.lwjgl.opengl.GL11.glClear;
+import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glColor4f;
+import static org.lwjgl.opengl.GL11.glDisable;
+import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11.glEnd;
+import static org.lwjgl.opengl.GL11.glLoadIdentity;
+import static org.lwjgl.opengl.GL11.glMatrixMode;
 import static org.lwjgl.opengl.GL11.glPopMatrix;
 import static org.lwjgl.opengl.GL11.glPushMatrix;
 import static org.lwjgl.opengl.GL11.glRotatef;
 import static org.lwjgl.opengl.GL11.glScalef;
+import static org.lwjgl.opengl.GL11.glTexCoord2d;
+import static org.lwjgl.opengl.GL11.glTexParameteri;
 import static org.lwjgl.opengl.GL11.glTranslatef;
+import static org.lwjgl.opengl.GL11.glVertex2d;
+import static org.lwjgl.opengl.GL11.glViewport;
 
 
 // TODO: rewrite with VBO abd refactor
@@ -75,23 +94,23 @@ public class LwjglRenderer implements IRenderer {
 
     @Override
     public void init(long windowId) {
-        GL11.glEnable(GL_BLEND);
-        GL11.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
+        glTexParameteri(GL11.GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL11.GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+        glMatrixMode(GL11.GL_MODELVIEW);
     }
 
     @Override
     public void reshape(int width, int height) {
-        GL11.glViewport(0, 0, width, height);
-        GL11.glMatrixMode(GL11.GL_PROJECTION);
-        GL11.glLoadIdentity();
+        glViewport(0, 0, width, height);
+        glMatrixMode(GL11.GL_PROJECTION);
+        glLoadIdentity();
         GLU.gluOrtho2D(0, width, height, 0);
-        GL11.glMatrixMode(GL11.GL_MODELVIEW);
-        GL11.glLoadIdentity();
+        glMatrixMode(GL11.GL_MODELVIEW);
+        glLoadIdentity();
     }
 
 
@@ -136,7 +155,7 @@ public class LwjglRenderer implements IRenderer {
         zOrderCounter = 0;
 
         clear();
-        GL11.glLoadIdentity();
+        glLoadIdentity();
 
         renderDisplayObject(stage,
             0,
@@ -144,13 +163,12 @@ public class LwjglRenderer implements IRenderer {
             stage.getY(),
             stage.getScaleX(),
             stage.getScaleY(),
-            stage.getRotation(),
             stage.getAlpha()
         );
 
         IDisplayObject cursor = D2D2.getCursor();
         if (cursor != null) {
-            renderDisplayObject(cursor, 0, 0, 0, 1, 1, 0, 1);
+            renderDisplayObject(cursor, 0, 0, 0, 1, 1, 1);
         }
 
         textureEngine.unloadTextureAtlases();
@@ -181,8 +199,8 @@ public class LwjglRenderer implements IRenderer {
         float backgroundColorRed = backgroundColor.getR() / 255.0f;
         float backgroundColorGreen = backgroundColor.getG() / 255.0f;
         float backgroundColorBlue = backgroundColor.getB() / 255.0f;
-        GL11.glClearColor(backgroundColorRed, backgroundColorGreen, backgroundColorBlue, 1.0f);
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+        glClearColor(backgroundColorRed, backgroundColorGreen, backgroundColorBlue, 1.0f);
+        glClear(GL11.GL_COLOR_BUFFER_BIT);
     }
 
     private synchronized void renderDisplayObject(IDisplayObject displayObject,
@@ -191,7 +209,6 @@ public class LwjglRenderer implements IRenderer {
                                                   float toY,
                                                   float toScaleX,
                                                   float toScaleY,
-                                                  float toRotation,
                                                   float toAlpha) {
 
         if (!displayObject.isVisible()) return;
@@ -204,7 +221,7 @@ public class LwjglRenderer implements IRenderer {
 
         float scX = displayObject.getScaleX() * toScaleX;
         float scY = displayObject.getScaleY() * toScaleY;
-        float r = displayObject.getRotation() + toRotation;
+        float r = displayObject.getRotation();
 
         float x = toScaleX * displayObject.getX();
         float y = toScaleY * displayObject.getY();
@@ -221,19 +238,39 @@ public class LwjglRenderer implements IRenderer {
         glRotatef(r, 0, 0, 1);
         glScalef(scX, scY, 1);
 
+
+        if (displayObject instanceof IColored colored) {
+            Color color = colored.getColor();
+
+            if (displayObject.getName().equals("_rs")) {
+                System.out.println("rs: " + a);
+            }
+
+            if (color != null) {
+                glColor4f(
+                    color.getR() / 255f,
+                    color.getG() / 255f,
+                    color.getB() / 255f,
+                    a
+                );
+            }
+        }
+
         if (displayObject instanceof IContainer container) {
             for (int i = 0; i < container.getNumChildren(); i++) {
-                renderDisplayObject(container.getChild(i), level + 1, x + toX, y + toY, toScaleX, toScaleY, 0, a);
+                renderDisplayObject(container.getChild(i), level + 1, x + toX, y + toY, toScaleX, toScaleY, a);
             }
 
         } else if (displayObject instanceof ISprite s) {
-            renderSprite(s, a, 0);
+            renderSprite(s);
         } else if (displayObject instanceof BitmapText btx) {
             if (btx.isCacheAsSprite()) {
-                renderSprite(btx.cachedSprite(), a, btx.getBitmapFont().getPaddingTop() * scY);
+                renderSprite(btx.cachedSprite());
             } else {
                 renderBitmapText(btx, a);
             }
+        } else if (displayObject instanceof IShape s) {
+            renderShape(s, a);
         }
 
         if (displayObject instanceof IFrameSeq fs) {
@@ -246,7 +283,15 @@ public class LwjglRenderer implements IRenderer {
         displayObject.dispatchEvent(EventPool.simpleEventSingleton(Event.EXIT_FRAME, displayObject));
     }
 
-    private void renderSprite(ISprite sprite, float alpha, float paddingTop) {
+    private void renderShape(IShape s, float alpha) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        LwjglShapeRenderer.drawShape(s, alpha);
+        glDisable(GL_BLEND);
+    }
+
+    private void renderSprite(ISprite sprite) {
+
         Texture texture = sprite.getTexture();
 
         if (texture == null) return;
@@ -254,10 +299,6 @@ public class LwjglRenderer implements IRenderer {
 
         TextureAtlas textureAtlas = texture.getTextureAtlas();
 
-        //textureParamsHandle();
-
-        GL11.glEnable(GL_BLEND);
-        GL11.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         boolean bindResult = D2D2.textureManager().getTextureEngine().bind(textureAtlas);
 
@@ -266,17 +307,6 @@ public class LwjglRenderer implements IRenderer {
         }
 
         D2D2.textureManager().getTextureEngine().enable(textureAtlas);
-
-        final Color color = sprite.getColor();
-
-        if (color != null) {
-            GL11.glColor4f(
-                color.getR() / 255f,
-                color.getG() / 255f,
-                color.getB() / 255f,
-                alpha
-            );
-        }
 
         int tX = texture.x();
         int tY = texture.y();
@@ -300,7 +330,7 @@ public class LwjglRenderer implements IRenderer {
         for (int rY = 0; rY < repeatY; rY++) {
             for (float rX = 0; rX < repeatX; rX++) {
                 float px = round(rX * tW * (float) 1);
-                float py = round(rY * tH * (float) 1) + paddingTop;
+                float py = round(rY * tH * (float) 1);
 
                 double textureTop = y + textureBleedingFix;
                 double textureBottom = (h + y) - textureBleedingFix;
@@ -308,73 +338,67 @@ public class LwjglRenderer implements IRenderer {
                 double textureRight = (w + x) - textureBleedingFix;
 
                 double vertexTop = py - vertexBleedingFix;
-                double vertexBottom = py + tH+ vertexBleedingFix;
+                double vertexBottom = py + tH + vertexBleedingFix;
                 double vertexLeft = px - vertexBleedingFix;
-                double vertexRight = px + tW+ vertexBleedingFix;// * sprite.getRepeatXF();
+                double vertexRight = px + tW + vertexBleedingFix;
 
                 if (repeatX - rX < 1.0) {
                     double val = repeatX - rX;
-                    vertexRight = px + tW * val+ vertexBleedingFix;
+                    vertexRight = px + tW * val + vertexBleedingFix;
                     textureRight *= val;
                 }
 
                 if (repeatY - rY < 1.0) {
                     double val = repeatY - rY;
-                    vertexBottom = py + tH * val+ vertexBleedingFix;
+                    vertexBottom = py + tH * val + vertexBleedingFix;
                     textureBottom = (h * val + y) - textureBleedingFix;
                 }
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-                GL11.glBegin(GL11.GL_QUADS);
+                glBegin(GL11.GL_QUADS);
 
                 // L
-                GL11.glTexCoord2d(textureLeft, textureBottom);
-                GL11.glVertex2d(vertexLeft, vertexBottom);
+                glTexCoord2d(textureLeft, textureBottom);
+                glVertex2d(vertexLeft, vertexBottom);
 
                 // _|
-                GL11.glTexCoord2d(textureRight, textureBottom);
-                GL11.glVertex2d(vertexRight, vertexBottom);
+                glTexCoord2d(textureRight, textureBottom);
+                glVertex2d(vertexRight, vertexBottom);
 
                 // ^|
-                GL11.glTexCoord2d(textureRight, textureTop);
-                GL11.glVertex2d(vertexRight, vertexTop);
+                glTexCoord2d(textureRight, textureTop);
+                glVertex2d(vertexRight, vertexTop);
 
                 // Г
-                GL11.glTexCoord2d(textureLeft, textureTop);
-                GL11.glVertex2d(vertexLeft, vertexTop);
+                glTexCoord2d(textureLeft, textureTop);
+                glVertex2d(vertexLeft, vertexTop);
 
-                GL11.glEnd();
+                glEnd();
+                glDisable(GL_BLEND);
             }
         }
 
-        GL11.glDisable(GL_BLEND);
+        glDisable(GL_BLEND);
         D2D2.textureManager().getTextureEngine().disable(textureAtlas);
     }
 
     private void renderBitmapText(BitmapText bitmapText, float alpha) {
         if (bitmapText.isEmpty()) return;
 
-        Color color = bitmapText.getColor();
-
-        GL11.glColor4f(
-            (float) color.getR() / 255f,
-            (float) color.getG() / 255f,
-            (float) color.getB() / 255f,
-            alpha
-        );
-
         BitmapFont bitmapFont = bitmapText.getBitmapFont();
         TextureAtlas textureAtlas = bitmapFont.getTextureAtlas();
 
         D2D2.textureManager().getTextureEngine().enable(textureAtlas);
 
-        GL11.glEnable(GL_BLEND);
-        GL11.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
         boolean bindResult = D2D2.textureManager().getTextureEngine().bind(textureAtlas);
 
         if (!bindResult) return;
 
-        GL11.glBegin(GL11.GL_QUADS);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        glBegin(GL11.GL_QUADS);
 
         BitmapTextDrawHelper.draw(bitmapText,
             alpha,
@@ -384,14 +408,14 @@ public class LwjglRenderer implements IRenderer {
             LwjglRenderer::applyColor
         );
 
-        GL11.glEnd();
+        glEnd();
 
-        GL11.glDisable(GL_BLEND);
+        glDisable(GL_BLEND);
         D2D2.textureManager().getTextureEngine().disable(textureAtlas);
     }
 
     private static void applyColor(float r, float g, float b, float a) {
-        GL11.glColor4f(r, g, b, a);
+        glColor4f(r, g, b, a);
     }
 
     private static float nextHalf(float v) {
@@ -429,17 +453,17 @@ public class LwjglRenderer implements IRenderer {
         double tf = textureBleedingFix;
         double vf = vertexBleedingFix;
 
-        GL11.glTexCoord2d(cx - tf, -cy + tf);
-        GL11.glVertex2d(x - vf, y + vf);
+        glTexCoord2d(cx - tf, -cy + tf);
+        glVertex2d(x - vf, y + vf);
 
-        GL11.glTexCoord2d(cx + cw + tf, -cy + tf);
-        GL11.glVertex2d(charWidth * scX + x + vf, y + vf);
+        glTexCoord2d(cx + cw + tf, -cy + tf);
+        glVertex2d(charWidth * scX + x + vf, y + vf);
 
-        GL11.glTexCoord2d(cx + cw + tf, -cy + ch - tf);
-        GL11.glVertex2d(charWidth * scX + x + vf, charHeight * -scY + y - vf);
+        glTexCoord2d(cx + cw + tf, -cy + ch - tf);
+        glVertex2d(charWidth * scX + x + vf, charHeight * -scY + y - vf);
 
-        GL11.glTexCoord2d(cx - tf, -cy + ch - tf);
-        GL11.glVertex2d(x - vf, charHeight * -scY + y - vf);
+        glTexCoord2d(cx - tf, -cy + ch - tf);
+        glVertex2d(x - vf, charHeight * -scY + y - vf);
     }
 
     public void setLWJGLTextureEngine(LwjglTextureEngine textureEngine) {
