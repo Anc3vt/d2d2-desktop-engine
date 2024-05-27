@@ -43,6 +43,11 @@ import static java.lang.Math.round;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.glPopMatrix;
+import static org.lwjgl.opengl.GL11.glPushMatrix;
+import static org.lwjgl.opengl.GL11.glRotatef;
+import static org.lwjgl.opengl.GL11.glScalef;
+import static org.lwjgl.opengl.GL11.glTranslatef;
 
 
 // TODO: rewrite with VBO abd refactor
@@ -129,7 +134,10 @@ public class LwjglRenderer implements IRenderer {
         textureEngine.loadTextureAtlases();
 
         zOrderCounter = 0;
+
         clear();
+        GL11.glLoadIdentity();
+
         renderDisplayObject(stage,
             0,
             stage.getX(),
@@ -139,7 +147,6 @@ public class LwjglRenderer implements IRenderer {
             stage.getRotation(),
             stage.getAlpha()
         );
-        GL11.glLoadIdentity();
 
         IDisplayObject cursor = D2D2.getCursor();
         if (cursor != null) {
@@ -209,22 +216,23 @@ public class LwjglRenderer implements IRenderer {
             y = round(y);
         }
 
-        GL11.glPushMatrix();
-        GL11.glTranslatef(x, y, 0);
-        GL11.glRotatef(r, 0, 0, 1);
+        glPushMatrix();
+        glTranslatef(x, y, 0);
+        glRotatef(r, 0, 0, 1);
+        glScalef(scX, scY, 1);
 
         if (displayObject instanceof IContainer container) {
             for (int i = 0; i < container.getNumChildren(); i++) {
-                renderDisplayObject(container.getChild(i), level + 1, x + toX, y + toY, scX, scY, 0, a);
+                renderDisplayObject(container.getChild(i), level + 1, x + toX, y + toY, toScaleX, toScaleY, 0, a);
             }
 
         } else if (displayObject instanceof ISprite s) {
-            renderSprite(s, a, scX, scY, 0);
+            renderSprite(s, a, 0);
         } else if (displayObject instanceof BitmapText btx) {
             if (btx.isCacheAsSprite()) {
-                renderSprite(btx.cachedSprite(), a, scX, scY, btx.getBitmapFont().getPaddingTop() * scY);
+                renderSprite(btx.cachedSprite(), a, btx.getBitmapFont().getPaddingTop() * scY);
             } else {
-                renderBitmapText(btx, a, scX, scY);
+                renderBitmapText(btx, a);
             }
         }
 
@@ -232,13 +240,13 @@ public class LwjglRenderer implements IRenderer {
             fs.processFrame();
         }
 
-        GL11.glPopMatrix();
+        glPopMatrix();
 
         displayObject.onExitFrame();
         displayObject.dispatchEvent(EventPool.simpleEventSingleton(Event.EXIT_FRAME, displayObject));
     }
 
-    private void renderSprite(ISprite sprite, float alpha, float scaleX, float scaleY, float paddingTop) {
+    private void renderSprite(ISprite sprite, float alpha, float paddingTop) {
         Texture texture = sprite.getTexture();
 
         if (texture == null) return;
@@ -291,8 +299,8 @@ public class LwjglRenderer implements IRenderer {
 
         for (int rY = 0; rY < repeatY; rY++) {
             for (float rX = 0; rX < repeatX; rX++) {
-                float px = round(rX * tW * scaleX);
-                float py = round(rY * tH * scaleY) + paddingTop;
+                float px = round(rX * tW * (float) 1);
+                float py = round(rY * tH * (float) 1) + paddingTop;
 
                 double textureTop = y + textureBleedingFix;
                 double textureBottom = (h + y) - textureBleedingFix;
@@ -300,19 +308,19 @@ public class LwjglRenderer implements IRenderer {
                 double textureRight = (w + x) - textureBleedingFix;
 
                 double vertexTop = py - vertexBleedingFix;
-                double vertexBottom = py + tH * scaleY + vertexBleedingFix;
+                double vertexBottom = py + tH+ vertexBleedingFix;
                 double vertexLeft = px - vertexBleedingFix;
-                double vertexRight = px + tW * scaleX + vertexBleedingFix;// * sprite.getRepeatXF();
+                double vertexRight = px + tW+ vertexBleedingFix;// * sprite.getRepeatXF();
 
                 if (repeatX - rX < 1.0) {
                     double val = repeatX - rX;
-                    vertexRight = px + tW * val * scaleX + vertexBleedingFix;
+                    vertexRight = px + tW * val+ vertexBleedingFix;
                     textureRight *= val;
                 }
 
                 if (repeatY - rY < 1.0) {
                     double val = repeatY - rY;
-                    vertexBottom = py + tH * val * scaleY + vertexBleedingFix;
+                    vertexBottom = py + tH * val+ vertexBleedingFix;
                     textureBottom = (h * val + y) - textureBleedingFix;
                 }
 
@@ -342,7 +350,7 @@ public class LwjglRenderer implements IRenderer {
         D2D2.textureManager().getTextureEngine().disable(textureAtlas);
     }
 
-    private void renderBitmapText(BitmapText bitmapText, float alpha, float scaleX, float scaleY) {
+    private void renderBitmapText(BitmapText bitmapText, float alpha) {
         if (bitmapText.isEmpty()) return;
 
         Color color = bitmapText.getColor();
@@ -370,8 +378,8 @@ public class LwjglRenderer implements IRenderer {
 
         BitmapTextDrawHelper.draw(bitmapText,
             alpha,
-            scaleX,
-            scaleY,
+            1,
+            1,
             LwjglRenderer::drawChar,
             LwjglRenderer::applyColor
         );
