@@ -238,7 +238,6 @@ public class LwjglRenderer implements IRenderer {
         glRotatef(r, 0, 0, 1);
         glScalef(scX, scY, 1);
 
-
         if (displayObject instanceof IColored colored) {
             Color color = colored.getColor();
 
