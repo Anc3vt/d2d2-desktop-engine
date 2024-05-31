@@ -32,6 +32,10 @@ import com.ancevt.d2d2.display.text.BitmapFont;
 import com.ancevt.d2d2.display.text.BitmapText;
 import com.ancevt.d2d2.display.texture.Texture;
 import com.ancevt.d2d2.display.texture.TextureAtlas;
+import com.ancevt.d2d2.engine.lwjgl.util.Vao;
+import com.ancevt.d2d2.engine.lwjgl.util.Vbo;
+import com.ancevt.d2d2.engine.lwjgl.util.shader.ShaderProgram;
+import com.ancevt.d2d2.engine.lwjgl.util.shader.VertexShader;
 import com.ancevt.d2d2.event.Event;
 import com.ancevt.d2d2.event.EventPool;
 import com.ancevt.d2d2.input.Mouse;
@@ -86,6 +90,9 @@ public class LwjglRenderer implements IRenderer {
     @Setter
     private int fps = frameRate;
 
+    private Vao vao;
+
+    private ShaderProgram shaderProgram;
 
     public LwjglRenderer(Stage stage, LwjglEngine lwjglStarter) {
         this.stage = stage;
@@ -101,6 +108,23 @@ public class LwjglRenderer implements IRenderer {
         glTexParameteri(GL11.GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
         glMatrixMode(GL11.GL_MODELVIEW);
+
+        VertexShader vertexShader = VertexShader.createFromResources("d2d2shader/shader.vert");
+        vertexShader.compile();
+
+        shaderProgram = new ShaderProgram();
+        shaderProgram.attachShader(vertexShader);
+        shaderProgram.link();
+
+        float[] vertices = {
+            0f, 0f, 0.0f,
+            1f, 0f, 0.0f,
+            1f, 1f, 0.0f,
+            0f, 1f, 0.0f,
+        };
+
+        vao = new Vao();
+        vao.addVbo(new Vbo(vertices), 0);
     }
 
     @Override
