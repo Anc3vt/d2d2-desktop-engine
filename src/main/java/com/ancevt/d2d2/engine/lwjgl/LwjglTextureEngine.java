@@ -22,7 +22,7 @@ import com.ancevt.d2d2.asset.Assets;
 import com.ancevt.d2d2.display.Color;
 import com.ancevt.d2d2.display.text.BitmapText;
 import com.ancevt.d2d2.display.texture.ITextureEngine;
-import com.ancevt.d2d2.display.texture.Texture;
+import com.ancevt.d2d2.display.texture.TextureClip;
 import com.ancevt.d2d2.display.texture.TextureAtlas;
 import com.ancevt.d2d2.display.texture.TextureCell;
 
@@ -126,7 +126,7 @@ public class LwjglTextureEngine implements ITextureEngine {
 
         final TextureAtlas textureAtlas = createTextureAtlasFromBufferedImage(image);
         mapping.images().put(textureAtlas.getId(), image);
-        D2D2.textureManager().addTexture("_textureAtlas_" + textureAtlas.getId(), textureAtlas.createTexture());
+        D2D2.getTextureManager().addTexture("_textureAtlas_" + textureAtlas.getId(), textureAtlas.createTexture());
         return textureAtlas;
     }
 
@@ -142,8 +142,8 @@ public class LwjglTextureEngine implements ITextureEngine {
 
         BufferedImage imageRegion;
 
-        float texWidth = cell.getTexture().width();
-        float texHeight = cell.getTexture().height();
+        float texWidth = cell.getTexture().getWidth();
+        float texHeight = cell.getTexture().getHeight();
 
         int originWidth = fullImageRegion.getWidth(null);
         int originHeight = fullImageRegion.getHeight(null);
@@ -171,7 +171,7 @@ public class LwjglTextureEngine implements ITextureEngine {
 
 
                     imageRegion = textureRegionToImage(
-                        cell.getTexture().getSubtexture(
+                        cell.getTexture().getSubTexture(
                             0,
                             0,
                             (int) (texWidth * valX),
@@ -209,7 +209,7 @@ public class LwjglTextureEngine implements ITextureEngine {
     @Override
     public TextureAtlas createTextureAtlas(String assetPath) {
         try {
-            InputStream pngInputStream = Assets.getAssetAsStream(assetPath);
+            InputStream pngInputStream = Assets.getAsset(assetPath);
             return createTextureAtlasFromBufferedImage(ImageIO.read(pngInputStream));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
@@ -239,7 +239,7 @@ public class LwjglTextureEngine implements ITextureEngine {
 
         TextureAtlas textureAtlas = createTextureAtlasFromByteBuffer(byteBuffer, width, height);
         mapping.images().put(textureAtlas.getId(), image);
-        D2D2.textureManager().addTextureAtlas(textureAtlas);
+        D2D2.getTextureManager().addTextureAtlas(textureAtlas);
         return textureAtlas;
     }
 
@@ -352,7 +352,7 @@ public class LwjglTextureEngine implements ITextureEngine {
 
 
         final TextureAtlas textureAtlas = createTextureAtlasFromBufferedImage(image);
-        D2D2.textureManager().addTexture("_textureAtlas_text_" + textureAtlas.getId(), textureAtlas.createTexture());
+        D2D2.getTextureManager().addTexture("_textureAtlas_text_" + textureAtlas.getId(), textureAtlas.createTexture());
         return textureAtlas;
     }
 
@@ -386,13 +386,13 @@ public class LwjglTextureEngine implements ITextureEngine {
         return bufferedImage.getSubimage(x, y, width, height);
     }
 
-    private BufferedImage textureRegionToImage(Texture texture) {
+    private BufferedImage textureRegionToImage(TextureClip textureClip) {
         return textureRegionToImage(
-            texture.getTextureAtlas(),
-            texture.x(),
-            texture.y(),
-            texture.width(),
-            texture.height()
+            textureClip.getTextureAtlas(),
+            textureClip.getX(),
+            textureClip.getY(),
+            textureClip.getWidth(),
+            textureClip.getHeight()
         );
     }
 }

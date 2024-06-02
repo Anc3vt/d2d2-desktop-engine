@@ -19,18 +19,18 @@ package com.ancevt.d2d2.engine.lwjgl;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.display.Color;
-import com.ancevt.d2d2.display.IColored;
-import com.ancevt.d2d2.display.IContainer;
-import com.ancevt.d2d2.display.IDisplayObject;
-import com.ancevt.d2d2.display.IFrameSeq;
-import com.ancevt.d2d2.display.IRenderer;
-import com.ancevt.d2d2.display.ISprite;
+import com.ancevt.d2d2.display.Colored;
+import com.ancevt.d2d2.display.Container;
+import com.ancevt.d2d2.display.DisplayObject;
+import com.ancevt.d2d2.display.Playable;
+import com.ancevt.d2d2.display.Renderer;
+import com.ancevt.d2d2.display.Sprite;
 import com.ancevt.d2d2.display.Stage;
 import com.ancevt.d2d2.display.shape.IShape;
 import com.ancevt.d2d2.display.text.BitmapCharInfo;
 import com.ancevt.d2d2.display.text.BitmapFont;
 import com.ancevt.d2d2.display.text.BitmapText;
-import com.ancevt.d2d2.display.texture.Texture;
+import com.ancevt.d2d2.display.texture.TextureClip;
 import com.ancevt.d2d2.display.texture.TextureAtlas;
 import com.ancevt.d2d2.engine.lwjgl.util.Vao;
 import com.ancevt.d2d2.engine.lwjgl.util.Vbo;
@@ -74,7 +74,7 @@ import static org.lwjgl.opengl.GL11.glViewport;
 
 
 // TODO: rewrite with VBO abd refactor
-public class LwjglRenderer implements IRenderer {
+public class LwjglRenderer implements Renderer {
 
     private final Stage stage;
     private final LwjglEngine lwjglMediaEngine;
@@ -190,7 +190,7 @@ public class LwjglRenderer implements IRenderer {
             stage.getAlpha()
         );
 
-        IDisplayObject cursor = D2D2.getCursor();
+        DisplayObject cursor = D2D2.getCursor();
         if (cursor != null) {
             renderDisplayObject(cursor, 0, 0, 0, 1, 1, 1);
         }
@@ -201,12 +201,12 @@ public class LwjglRenderer implements IRenderer {
         Mouse.setXY((int) mouseX[0], (int) mouseY[0]);
     }
 
-    private void dispatchLoopUpdate(IDisplayObject o) {
+    private void dispatchLoopUpdate(DisplayObject o) {
         if (!o.isVisible()) return;
 
-        if (o instanceof IContainer c) {
+        if (o instanceof Container c) {
             for (int i = 0; i < c.getNumChildren(); i++) {
-                IDisplayObject child = c.getChild(i);
+                DisplayObject child = c.getChild(i);
                 dispatchLoopUpdate(child);
             }
         }
@@ -227,7 +227,7 @@ public class LwjglRenderer implements IRenderer {
         glClear(GL11.GL_COLOR_BUFFER_BIT);
     }
 
-    private synchronized void renderDisplayObject(IDisplayObject displayObject,
+    private synchronized void renderDisplayObject(DisplayObject displayObject,
                                                   int level,
                                                   float toX,
                                                   float toY,
@@ -262,7 +262,7 @@ public class LwjglRenderer implements IRenderer {
         glRotatef(r, 0, 0, 1);
         glScalef(scX, scY, 1);
 
-        if (displayObject instanceof IColored colored) {
+        if (displayObject instanceof Colored colored) {
             Color color = colored.getColor();
 
             if (displayObject.getName().equals("_rs")) {
@@ -279,12 +279,12 @@ public class LwjglRenderer implements IRenderer {
             }
         }
 
-        if (displayObject instanceof IContainer container) {
+        if (displayObject instanceof Container container) {
             for (int i = 0; i < container.getNumChildren(); i++) {
                 renderDisplayObject(container.getChild(i), level + 1, x + toX, y + toY, toScaleX, toScaleY, a);
             }
 
-        } else if (displayObject instanceof ISprite s) {
+        } else if (displayObject instanceof Sprite s) {
             renderSprite(s);
         } else if (displayObject instanceof BitmapText btx) {
             if (btx.isCacheAsSprite()) {
@@ -296,7 +296,7 @@ public class LwjglRenderer implements IRenderer {
             renderShape(s, a);
         }
 
-        if (displayObject instanceof IFrameSeq fs) {
+        if (displayObject instanceof Playable fs) {
             fs.processFrame();
         }
 
@@ -313,28 +313,28 @@ public class LwjglRenderer implements IRenderer {
         glDisable(GL_BLEND);
     }
 
-    private void renderSprite(ISprite sprite) {
+    private void renderSprite(Sprite sprite) {
 
-        Texture texture = sprite.getTexture();
+        TextureClip textureClip = sprite.getTexture();
 
-        if (texture == null) return;
-        if (texture.getTextureAtlas().isDisposed()) return;
+        if (textureClip == null) return;
+        if (textureClip.getTextureAtlas().isDisposed()) return;
 
-        TextureAtlas textureAtlas = texture.getTextureAtlas();
+        TextureAtlas textureAtlas = textureClip.getTextureAtlas();
 
 
-        boolean bindResult = D2D2.textureManager().getTextureEngine().bind(textureAtlas);
+        boolean bindResult = D2D2.getTextureManager().getTextureEngine().bind(textureAtlas);
 
         if (!bindResult) {
             return;
         }
 
-        D2D2.textureManager().getTextureEngine().enable(textureAtlas);
+        D2D2.getTextureManager().getTextureEngine().enable(textureAtlas);
 
-        int tX = texture.x();
-        int tY = texture.y();
-        int tW = texture.width();
-        int tH = texture.height();
+        int tX = textureClip.getX();
+        int tY = textureClip.getY();
+        int tW = textureClip.getWidth();
+        int tH = textureClip.getHeight();
 
         float totalW = textureAtlas.getWidth();
         float totalH = textureAtlas.getHeight();
@@ -403,7 +403,7 @@ public class LwjglRenderer implements IRenderer {
         }
 
         glDisable(GL_BLEND);
-        D2D2.textureManager().getTextureEngine().disable(textureAtlas);
+        D2D2.getTextureManager().getTextureEngine().disable(textureAtlas);
     }
 
     private void renderBitmapText(BitmapText bitmapText, float alpha) {
@@ -412,9 +412,9 @@ public class LwjglRenderer implements IRenderer {
         BitmapFont bitmapFont = bitmapText.getBitmapFont();
         TextureAtlas textureAtlas = bitmapFont.getTextureAtlas();
 
-        D2D2.textureManager().getTextureEngine().enable(textureAtlas);
+        D2D2.getTextureManager().getTextureEngine().enable(textureAtlas);
 
-        boolean bindResult = D2D2.textureManager().getTextureEngine().bind(textureAtlas);
+        boolean bindResult = D2D2.getTextureManager().getTextureEngine().bind(textureAtlas);
 
         if (!bindResult) return;
 
@@ -434,7 +434,7 @@ public class LwjglRenderer implements IRenderer {
         glEnd();
 
         glDisable(GL_BLEND);
-        D2D2.textureManager().getTextureEngine().disable(textureAtlas);
+        D2D2.getTextureManager().getTextureEngine().disable(textureAtlas);
     }
 
     private static void applyColor(float r, float g, float b, float a) {
