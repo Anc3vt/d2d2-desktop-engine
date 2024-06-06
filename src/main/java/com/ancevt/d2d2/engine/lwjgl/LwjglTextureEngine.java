@@ -126,7 +126,7 @@ public class LwjglTextureEngine implements ITextureEngine {
 
         final TextureAtlas textureAtlas = createTextureAtlasFromBufferedImage(image);
         mapping.images().put(textureAtlas.getId(), image);
-        D2D2.getTextureManager().addTexture("_textureAtlas_" + textureAtlas.getId(), textureAtlas.createTexture());
+        D2D2.getTextureManager().addTexture("_textureAtlas_" + textureAtlas.getId(), textureAtlas.createTextureClip());
         return textureAtlas;
     }
 
@@ -352,7 +352,7 @@ public class LwjglTextureEngine implements ITextureEngine {
 
 
         final TextureAtlas textureAtlas = createTextureAtlasFromBufferedImage(image);
-        D2D2.getTextureManager().addTexture("_textureAtlas_text_" + textureAtlas.getId(), textureAtlas.createTexture());
+        D2D2.getTextureManager().addTexture("_textureAtlas_text_" + textureAtlas.getId(), textureAtlas.createTextureClip());
         return textureAtlas;
     }
 

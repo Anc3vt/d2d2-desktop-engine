@@ -120,7 +120,6 @@ public final class LwjglDisplayManager implements DisplayManager {
                 savedWindowState.getHeight(),
                 GLFW_DONT_CARE
             );
-            System.out.println(savedWindowState);
             savedWindowState = null;
         }
     }
