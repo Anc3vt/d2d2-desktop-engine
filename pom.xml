@@ -7,7 +7,7 @@
 
     <groupId>com.ancevt.d2d2</groupId>
     <artifactId>d2d2-lwjgl-opengl</artifactId>
-    <version>0.1.6.3-SNAPSHOT</version>
+    <version>0.1.6.3</version>
 
     <name>LWJGL+OpenGL D2D2 Engine</name>
 
@@ -61,13 +61,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>17</java.version>
-
         <vorbisspi.version>1.0.3.3</vorbisspi.version>
         <mp3spi.version>1.9.5.4</mp3spi.version>
-        <lombok.version>1.18.26</lombok.version>
-        <gson.version>2.9.1</gson.version>
-        <args.version>2.1.4</args.version>
-        <logback.version>1.4.12</logback.version>
         <lwjgl.version>3.3.3</lwjgl.version>
         <lwjgl_util.version>2.9.3</lwjgl_util.version>
         <pngdecoder.version>1.0</pngdecoder.version>
@@ -85,17 +80,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.ancevt.util</groupId>
-            <artifactId>args</artifactId>
-            <version>${args.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.googlecode.soundlibs</groupId>
             <artifactId>mp3spi</artifactId>
             <version>${mp3spi.version}</version>
@@ -109,16 +93,6 @@
             <groupId>org.l33tlabs.twl</groupId>
             <artifactId>pngdecoder</artifactId>
             <version>${pngdecoder.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>${gson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>${logback.version}</version>
         </dependency>
 
         <!-- LWJGL -->

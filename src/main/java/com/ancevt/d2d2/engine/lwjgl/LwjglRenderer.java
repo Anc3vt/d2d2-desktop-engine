@@ -265,10 +265,6 @@ public class LwjglRenderer implements Renderer {
         if (displayObject instanceof Colored colored) {
             Color color = colored.getColor();
 
-            if (displayObject.getName().equals("_rs")) {
-                System.out.println("rs: " + a);
-            }
-
             if (color != null) {
                 glColor4f(
                     color.getR() / 255f,
