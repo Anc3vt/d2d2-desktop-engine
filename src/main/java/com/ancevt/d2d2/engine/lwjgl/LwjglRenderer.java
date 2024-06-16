@@ -311,7 +311,7 @@ public class LwjglRenderer implements Renderer {
 
     private void renderSprite(Sprite sprite) {
 
-        TextureClip textureClip = sprite.getTexture();
+        TextureClip textureClip = sprite.getTextureClip();
 
         if (textureClip == null) return;
         if (textureClip.getTextureAtlas().isDisposed()) return;
