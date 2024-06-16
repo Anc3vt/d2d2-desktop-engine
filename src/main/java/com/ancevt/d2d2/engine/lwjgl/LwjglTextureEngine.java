@@ -24,7 +24,7 @@ import com.ancevt.d2d2.display.text.BitmapText;
 import com.ancevt.d2d2.display.texture.ITextureEngine;
 import com.ancevt.d2d2.display.texture.TextureClip;
 import com.ancevt.d2d2.display.texture.TextureAtlas;
-import com.ancevt.d2d2.display.texture.TextureCell;
+import com.ancevt.d2d2.display.texture.TextureClipCombinerCell;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL30;
@@ -89,11 +89,11 @@ public class LwjglTextureEngine implements ITextureEngine {
     }
 
     @Override
-    public TextureAtlas createTextureAtlas(int width, int height, TextureCell[] cells) {
+    public TextureAtlas createTextureAtlas(int width, int height, TextureClipCombinerCell[] cells) {
         final BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         final Graphics2D g = (Graphics2D) image.getGraphics();
 
-        for (final TextureCell cell : cells) {
+        for (final TextureClipCombinerCell cell : cells) {
 
             if (cell.isPixel()) {
 
@@ -130,7 +130,7 @@ public class LwjglTextureEngine implements ITextureEngine {
         return textureAtlas;
     }
 
-    private void drawCell(Graphics2D g, final TextureCell cell) {
+    private void drawCell(Graphics2D g, final TextureClipCombinerCell cell) {
         int x = cell.getX();
         int y = cell.getY();
         float repeatX = cell.getRepeatX();
