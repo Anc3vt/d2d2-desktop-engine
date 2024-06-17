@@ -157,6 +157,7 @@ public final class LwjglDisplayManager implements DisplayManager {
 
     @Override
     public void setMouseVisible(boolean mouseVisible) {
+        if(this.mouseVisible == mouseVisible) return;
         this.mouseVisible = mouseVisible;
         glfwSetInputMode(windowId, GLFW_CURSOR, mouseVisible ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
     }

@@ -84,7 +84,7 @@ public class TextureLoader {
         byteBuffer.flip();
 
         TextureAtlas textureAtlas = createTextureAtlasFromByteBuffer(byteBuffer, width, height);
-        D2D2.getTextureManager().addTextureAtlas(textureAtlas);
+        D2D2.textureManager().addTextureAtlas(textureAtlas);
         return textureAtlas;
     }
 
