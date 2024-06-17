@@ -197,7 +197,7 @@ public class LwjglRenderer implements Renderer {
 
         textureEngine.unloadTextureAtlases();
 
-        GLFW.glfwGetCursorPos(lwjglMediaEngine.getDisplayManager().getWindowId(), mouseX, mouseY);
+        GLFW.glfwGetCursorPos(lwjglMediaEngine.displayManager().getWindowId(), mouseX, mouseY);
         Mouse.setXY((int) mouseX[0], (int) mouseY[0]);
     }
 
@@ -319,13 +319,13 @@ public class LwjglRenderer implements Renderer {
         TextureAtlas textureAtlas = textureClip.getTextureAtlas();
 
 
-        boolean bindResult = D2D2.getTextureManager().getTextureEngine().bind(textureAtlas);
+        boolean bindResult = D2D2.textureManager().getTextureEngine().bind(textureAtlas);
 
         if (!bindResult) {
             return;
         }
 
-        D2D2.getTextureManager().getTextureEngine().enable(textureAtlas);
+        D2D2.textureManager().getTextureEngine().enable(textureAtlas);
 
         int tX = textureClip.getX();
         int tY = textureClip.getY();
@@ -399,7 +399,7 @@ public class LwjglRenderer implements Renderer {
         }
 
         glDisable(GL_BLEND);
-        D2D2.getTextureManager().getTextureEngine().disable(textureAtlas);
+        D2D2.textureManager().getTextureEngine().disable(textureAtlas);
     }
 
     private void renderBitmapText(BitmapText bitmapText, float alpha) {
@@ -408,9 +408,9 @@ public class LwjglRenderer implements Renderer {
         BitmapFont bitmapFont = bitmapText.getBitmapFont();
         TextureAtlas textureAtlas = bitmapFont.getTextureAtlas();
 
-        D2D2.getTextureManager().getTextureEngine().enable(textureAtlas);
+        D2D2.textureManager().getTextureEngine().enable(textureAtlas);
 
-        boolean bindResult = D2D2.getTextureManager().getTextureEngine().bind(textureAtlas);
+        boolean bindResult = D2D2.textureManager().getTextureEngine().bind(textureAtlas);
 
         if (!bindResult) return;
 
@@ -430,7 +430,7 @@ public class LwjglRenderer implements Renderer {
         glEnd();
 
         glDisable(GL_BLEND);
-        D2D2.getTextureManager().getTextureEngine().disable(textureAtlas);
+        D2D2.textureManager().getTextureEngine().disable(textureAtlas);
     }
 
     private static void applyColor(float r, float g, float b, float a) {

@@ -24,6 +24,7 @@ import com.ancevt.d2d2.display.interactive.InteractiveManager;
 import com.ancevt.d2d2.display.text.BitmapFont;
 import com.ancevt.d2d2.display.text.FractionalMetrics;
 import com.ancevt.d2d2.display.text.TrueTypeBitmapFontBuilder;
+import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.event.InteractiveEvent;
 import com.ancevt.d2d2.event.LifecycleEvent;
@@ -37,7 +38,6 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
@@ -121,7 +121,6 @@ public class LwjglEngine implements Engine {
     private boolean shift;
     private boolean alt;
 
-    @Getter
     private final LwjglDisplayManager displayManager = new LwjglDisplayManager();
 
     @Getter
@@ -132,7 +131,12 @@ public class LwjglEngine implements Engine {
         this.initialWindowWidth = initialWindowWidth;
         this.initialWindowHeight = initialWindowHeight;
         this.initialWindowTitle = initialWindowTitle;
-        D2D2.getTextureManager().setTextureEngine(new LwjglTextureEngine());
+        D2D2.textureManager().setTextureEngine(new LwjglTextureEngine());
+    }
+
+    @Override
+    public DisplayManager displayManager() {
+        return displayManager;
     }
 
     @Override
@@ -160,7 +164,7 @@ public class LwjglEngine implements Engine {
         stage = new Stage();
         stage.onResize(initialWindowWidth, initialWindowHeight);
         renderer = new LwjglRenderer(stage, this);
-        renderer.setLWJGLTextureEngine((LwjglTextureEngine) D2D2.getTextureManager().getTextureEngine());
+        renderer.setLWJGLTextureEngine((LwjglTextureEngine) D2D2.textureManager().getTextureEngine());
         displayManager.windowId = createWindow();
         displayManager.setVisible(true);
     }
@@ -204,7 +208,7 @@ public class LwjglEngine implements Engine {
     }
 
     @Override
-    public Stage getStage() {
+    public Stage stage() {
         return stage;
     }
 
@@ -373,7 +377,7 @@ public class LwjglEngine implements Engine {
         glfwSwapInterval(1);
 
         // TODO: remove loading demo texture data info from here
-        D2D2.getTextureManager().loadTextureDataInfo(DEMO_TEXTURE_DATA_INF_FILE);
+        D2D2.textureManager().loadTextureDataInfo(DEMO_TEXTURE_DATA_INF_FILE);
 
         renderer.init(windowId);
         renderer.reshape(initialWindowWidth, initialWindowHeight);
@@ -642,7 +646,7 @@ public class LwjglEngine implements Engine {
             log.info("BMF written {}/{}", destinationPath, fileName);
         }
 
-        return D2D2.getBitmapFontManager().loadBitmapFont(
+        return D2D2.bitmapFontManager().loadBitmapFont(
             new ByteArrayInputStream(charsDataBytes),
             new ByteArrayInputStream(pngDataBytes),
             builder.getName()
