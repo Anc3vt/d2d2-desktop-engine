@@ -38,6 +38,7 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
@@ -120,6 +121,8 @@ public class LwjglEngine implements Engine {
     private boolean control;
     private boolean shift;
     private boolean alt;
+
+    private long windowId;
 
     private final LwjglDisplayManager displayManager = new LwjglDisplayManager();
 
@@ -230,7 +233,7 @@ public class LwjglEngine implements Engine {
             glfwWindowHint(GLFW_FLOATING, 1);
         }
 
-        long windowId = glfwCreateWindow(initialWindowWidth, initialWindowHeight, initialWindowTitle, NULL, NULL);
+        windowId = glfwCreateWindow(initialWindowWidth, initialWindowHeight, initialWindowTitle, NULL, NULL);
 
         if (windowId == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
@@ -387,6 +390,10 @@ public class LwjglEngine implements Engine {
         return windowId;
     }
 
+    @Override
+    public void setCursorXY(int x, int y) {
+        GLFW.glfwSetCursorPos(windowId, x, y);
+    }
 
     @Override
     public void putToClipboard(String string) {
