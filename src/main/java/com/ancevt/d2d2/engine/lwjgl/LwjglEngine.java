@@ -274,9 +274,12 @@ public class LwjglEngine implements Engine {
                     .y(Mouse.getY())
                     .drag(isDown)
                     .mouseButton(mouseButton)
+                    .shift((mods & GLFW_MOD_SHIFT) != 0)
+                    .control((mods & GLFW_MOD_CONTROL) != 0)
+                    .alt((mods & GLFW_MOD_ALT) != 0)
                     .build());
 
-                InteractiveManager.getInstance().screenTouch(mouseX, mouseY, 0, mouseButton, isDown);
+                InteractiveManager.getInstance().screenTouch(mouseX, mouseY, 0, mouseButton, isDown, shift, control, alt);
             }
         });
 
@@ -295,7 +298,7 @@ public class LwjglEngine implements Engine {
                     .drag(isDown)
                     .build());
 
-                InteractiveManager.getInstance().screenDrag(0, mouseX, mouseY);
+                InteractiveManager.getInstance().screenDrag(0, mouseX, mouseY, shift, control, alt);
             }
         });
 
