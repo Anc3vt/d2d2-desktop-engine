@@ -171,7 +171,7 @@ public class LwjglTextureEngine implements ITextureEngine {
 
 
                     imageRegion = textureRegionToImage(
-                        cell.getTexture().getSubTexture(
+                        cell.getTexture().createSubTextureClip(
                             0,
                             0,
                             (int) (texWidth * valX),

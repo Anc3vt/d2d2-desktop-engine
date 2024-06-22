@@ -298,7 +298,7 @@ public class LwjglEngine implements Engine {
                     .drag(isDown)
                     .build());
 
-                InteractiveManager.getInstance().screenDrag(0, mouseX, mouseY, shift, control, alt);
+                InteractiveManager.getInstance().screenMove(0, mouseX, mouseY, shift, control, alt);
             }
         });
 
