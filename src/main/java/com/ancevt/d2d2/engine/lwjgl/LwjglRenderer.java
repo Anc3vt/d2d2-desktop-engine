@@ -26,7 +26,7 @@ import com.ancevt.d2d2.display.Playable;
 import com.ancevt.d2d2.display.Renderer;
 import com.ancevt.d2d2.display.Sprite;
 import com.ancevt.d2d2.display.Stage;
-import com.ancevt.d2d2.display.shape.IShape;
+import com.ancevt.d2d2.display.shape.Shape;
 import com.ancevt.d2d2.display.text.BitmapCharInfo;
 import com.ancevt.d2d2.display.text.BitmapFont;
 import com.ancevt.d2d2.display.text.BitmapText;
@@ -288,7 +288,7 @@ public class LwjglRenderer implements Renderer {
             } else {
                 renderBitmapText(btx, a);
             }
-        } else if (displayObject instanceof IShape s) {
+        } else if (displayObject instanceof Shape s) {
             renderShape(s, a);
         }
 
@@ -302,7 +302,7 @@ public class LwjglRenderer implements Renderer {
         displayObject.dispatchEvent(EventPool.simpleEventSingleton(Event.EXIT_FRAME, displayObject));
     }
 
-    private void renderShape(IShape s, float alpha) {
+    private void renderShape(Shape s, float alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         LwjglShapeRenderer.drawShape(s, alpha);

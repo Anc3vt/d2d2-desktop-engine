@@ -17,8 +17,11 @@
  */
 package com.ancevt.d2d2.engine.lwjgl;
 
-import com.ancevt.d2d2.display.shape.IShape;
+import com.ancevt.d2d2.display.shape.FreeShape;
+import com.ancevt.d2d2.display.shape.Shape;
 import com.ancevt.d2d2.display.shape.RectangleShape;
+import com.ancevt.d2d2.display.shape.Triangle;
+import com.ancevt.d2d2.display.shape.Vertex;
 import org.lwjgl.opengl.GL11;
 
 import static org.lwjgl.opengl.GL11.glBegin;
@@ -28,10 +31,30 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
 class LwjglShapeRenderer {
 
 
-    public static void drawShape(IShape shape, float alpha) {
+    public static void drawShape(Shape shape, float alpha) {
         if (shape instanceof RectangleShape s) {
             drawRectangleShape(s, alpha);
+        } else if (shape instanceof FreeShape s) {
+            drawFreeShape(s, alpha);
         }
+    }
+
+    private static void drawFreeShape(FreeShape s, float alpha) {
+
+        for (Triangle triangle : s.getTriangles()) {
+
+            glBegin(GL11.GL_TRIANGLES);
+
+            glVertex2f(triangle.getX1(), triangle.getY1());
+            glVertex2f(triangle.getX2(), triangle.getY2());
+            glVertex2f(triangle.getX3(), triangle.getY3());
+
+            glEnd();
+
+        }
+
+
+
     }
 
     private static void drawRectangleShape(RectangleShape s, float alpha) {
@@ -39,7 +62,6 @@ class LwjglShapeRenderer {
         float r = s.getWidth();
         float b = s.getHeight();
         float t = 0;
-
 
 
         glBegin(GL11.GL_QUADS);
