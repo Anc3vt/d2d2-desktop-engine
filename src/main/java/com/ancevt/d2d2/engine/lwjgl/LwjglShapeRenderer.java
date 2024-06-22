@@ -18,14 +18,20 @@
 package com.ancevt.d2d2.engine.lwjgl;
 
 import com.ancevt.d2d2.display.shape.FreeShape;
-import com.ancevt.d2d2.display.shape.Shape;
+import com.ancevt.d2d2.display.shape.LineBatch;
 import com.ancevt.d2d2.display.shape.RectangleShape;
+import com.ancevt.d2d2.display.shape.Shape;
 import com.ancevt.d2d2.display.shape.Triangle;
 import com.ancevt.d2d2.display.shape.Vertex;
 import org.lwjgl.opengl.GL11;
 
+import static org.lwjgl.opengl.GL11.GL_LINE_STIPPLE;
 import static org.lwjgl.opengl.GL11.glBegin;
+import static org.lwjgl.opengl.GL11.glDisable;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnd;
+import static org.lwjgl.opengl.GL11.glLineStipple;
+import static org.lwjgl.opengl.GL11.glLineWidth;
 import static org.lwjgl.opengl.GL11.glVertex2f;
 
 class LwjglShapeRenderer {
@@ -33,13 +39,46 @@ class LwjglShapeRenderer {
 
     public static void drawShape(Shape shape, float alpha) {
         if (shape instanceof RectangleShape s) {
-            drawRectangleShape(s, alpha);
+            drawRectangleShape(s);
         } else if (shape instanceof FreeShape s) {
-            drawFreeShape(s, alpha);
+            drawFreeShape(s);
+        } else if (shape instanceof LineBatch s) {
+            drawLineBatch(s);
         }
     }
 
-    private static void drawFreeShape(FreeShape s, float alpha) {
+    private static void drawLineBatch(LineBatch s) {
+
+        glLineWidth(s.getLineWidth());
+
+        if (s.getStipple() != 0) {
+            glEnable(GL_LINE_STIPPLE);
+            glLineStipple(s.getStippleFactor(), s.getStipple());
+        }
+
+        glBegin(GL11.GL_LINE_STRIP);
+
+        for (LineBatch.Line line : s.getLines()) {
+            Vertex a = line.getVertexA();
+            Vertex b = line.getVertexB();
+
+            glVertex2f(a.x, a.y);
+            glVertex2f(b.x, b.y);
+
+            if (line.isClosing()) {
+                glEnd();
+                glBegin(GL11.GL_LINE_STRIP);
+            }
+
+        }
+
+
+        glEnd();
+
+        glDisable(GL_LINE_STIPPLE);
+    }
+
+    private static void drawFreeShape(FreeShape s) {
 
         for (Triangle triangle : s.getTriangles()) {
 
@@ -54,10 +93,9 @@ class LwjglShapeRenderer {
         }
 
 
-
     }
 
-    private static void drawRectangleShape(RectangleShape s, float alpha) {
+    private static void drawRectangleShape(RectangleShape s) {
         float l = 0;
         float r = s.getWidth();
         float b = s.getHeight();
