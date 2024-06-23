@@ -90,6 +90,11 @@ class BitmapTextDrawHelper {
 
             if (charInfo == null) continue;
 
+            if (charInfo.character() == ' ') {
+                drawX += bitmapFont.getZeroCharWidth();
+                continue;
+            }
+
             float charWidth = charInfo.width();
             float charHeight = charInfo.height();
 
