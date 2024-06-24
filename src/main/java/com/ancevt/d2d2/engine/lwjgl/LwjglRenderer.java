@@ -77,7 +77,7 @@ import static org.lwjgl.opengl.GL11.glViewport;
 public class LwjglRenderer implements Renderer {
 
     private final Stage stage;
-    private final LwjglEngine lwjglMediaEngine;
+    private final LwjglEngine lwjglEngine;
     boolean smoothMode = false;
     private LwjglTextureEngine textureEngine;
     private int zOrderCounter;
@@ -96,7 +96,7 @@ public class LwjglRenderer implements Renderer {
 
     public LwjglRenderer(Stage stage, LwjglEngine lwjglStarter) {
         this.stage = stage;
-        this.lwjglMediaEngine = lwjglStarter;
+        this.lwjglEngine = lwjglStarter;
     }
 
     @Override
@@ -128,13 +128,14 @@ public class LwjglRenderer implements Renderer {
     }
 
     @Override
-    public void reshape(int width, int height) {
-        glViewport(0, 0, width, height);
+    public void reshape() {
+        glViewport(0, 0, lwjglEngine.getCanvasWidth(), lwjglEngine.getCanvasHeight());
         glMatrixMode(GL11.GL_PROJECTION);
         glLoadIdentity();
-        GLU.gluOrtho2D(0, width, height, 0);
+        GLU.gluOrtho2D(0, D2D2.stage().getWidth(), D2D2.stage().getHeight(), 0);
         glMatrixMode(GL11.GL_MODELVIEW);
         glLoadIdentity();
+        lwjglEngine.dispatchEvent(EventPool.simpleEventSingleton(Event.RESIZE, lwjglEngine));
     }
 
 
@@ -197,7 +198,7 @@ public class LwjglRenderer implements Renderer {
 
         textureEngine.unloadTextureAtlases();
 
-        GLFW.glfwGetCursorPos(lwjglMediaEngine.displayManager().getWindowId(), mouseX, mouseY);
+        GLFW.glfwGetCursorPos(lwjglEngine.displayManager().getWindowId(), mouseX, mouseY);
         Mouse.setXY((int) mouseX[0], (int) mouseY[0]);
     }
 
