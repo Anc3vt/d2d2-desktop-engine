@@ -17,8 +17,10 @@
  */
 package com.ancevt.d2d2.engine.lwjgl.util;
 
+import com.ancevt.d2d2.display.Color;
 import lombok.Getter;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
 
@@ -26,6 +28,7 @@ import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
+import static org.lwjgl.opengl.GL15.glBufferSubData;
 import static org.lwjgl.opengl.GL15.glDeleteBuffers;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
 
@@ -33,6 +36,7 @@ public class Vbo {
     private final int id;
     @Getter
     private final float[] source;
+    public Color color;
 
     public Vbo(float[] source, int usage) {
         this.source = source;
@@ -46,6 +50,14 @@ public class Vbo {
 
     public Vbo(float[] data) {
         this(data, GL_STATIC_DRAW);
+    }
+
+    public void update(float[] data) {
+        bind();
+        FloatBuffer vertexData = MemoryUtil.memAllocFloat(data.length);
+        vertexData.put(data).flip();
+        glBufferSubData(GL_ARRAY_BUFFER, 0, vertexData);
+        unbind();
     }
 
     public void bind() {
