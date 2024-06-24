@@ -26,6 +26,7 @@ import com.ancevt.d2d2.display.text.FractionalMetrics;
 import com.ancevt.d2d2.display.text.TrueTypeBitmapFontBuilder;
 import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
+import com.ancevt.d2d2.event.BaseEventDispatcher;
 import com.ancevt.d2d2.event.InteractiveEvent;
 import com.ancevt.d2d2.event.LifecycleEvent;
 import com.ancevt.d2d2.input.KeyCode;
@@ -104,13 +105,13 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 // TODO: rewrite with VBO and refactor
 @Slf4j
-public class LwjglEngine implements Engine {
+public class LwjglEngine extends BaseEventDispatcher implements Engine {
 
     private static final String DEMO_TEXTURE_DATA_INF_FILE = "d2d2-core-demo-texture-data.inf";
     private LwjglRenderer renderer;
-    private final int initialWindowWidth;
-    private final int initialWindowHeight;
-    private final String initialWindowTitle;
+    private final int initialWidth;
+    private final int initialHeight;
+    private final String initialTitle;
     private int mouseX;
     private int mouseY;
     private boolean isDown;
@@ -124,17 +125,31 @@ public class LwjglEngine implements Engine {
 
     private long windowId;
 
+    @Getter
+    private int canvasWidth;
+
+    @Getter
+    private int canvasHeight;
+
     private final LwjglDisplayManager displayManager = new LwjglDisplayManager();
 
     @Getter
     @Setter
     private int timerCheckFrameFrequency = 1;
 
-    public LwjglEngine(int initialWindowWidth, int initialWindowHeight, String initialWindowTitle) {
-        this.initialWindowWidth = initialWindowWidth;
-        this.initialWindowHeight = initialWindowHeight;
-        this.initialWindowTitle = initialWindowTitle;
+    public LwjglEngine(int initialWidth, int initialHeight, String initialTitle) {
+        this.initialWidth = initialWidth;
+        this.initialHeight = initialHeight;
+        this.initialTitle = initialTitle;
+        this.canvasWidth = initialWidth;
+        this.canvasHeight = initialHeight;
         D2D2.textureManager().setTextureEngine(new LwjglTextureEngine());
+    }
+
+    @Override
+    public void setCanvasSize(int width, int height) {
+        canvasWidth = width;
+        canvasHeight = height;
     }
 
     @Override
@@ -145,7 +160,6 @@ public class LwjglEngine implements Engine {
     @Override
     public void setAlwaysOnTop(boolean b) {
         this.alwaysOnTop = b;
-
         glfwWindowHint(GLFW_FLOATING, alwaysOnTop ? GLFW_TRUE : GLFW_FALSE);
     }
 
@@ -165,11 +179,12 @@ public class LwjglEngine implements Engine {
     @Override
     public void create() {
         stage = new Stage();
-        stage.onResize(initialWindowWidth, initialWindowHeight);
         renderer = new LwjglRenderer(stage, this);
         renderer.setLWJGLTextureEngine((LwjglTextureEngine) D2D2.textureManager().getTextureEngine());
         displayManager.windowId = createWindow();
         displayManager.setVisible(true);
+        stage.setSize(initialWidth, initialHeight);
+        renderer.reshape();
     }
 
     @Override
@@ -233,7 +248,7 @@ public class LwjglEngine implements Engine {
             glfwWindowHint(GLFW_FLOATING, 1);
         }
 
-        windowId = glfwCreateWindow(initialWindowWidth, initialWindowHeight, initialWindowTitle, NULL, NULL);
+        windowId = glfwCreateWindow(initialWidth, initialHeight, initialTitle, NULL, NULL);
 
         if (windowId == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
@@ -243,8 +258,9 @@ public class LwjglEngine implements Engine {
         glfwSetWindowSizeCallback(windowId, new GLFWWindowSizeCallback() {
             @Override
             public void invoke(long l, int width, int height) {
-                renderer.reshape(width, height);
-                stage.onResize(width, height);
+                canvasWidth = width;
+                canvasHeight = height;
+                renderer.reshape();
             }
         });
 
@@ -373,8 +389,8 @@ public class LwjglEngine implements Engine {
 
         glfwSetWindowPos(
             windowId,
-            (videoMode.width() - initialWindowWidth) / 2,
-            (videoMode.height() - initialWindowHeight) / 2
+            (videoMode.width() - initialWidth) / 2,
+            (videoMode.height() - initialHeight) / 2
         );
 
         glfwMakeContextCurrent(windowId);
@@ -386,7 +402,7 @@ public class LwjglEngine implements Engine {
         D2D2.textureManager().loadTextureDataInfo(DEMO_TEXTURE_DATA_INF_FILE);
 
         renderer.init(windowId);
-        renderer.reshape(initialWindowWidth, initialWindowHeight);
+        renderer.reshape();
 
         setSmoothMode(false);
 
