@@ -283,7 +283,6 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
             @Override
             public void invoke(long window, int mouseButton, int action, int mods) {
                 isDown = action == 1;
-
                 stage.dispatchEvent(InteractiveEvent.builder()
                     .type(action == 1 ? InteractiveEvent.DOWN : InteractiveEvent.UP)
                     .x(Mouse.getX())
@@ -302,8 +301,8 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
         glfwSetCursorPosCallback(windowId, new GLFWCursorPosCallback() {
             @Override
             public void invoke(long window, double x, double y) {
-                mouseX = (int) x;
-                mouseY = (int) y;
+                mouseX = (int) (x * stage.getWidth() / canvasWidth);
+                mouseY = (int) (y * stage.getHeight() / canvasHeight);
 
                 Mouse.setXY(mouseX, mouseY);
 
