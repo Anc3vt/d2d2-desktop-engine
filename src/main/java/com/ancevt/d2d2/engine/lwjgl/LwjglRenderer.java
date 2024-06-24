@@ -199,7 +199,7 @@ public class LwjglRenderer implements Renderer {
         textureEngine.unloadTextureAtlases();
 
         GLFW.glfwGetCursorPos(lwjglEngine.displayManager().getWindowId(), mouseX, mouseY);
-        Mouse.setXY((int) mouseX[0], (int) mouseY[0]);
+        //Mouse.setXY((int) mouseX[0], (int) mouseY[0]);
     }
 
     private void dispatchLoopUpdate(DisplayObject o) {
