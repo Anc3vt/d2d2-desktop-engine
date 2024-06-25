@@ -28,8 +28,8 @@ import com.ancevt.d2d2.display.Sprite;
 import com.ancevt.d2d2.display.Stage;
 import com.ancevt.d2d2.display.shape.Shape;
 import com.ancevt.d2d2.display.text.BitmapCharInfo;
-import com.ancevt.d2d2.display.text.BitmapFont;
-import com.ancevt.d2d2.display.text.BitmapText;
+import com.ancevt.d2d2.display.text.Font;
+import com.ancevt.d2d2.display.text.Text;
 import com.ancevt.d2d2.display.texture.TextureClip;
 import com.ancevt.d2d2.display.texture.Texture;
 import com.ancevt.d2d2.engine.lwjgl.util.Vao;
@@ -282,7 +282,7 @@ public class LwjglRenderer implements Renderer {
 
         } else if (displayObject instanceof Sprite s) {
             renderSprite(s);
-        } else if (displayObject instanceof BitmapText btx) {
+        } else if (displayObject instanceof Text btx) {
             if (btx.isCacheAsSprite()) {
                 renderSprite(btx.cachedSprite());
             } else {
@@ -402,11 +402,11 @@ public class LwjglRenderer implements Renderer {
         D2D2.textureManager().getTextureEngine().disable(texture);
     }
 
-    private void renderBitmapText(BitmapText bitmapText, float alpha) {
-        if (bitmapText.isEmpty()) return;
+    private void renderBitmapText(Text text, float alpha) {
+        if (text.isEmpty()) return;
 
-        BitmapFont bitmapFont = bitmapText.getBitmapFont();
-        Texture texture = bitmapFont.getTexture();
+        Font font = text.getFont();
+        Texture texture = font.getTexture();
 
         D2D2.textureManager().getTextureEngine().enable(texture);
 
@@ -419,7 +419,7 @@ public class LwjglRenderer implements Renderer {
 
         glBegin(GL11.GL_QUADS);
 
-        BitmapTextDrawHelper.draw(bitmapText,
+        BitmapTextDrawHelper.draw(text,
             alpha,
             1,
             1,
@@ -444,7 +444,7 @@ public class LwjglRenderer implements Renderer {
     private static void drawChar(
         Texture texture,
         char c,
-        BitmapText.ColorTextData.Letter letter,
+        Text.ColorTextData.Letter letter,
         float x,
         float y,
         int textureWidth,

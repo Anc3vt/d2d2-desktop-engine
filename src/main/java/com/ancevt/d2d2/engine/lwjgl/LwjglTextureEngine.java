@@ -20,7 +20,7 @@ package com.ancevt.d2d2.engine.lwjgl;
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.asset.Assets;
 import com.ancevt.d2d2.display.Color;
-import com.ancevt.d2d2.display.text.BitmapText;
+import com.ancevt.d2d2.display.text.Text;
 import com.ancevt.d2d2.display.texture.ITextureEngine;
 import com.ancevt.d2d2.display.texture.Texture;
 import com.ancevt.d2d2.display.texture.TextureClip;
@@ -299,17 +299,17 @@ public class LwjglTextureEngine implements ITextureEngine {
     }
 
     @Override
-    public Texture bitmapTextToTexture(BitmapText bitmapText) {
-        int width = (int) bitmapText.getWidth();
-        int height = (int) bitmapText.getHeight();
+    public Texture bitmapTextToTexture(Text text) {
+        int width = (int) text.getWidth();
+        int height = (int) text.getHeight();
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
 
         BitmapTextDrawHelper.draw(
-            bitmapText,
-            bitmapText.getAlpha(),
-            bitmapText.getScaleX(),
-            bitmapText.getScaleY(),
+            text,
+            text.getAlpha(),
+            text.getScaleX(),
+            text.getScaleY(),
             (atlas, c, letter, drawX, drawY, textureAtlasWidth, textureAtlasHeight, charInfo, scX, scY, textureBleedingFix, vertexBleedingFix) -> {
 
                 if (c != '\n') {
@@ -334,7 +334,7 @@ public class LwjglTextureEngine implements ITextureEngine {
 
                     charImage = copyImage(charImage);
 
-                    Color letterColor = letter == null ? bitmapText.getColor() : letter.getColor();
+                    Color letterColor = letter == null ? text.getColor() : letter.getColor();
 
                     applyColorFilter(
                         charImage,
