@@ -516,7 +516,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
     }
      */
 
-    private static Size computeAtlasSize(Font font, String string, TrueTypeBitmapFontBuilder builder) {
+    private static Size computeSize(Font font, String string, TrueTypeBitmapFontBuilder builder) {
         int x = 0;
         int y = 0;
         FontMetrics fontMetrics = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).getGraphics().getFontMetrics(font);
@@ -560,11 +560,11 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
 
         String string = builder.getCharSourceString();
 
-        Size size = computeAtlasSize(font, string, builder);
+        Size size = computeSize(font, string, builder);
 
-        int atlasWidth = size.w;
-        int atlasHeight = size.h;
-        BufferedImage bufferedImage = new BufferedImage(atlasWidth, atlasHeight, BufferedImage.TYPE_INT_ARGB);
+        int textureWidth = size.w;
+        int textureHeight = size.h;
+        BufferedImage bufferedImage = new BufferedImage(textureWidth, textureHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = bufferedImage.createGraphics();
 
         if (builder.fractionalMetrics() != null)
