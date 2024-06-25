@@ -21,7 +21,7 @@ import com.ancevt.d2d2.display.Color;
 import com.ancevt.d2d2.display.text.BitmapCharInfo;
 import com.ancevt.d2d2.display.text.BitmapFont;
 import com.ancevt.d2d2.display.text.BitmapText;
-import com.ancevt.d2d2.display.texture.TextureAtlas;
+import com.ancevt.d2d2.display.texture.Texture;
 
 
 class BitmapTextDrawHelper {
@@ -34,10 +34,10 @@ class BitmapTextDrawHelper {
                      ApplyColorFunction applyColorFunction) {
 
         BitmapFont bitmapFont = bitmapText.getBitmapFont();
-        TextureAtlas textureAtlas = bitmapFont.getTextureAtlas();
+        Texture texture = bitmapFont.getTexture();
 
-        int textureAtlasWidth = textureAtlas.getWidth();
-        int textureAtlasHeight = textureAtlas.getHeight();
+        int textureWidth = texture.getWidth();
+        int textureHeight = texture.getHeight();
 
         float lineSpacing = bitmapText.getLineSpacing();
         float spacing = bitmapText.getSpacing();
@@ -116,13 +116,13 @@ class BitmapTextDrawHelper {
             }
 
             drawCharFunction.drawChar(
-                textureAtlas,
+                texture,
                 c,
                 letter, // null if not multicolor
                 drawX,
                 (drawY + scaleY * charHeight),
-                textureAtlasWidth,
-                textureAtlasHeight,
+                textureWidth,
+                textureHeight,
                 charInfo,
                 scaleX,
                 scaleY,
@@ -198,13 +198,13 @@ class BitmapTextDrawHelper {
     interface DrawCharFunction {
 
         void drawChar(
-            TextureAtlas atlas,
+            Texture atlas,
             char c,
             BitmapText.ColorTextData.Letter letter,
             float x,
             float y,
-            int textureAtlasWidth,
-            int textureAtlasHeight,
+            int textureWidth,
+            int textureHeight,
             BitmapCharInfo charInfo,
             float scX,
             float scY,

@@ -19,7 +19,7 @@ package com.ancevt.d2d2.engine.lwjgl.util.texture;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.asset.Assets;
-import com.ancevt.d2d2.display.texture.TextureAtlas;
+import com.ancevt.d2d2.display.texture.Texture;
 import org.lwjgl.BufferUtils;
 
 import javax.imageio.ImageIO;
@@ -44,25 +44,25 @@ import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 
 public class TextureLoader {
 
-    public static TextureAtlas createTextureAtlas(InputStream pngInputStream) {
+    public static Texture createTexture(InputStream pngInputStream) {
         try {
             BufferedImage bufferedImage = ImageIO.read(pngInputStream);
-            return createTextureAtlasFromBufferedImage(bufferedImage);
+            return createTextureFromBufferedImage(bufferedImage);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    public static TextureAtlas createTextureAtlas(String assetPath) {
+    public static Texture createTexture(String assetPath) {
         try {
             InputStream pngInputStream = Assets.getAsset(assetPath);
-            return createTextureAtlasFromBufferedImage(ImageIO.read(pngInputStream));
+            return createTextureFromBufferedImage(ImageIO.read(pngInputStream));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    public static TextureAtlas createTextureAtlasFromBufferedImage(BufferedImage image) {
+    public static Texture createTextureFromBufferedImage(BufferedImage image) {
         int width = image.getWidth();
         int height = image.getHeight();
 
@@ -83,21 +83,21 @@ public class TextureLoader {
 
         byteBuffer.flip();
 
-        TextureAtlas textureAtlas = createTextureAtlasFromByteBuffer(byteBuffer, width, height);
-        D2D2.textureManager().addTextureAtlas(textureAtlas);
-        return textureAtlas;
+        Texture texture = createTextureFromByteBuffer(byteBuffer, width, height);
+        D2D2.textureManager().addTexture(texture);
+        return texture;
     }
 
-    private static TextureAtlas createTextureAtlasFromByteBuffer(ByteBuffer byteBuffer, int width, int height) {
+    private static Texture createTextureFromByteBuffer(ByteBuffer byteBuffer, int width, int height) {
         int textureId = glGenTextures();
-        TextureAtlas textureAtlas = new TextureAtlas(textureId, width, height);
+        Texture texture = new Texture(textureId, width, height);
         glBindTexture(GL_TEXTURE_2D, textureId);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer);
         glGenerateMipmap(GL_TEXTURE_2D);
-        return textureAtlas;
+        return texture;
     }
 
 }

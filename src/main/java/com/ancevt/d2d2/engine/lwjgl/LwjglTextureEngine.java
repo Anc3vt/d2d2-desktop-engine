@@ -22,8 +22,8 @@ import com.ancevt.d2d2.asset.Assets;
 import com.ancevt.d2d2.display.Color;
 import com.ancevt.d2d2.display.text.BitmapText;
 import com.ancevt.d2d2.display.texture.ITextureEngine;
+import com.ancevt.d2d2.display.texture.Texture;
 import com.ancevt.d2d2.display.texture.TextureClip;
-import com.ancevt.d2d2.display.texture.TextureAtlas;
 import com.ancevt.d2d2.display.texture.TextureClipCombinerCell;
 
 import org.lwjgl.BufferUtils;
@@ -59,9 +59,9 @@ import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 public class LwjglTextureEngine implements ITextureEngine {
 
     private final TextureLoadQueue loadQueue;
-    private final Queue<TextureAtlas> unloadQueue;
+    private final Queue<Texture> unloadQueue;
     private final TextureMapping mapping;
-    private int textureAtlasIdCounter;
+    private int textureIdCounter;
 
     public LwjglTextureEngine() {
         mapping = new TextureMapping();
@@ -70,26 +70,26 @@ public class LwjglTextureEngine implements ITextureEngine {
     }
 
     @Override
-    public boolean bind(TextureAtlas textureAtlas) {
-        if (mapping.ids().containsKey(textureAtlas.getId())) {
-            glBindTexture(GL_TEXTURE_2D, mapping.ids().get(textureAtlas.getId()));
+    public boolean bind(Texture texture) {
+        if (mapping.ids().containsKey(texture.getId())) {
+            glBindTexture(GL_TEXTURE_2D, mapping.ids().get(texture.getId()));
             return true;
         }
         return false;
     }
 
     @Override
-    public void enable(TextureAtlas textureAtlas) {
+    public void enable(Texture texture) {
         GL30.glEnable(GL_TEXTURE_2D);
     }
 
     @Override
-    public void disable(TextureAtlas textureAtlas) {
+    public void disable(Texture texture) {
         GL30.glDisable(GL_TEXTURE_2D);
     }
 
     @Override
-    public TextureAtlas createTextureAtlas(int width, int height, TextureClipCombinerCell[] cells) {
+    public Texture createTexture(int width, int height, TextureClipCombinerCell[] cells) {
         final BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         final Graphics2D g = (Graphics2D) image.getGraphics();
 
@@ -124,10 +124,10 @@ public class LwjglTextureEngine implements ITextureEngine {
             }
         }
 
-        final TextureAtlas textureAtlas = createTextureAtlasFromBufferedImage(image);
-        mapping.images().put(textureAtlas.getId(), image);
-        D2D2.textureManager().addTexture("_textureAtlas_" + textureAtlas.getId(), textureAtlas.createTextureClip());
-        return textureAtlas;
+        final Texture texture = createTextureFromBufferedImage(image);
+        mapping.images().put(texture.getId(), image);
+        D2D2.textureManager().addTextureClip("_texture_" + texture.getId(), texture.createTextureClip());
+        return texture;
     }
 
     private void drawCell(Graphics2D g, final TextureClipCombinerCell cell) {
@@ -138,12 +138,12 @@ public class LwjglTextureEngine implements ITextureEngine {
         float scaleX = cell.getScaleX();
         float scaleY = cell.getScaleY();
 
-        BufferedImage fullImageRegion = textureRegionToImage(cell.getTexture());
+        BufferedImage fullImageRegion = textureRegionToImage(cell.getTextureClip());
 
         BufferedImage imageRegion;
 
-        float texWidth = cell.getTexture().getWidth();
-        float texHeight = cell.getTexture().getHeight();
+        float texWidth = cell.getTextureClip().getWidth();
+        float texHeight = cell.getTextureClip().getHeight();
 
         int originWidth = fullImageRegion.getWidth(null);
         int originHeight = fullImageRegion.getHeight(null);
@@ -171,7 +171,7 @@ public class LwjglTextureEngine implements ITextureEngine {
 
 
                     imageRegion = textureRegionToImage(
-                        cell.getTexture().createSubTextureClip(
+                        cell.getTextureClip().createSubTextureClip(
                             0,
                             0,
                             (int) (texWidth * valX),
@@ -195,28 +195,28 @@ public class LwjglTextureEngine implements ITextureEngine {
 
     }
 
-    public TextureAtlas createTextureAtlas(InputStream pngInputStream) {
+    public Texture createTexture(InputStream pngInputStream) {
         try {
             BufferedImage bufferedImage = ImageIO.read(pngInputStream);
-            TextureAtlas textureAtlas = createTextureAtlasFromBufferedImage(bufferedImage);
-            mapping.images().put(textureAtlas.getId(), bufferedImage);
-            return textureAtlas;
+            Texture texture = createTextureFromBufferedImage(bufferedImage);
+            mapping.images().put(texture.getId(), bufferedImage);
+            return texture;
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
 
     @Override
-    public TextureAtlas createTextureAtlas(String assetPath) {
+    public Texture createTexture(String assetPath) {
         try {
             InputStream pngInputStream = Assets.getAsset(assetPath);
-            return createTextureAtlasFromBufferedImage(ImageIO.read(pngInputStream));
+            return createTextureFromBufferedImage(ImageIO.read(pngInputStream));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    public TextureAtlas createTextureAtlasFromBufferedImage(BufferedImage image) {
+    public Texture createTextureFromBufferedImage(BufferedImage image) {
         int width = image.getWidth();
         int height = image.getHeight();
 
@@ -237,30 +237,30 @@ public class LwjglTextureEngine implements ITextureEngine {
 
         byteBuffer.flip();
 
-        TextureAtlas textureAtlas = createTextureAtlasFromByteBuffer(byteBuffer, width, height);
-        mapping.images().put(textureAtlas.getId(), image);
-        D2D2.textureManager().addTextureAtlas(textureAtlas);
-        return textureAtlas;
+        Texture texture = createTextureFromByteBuffer(byteBuffer, width, height);
+        mapping.images().put(texture.getId(), image);
+        D2D2.textureManager().addTexture(texture);
+        return texture;
     }
 
-    private TextureAtlas createTextureAtlasFromByteBuffer(ByteBuffer byteBuffer, int width, int height) {
-        TextureAtlas textureAtlas = new TextureAtlas(++textureAtlasIdCounter, width, height);
-        loadQueue.putLoad(new TextureLoadQueue.LoadTask(textureAtlas, width, height, byteBuffer));
-        return textureAtlas;
+    private Texture createTextureFromByteBuffer(ByteBuffer byteBuffer, int width, int height) {
+        Texture texture = new Texture(++textureIdCounter, width, height);
+        loadQueue.putLoad(new TextureLoadQueue.LoadTask(texture, width, height, byteBuffer));
+        return texture;
     }
 
-    public void loadTextureAtlases() {
+    public void loadTextures() {
         while (loadQueue.hasTasks()) {
             TextureLoadQueue.LoadTask loadTask = loadQueue.poll();
 
-            TextureAtlas textureAtlas = loadTask.getTextureAtlas();
+            Texture texture = loadTask.getTexture();
             ByteBuffer byteBuffer = loadTask.getByteBuffer();
             int width = loadTask.getWidth();
             int height = loadTask.getHeight();
 
             int openGlTextureId = glGenTextures();
 
-            mapping.ids().put(textureAtlas.getId(), openGlTextureId);
+            mapping.ids().put(texture.getId(), openGlTextureId);
 
             // Bind the texture
             glBindTexture(GL_TEXTURE_2D, openGlTextureId);
@@ -278,28 +278,28 @@ public class LwjglTextureEngine implements ITextureEngine {
     }
 
     @Override
-    public void unloadTextureAtlas(TextureAtlas textureAtlas) {
-        mapping.images().remove(textureAtlas.getId());
+    public void unloadTexture(Texture texture) {
+        mapping.images().remove(texture.getId());
         // TODO: repair creating new textures after unloading
-        if (textureAtlas.isDisposed()) {
+        if (texture.isDisposed()) {
             return;
             //throw new IllegalStateException("Texture atlas is already unloaded " + textureAtlas);
         }
 
-        unloadQueue.add(textureAtlas);
+        unloadQueue.add(texture);
     }
 
-    public void unloadTextureAtlases() {
+    public void unloadTexture() {
         while (!unloadQueue.isEmpty()) {
-            TextureAtlas textureAtlas = unloadQueue.poll();
-            glDeleteTextures(mapping.ids().get(textureAtlas.getId()));
-            mapping.ids().remove(textureAtlas.getId());
-            mapping.images().remove(textureAtlas.getId());
+            Texture texture = unloadQueue.poll();
+            glDeleteTextures(mapping.ids().get(texture.getId()));
+            mapping.ids().remove(texture.getId());
+            mapping.images().remove(texture.getId());
         }
     }
 
     @Override
-    public TextureAtlas bitmapTextToTextureAtlas(BitmapText bitmapText) {
+    public Texture bitmapTextToTexture(BitmapText bitmapText) {
         int width = (int) bitmapText.getWidth();
         int height = (int) bitmapText.getHeight();
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -351,9 +351,9 @@ public class LwjglTextureEngine implements ITextureEngine {
         );
 
 
-        final TextureAtlas textureAtlas = createTextureAtlasFromBufferedImage(image);
-        D2D2.textureManager().addTexture("_textureAtlas_text_" + textureAtlas.getId(), textureAtlas.createTextureClip());
-        return textureAtlas;
+        final Texture texture = createTextureFromBufferedImage(image);
+        D2D2.textureManager().addTextureClip("_texture_text_" + texture.getId(), texture.createTextureClip());
+        return texture;
     }
 
     public static BufferedImage copyImage(BufferedImage source) {
@@ -381,14 +381,14 @@ public class LwjglTextureEngine implements ITextureEngine {
         }
     }
 
-    private BufferedImage textureRegionToImage(TextureAtlas textureAtlas, int x, int y, int width, int height) {
-        BufferedImage bufferedImage = mapping.images().get(textureAtlas.getId());
+    private BufferedImage textureRegionToImage(Texture texture, int x, int y, int width, int height) {
+        BufferedImage bufferedImage = mapping.images().get(texture.getId());
         return bufferedImage.getSubimage(x, y, width, height);
     }
 
     private BufferedImage textureRegionToImage(TextureClip textureClip) {
         return textureRegionToImage(
-            textureClip.getTextureAtlas(),
+            textureClip.getTexture(),
             textureClip.getX(),
             textureClip.getY(),
             textureClip.getWidth(),

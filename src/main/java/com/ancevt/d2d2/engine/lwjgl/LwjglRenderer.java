@@ -31,14 +31,13 @@ import com.ancevt.d2d2.display.text.BitmapCharInfo;
 import com.ancevt.d2d2.display.text.BitmapFont;
 import com.ancevt.d2d2.display.text.BitmapText;
 import com.ancevt.d2d2.display.texture.TextureClip;
-import com.ancevt.d2d2.display.texture.TextureAtlas;
+import com.ancevt.d2d2.display.texture.Texture;
 import com.ancevt.d2d2.engine.lwjgl.util.Vao;
 import com.ancevt.d2d2.engine.lwjgl.util.Vbo;
 import com.ancevt.d2d2.engine.lwjgl.util.shader.ShaderProgram;
 import com.ancevt.d2d2.engine.lwjgl.util.shader.VertexShader;
 import com.ancevt.d2d2.event.Event;
 import com.ancevt.d2d2.event.EventPool;
-import com.ancevt.d2d2.input.Mouse;
 import lombok.Getter;
 import lombok.Setter;
 import org.lwjgl.glfw.GLFW;
@@ -175,7 +174,7 @@ public class LwjglRenderer implements Renderer {
 
     // Метод для рендеринга кадра
     private void render() {
-        textureEngine.loadTextureAtlases();
+        textureEngine.loadTextures();
 
         zOrderCounter = 0;
 
@@ -196,7 +195,7 @@ public class LwjglRenderer implements Renderer {
             renderDisplayObject(cursor, 0, 0, 0, 1, 1, 1);
         }
 
-        textureEngine.unloadTextureAtlases();
+        textureEngine.unloadTexture();
 
         GLFW.glfwGetCursorPos(lwjglEngine.displayManager().getWindowId(), mouseX, mouseY);
         //Mouse.setXY((int) mouseX[0], (int) mouseY[0]);
@@ -315,26 +314,26 @@ public class LwjglRenderer implements Renderer {
         TextureClip textureClip = sprite.getTextureClip();
 
         if (textureClip == null) return;
-        if (textureClip.getTextureAtlas().isDisposed()) return;
+        if (textureClip.getTexture().isDisposed()) return;
 
-        TextureAtlas textureAtlas = textureClip.getTextureAtlas();
+        Texture texture = textureClip.getTexture();
 
 
-        boolean bindResult = D2D2.textureManager().getTextureEngine().bind(textureAtlas);
+        boolean bindResult = D2D2.textureManager().getTextureEngine().bind(texture);
 
         if (!bindResult) {
             return;
         }
 
-        D2D2.textureManager().getTextureEngine().enable(textureAtlas);
+        D2D2.textureManager().getTextureEngine().enable(texture);
 
         int tX = textureClip.getX();
         int tY = textureClip.getY();
         int tW = textureClip.getWidth();
         int tH = textureClip.getHeight();
 
-        float totalW = textureAtlas.getWidth();
-        float totalH = textureAtlas.getHeight();
+        float totalW = texture.getWidth();
+        float totalH = texture.getHeight();
 
         float x = tX / totalW;
         float y = tY / totalH;
@@ -400,18 +399,18 @@ public class LwjglRenderer implements Renderer {
         }
 
         glDisable(GL_BLEND);
-        D2D2.textureManager().getTextureEngine().disable(textureAtlas);
+        D2D2.textureManager().getTextureEngine().disable(texture);
     }
 
     private void renderBitmapText(BitmapText bitmapText, float alpha) {
         if (bitmapText.isEmpty()) return;
 
         BitmapFont bitmapFont = bitmapText.getBitmapFont();
-        TextureAtlas textureAtlas = bitmapFont.getTextureAtlas();
+        Texture texture = bitmapFont.getTexture();
 
-        D2D2.textureManager().getTextureEngine().enable(textureAtlas);
+        D2D2.textureManager().getTextureEngine().enable(texture);
 
-        boolean bindResult = D2D2.textureManager().getTextureEngine().bind(textureAtlas);
+        boolean bindResult = D2D2.textureManager().getTextureEngine().bind(texture);
 
         if (!bindResult) return;
 
@@ -431,7 +430,7 @@ public class LwjglRenderer implements Renderer {
         glEnd();
 
         glDisable(GL_BLEND);
-        D2D2.textureManager().getTextureEngine().disable(textureAtlas);
+        D2D2.textureManager().getTextureEngine().disable(texture);
     }
 
     private static void applyColor(float r, float g, float b, float a) {
@@ -443,13 +442,13 @@ public class LwjglRenderer implements Renderer {
     }
 
     private static void drawChar(
-        TextureAtlas textureAtlas,
+        Texture texture,
         char c,
         BitmapText.ColorTextData.Letter letter,
         float x,
         float y,
-        int textureAtlasWidth,
-        int textureAtlasHeight,
+        int textureWidth,
+        int textureHeight,
         BitmapCharInfo charInfo,
         float scX,
         float scY,
@@ -465,10 +464,10 @@ public class LwjglRenderer implements Renderer {
         float xOnTexture = charInfo.x();
         float yOnTexture = charInfo.y() + charHeight;
 
-        float cx = xOnTexture / textureAtlasWidth;
-        float cy = -yOnTexture / textureAtlasHeight;
-        float cw = charWidth / textureAtlasWidth;
-        float ch = -charHeight / textureAtlasHeight;
+        float cx = xOnTexture / textureWidth;
+        float cy = -yOnTexture / textureHeight;
+        float cw = charWidth / textureWidth;
+        float ch = -charHeight / textureHeight;
 
         double tf = textureBleedingFix;
         double vf = vertexBleedingFix;

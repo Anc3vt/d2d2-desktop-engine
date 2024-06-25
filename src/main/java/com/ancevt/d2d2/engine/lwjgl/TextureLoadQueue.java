@@ -17,7 +17,7 @@
  */
 package com.ancevt.d2d2.engine.lwjgl;
 
-import com.ancevt.d2d2.display.texture.TextureAtlas;
+import com.ancevt.d2d2.display.texture.Texture;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
@@ -45,21 +45,21 @@ public class TextureLoadQueue {
 
     public static class LoadTask {
 
-        private final TextureAtlas textureAtlas;
+        private final Texture texture;
         private final int width;
         private final int height;
         private final ByteBuffer byteBuffer;
 
-        public LoadTask(TextureAtlas textureAtlas, int width, int height, ByteBuffer byteBuffer) {
+        public LoadTask(Texture texture, int width, int height, ByteBuffer byteBuffer) {
 
-            this.textureAtlas = textureAtlas;
+            this.texture = texture;
             this.width = width;
             this.height = height;
             this.byteBuffer = byteBuffer;
         }
 
-        public TextureAtlas getTextureAtlas() {
-            return textureAtlas;
+        public Texture getTexture() {
+            return texture;
         }
 
         public int getWidth() {
