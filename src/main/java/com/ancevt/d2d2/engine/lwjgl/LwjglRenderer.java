@@ -128,13 +128,13 @@ public class LwjglRenderer implements Renderer {
 
     @Override
     public void reshape() {
+        lwjglEngine.dispatchEvent(EventPool.simpleEventSingleton(Event.RESIZE, lwjglEngine));
         glViewport(0, 0, lwjglEngine.getCanvasWidth(), lwjglEngine.getCanvasHeight());
         glMatrixMode(GL11.GL_PROJECTION);
         glLoadIdentity();
         GLU.gluOrtho2D(0, D2D2.stage().getWidth(), D2D2.stage().getHeight(), 0);
         glMatrixMode(GL11.GL_MODELVIEW);
         glLoadIdentity();
-        lwjglEngine.dispatchEvent(EventPool.simpleEventSingleton(Event.RESIZE, lwjglEngine));
     }
 
 
