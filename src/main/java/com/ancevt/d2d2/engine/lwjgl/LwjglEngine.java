@@ -21,9 +21,9 @@ import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.display.Renderer;
 import com.ancevt.d2d2.display.Stage;
 import com.ancevt.d2d2.display.interactive.InteractiveManager;
-import com.ancevt.d2d2.display.text.BitmapFont;
+import com.ancevt.d2d2.display.text.Font;
 import com.ancevt.d2d2.display.text.FractionalMetrics;
-import com.ancevt.d2d2.display.text.TrueTypeBitmapFontBuilder;
+import com.ancevt.d2d2.display.text.TrueTypeFontBuilder;
 import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.event.BaseEventDispatcher;
@@ -51,7 +51,6 @@ import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
@@ -516,7 +515,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
     }
      */
 
-    private static Size computeSize(Font font, String string, TrueTypeBitmapFontBuilder builder) {
+    private static Size computeSize(java.awt.Font font, String string, TrueTypeFontBuilder builder) {
         int x = 0;
         int y = 0;
         FontMetrics fontMetrics = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).getGraphics().getFontMetrics(font);
@@ -540,23 +539,23 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
 
     @SneakyThrows
     @Override
-    public BitmapFont generateBitmapFont(TrueTypeBitmapFontBuilder builder) {
+    public Font generateBitmapFont(TrueTypeFontBuilder builder) {
 
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 
         InputStream inputStream = builder.getInputStream() != null ?
             builder.getInputStream() : new FileInputStream(builder.getFilePath().toFile());
 
-        Font font = Font.createFont(Font.TRUETYPE_FONT, inputStream);
+        java.awt.Font font = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, inputStream);
         String fontName = font.getName();
         ge.registerFont(font);
 
         boolean bold = builder.isBold();
         boolean italic = builder.isItalic();
         int fontSize = builder.getFontSize();
-        int fontStyle = Font.PLAIN | (bold ? Font.BOLD : Font.PLAIN) | (italic ? Font.ITALIC : Font.PLAIN);
+        int fontStyle = java.awt.Font.PLAIN | (bold ? java.awt.Font.BOLD : java.awt.Font.PLAIN) | (italic ? java.awt.Font.ITALIC : java.awt.Font.PLAIN);
 
-        font = new Font(fontName, fontStyle, fontSize);
+        font = new java.awt.Font(fontName, fontStyle, fontSize);
 
         String string = builder.getCharSourceString();
 
