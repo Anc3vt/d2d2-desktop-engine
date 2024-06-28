@@ -7,7 +7,8 @@
 
     <groupId>com.ancevt.d2d2</groupId>
     <artifactId>d2d2-lwjgl-opengl</artifactId>
-    <version>0.1.6.4</version>
+    <version>0.1.7-SNAPSHOT</version>
+
 
     <name>LWJGL+OpenGL D2D2 Engine</name>
 
