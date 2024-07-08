@@ -35,6 +35,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.image.RescaleOp;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -94,34 +95,32 @@ public class LwjglTextureEngine implements ITextureEngine {
         final Graphics2D g = (Graphics2D) image.getGraphics();
 
         for (final TextureClipCombinerCell cell : cells) {
+            // Установка альфа-композита
+            AlphaComposite alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, cell.getAlpha());
+            g.setComposite(alphaComposite);
 
-            if (cell.isPixel()) {
-
-                final java.awt.Color awtColor
-                    = new java.awt.Color(
-                    cell.getColor().getR(),
-                    cell.getColor().getG(),
-                    cell.getColor().getB(),
-                    cell.getAlpha()
+            // Установка цвета
+            if (cell.getColor() != null) {
+                Color cellColor = cell.getColor();
+                java.awt.Color awtColor = new java.awt.Color(
+                    cellColor.getR(),
+                    cellColor.getG(),
+                    cellColor.getB()
                 );
-
                 g.setColor(awtColor);
-                g.drawRect(cell.getX(), cell.getY(), 0, 0);
-            } else {
-
-                AlphaComposite alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, cell.getAlpha());
-
-                g.setComposite(alphaComposite);
-
-                AffineTransform affineTransform = g.getTransform();
-                affineTransform.rotate(Math.toRadians(cell.getRotation()), cell.getX(), cell.getY());
-                g.setTransform(affineTransform);
-
-                drawCell(g, cell);
-
-                affineTransform.rotate(Math.toRadians(-cell.getRotation()), cell.getX(), cell.getY());
-                g.setTransform(affineTransform);
             }
+
+            // Установка аффинного преобразования для вращения
+            AffineTransform affineTransform = g.getTransform();
+            affineTransform.rotate(Math.toRadians(cell.getRotation()), cell.getX(), cell.getY());
+            g.setTransform(affineTransform);
+
+            // Отрисовка ячейки
+            drawCell(g, cell);
+
+            // Восстановление начального аффинного преобразования
+            affineTransform.rotate(Math.toRadians(-cell.getRotation()), cell.getX(), cell.getY());
+            g.setTransform(affineTransform);
         }
 
         final Texture texture = createTextureFromBufferedImage(image);
@@ -129,6 +128,8 @@ public class LwjglTextureEngine implements ITextureEngine {
         D2D2.textureManager().addTextureClip("_texture_" + texture.getId(), texture.createTextureClip());
         return texture;
     }
+
+
 
     private void drawCell(Graphics2D g, final TextureClipCombinerCell cell) {
         int x = cell.getX();
@@ -139,6 +140,22 @@ public class LwjglTextureEngine implements ITextureEngine {
         float scaleY = cell.getScaleY();
 
         BufferedImage fullImageRegion = textureRegionToImage(cell.getTextureClip());
+
+        // Определяем цветовые масштабы и смещения, если цвет задан
+        float[] scales = null;
+        float[] offsets = null;
+        if (cell.getColor() != null) {
+            Color cellColor = cell.getColor();
+            scales = new float[] {
+                cellColor.getR() / 255.0f,
+                cellColor.getG() / 255.0f,
+                cellColor.getB() / 255.0f,
+                1.0f
+            };
+            offsets = new float[4];
+            RescaleOp rop = new RescaleOp(scales, offsets, null);
+            fullImageRegion = rop.filter(fullImageRegion, null);
+        }
 
         BufferedImage imageRegion;
 
@@ -169,7 +186,6 @@ public class LwjglTextureEngine implements ITextureEngine {
                         h *= valY;
                     }
 
-
                     imageRegion = textureRegionToImage(
                         cell.getTextureClip().createSubTextureClip(
                             0,
@@ -179,7 +195,11 @@ public class LwjglTextureEngine implements ITextureEngine {
                         )
                     );
 
-
+                    // Применение цвета к подизображению, если он задан
+                    if (cell.getColor() != null) {
+                        RescaleOp rop = new RescaleOp(scales, offsets, null);
+                        imageRegion = rop.filter(imageRegion, null);
+                    }
                 }
 
                 g.drawImage(imageRegion,
@@ -189,11 +209,11 @@ public class LwjglTextureEngine implements ITextureEngine {
                     h,
                     null
                 );
-
             }
         }
-
     }
+
+
 
     public Texture createTexture(InputStream pngInputStream) {
         try {
@@ -319,11 +339,11 @@ public class LwjglTextureEngine implements ITextureEngine {
                     int offsetX = 0;
                     int offsetY = 0;
 
-                    if(charX < 0) {
+                    if (charX < 0) {
                         offsetX = -charX;
                         charX = 0;
                     }
-                    if(charY < 0) {
+                    if (charY < 0) {
                         offsetY = -charY;
                         charY = 0;
                     }
