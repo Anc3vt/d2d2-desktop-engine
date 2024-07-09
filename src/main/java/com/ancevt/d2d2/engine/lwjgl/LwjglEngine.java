@@ -273,6 +273,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
                     .delta((int) dy)
                     .control(control)
                     .shift(shift)
+                    .alt(alt)
                     .drag(isDown)
                     .build());
             }
