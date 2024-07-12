@@ -26,6 +26,7 @@ import com.ancevt.d2d2.display.text.FractionalMetrics;
 import com.ancevt.d2d2.display.text.TrueTypeFontBuilder;
 import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
+import com.ancevt.d2d2.engine.SoundManager;
 import com.ancevt.d2d2.event.BaseEventDispatcher;
 import com.ancevt.d2d2.event.InteractiveEvent;
 import com.ancevt.d2d2.event.LifecycleEvent;
@@ -132,6 +133,8 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
 
     private final LwjglDisplayManager displayManager = new LwjglDisplayManager();
 
+    private SoundManager soundManager;
+
     @Getter
     @Setter
     private int timerCheckFrameFrequency = 1;
@@ -143,6 +146,14 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
         this.canvasWidth = initialWidth;
         this.canvasHeight = initialHeight;
         D2D2.textureManager().setTextureEngine(new LwjglTextureEngine());
+    }
+
+    @Override
+    public SoundManager soundManager() {
+        if(soundManager == null) {
+            soundManager = new LwjglSoundManager();
+        }
+        return soundManager;
     }
 
     @Override
