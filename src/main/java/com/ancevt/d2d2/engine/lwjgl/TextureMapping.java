@@ -21,7 +21,7 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TextureMapping {
+class TextureMapping {
     private final Map<Integer, Integer> ids;
     private final Map<Integer, BufferedImage> images;
 
