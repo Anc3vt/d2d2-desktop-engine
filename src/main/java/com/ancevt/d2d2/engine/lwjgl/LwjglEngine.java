@@ -49,6 +49,7 @@ import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -252,7 +253,8 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
             throw new IllegalStateException("Unable to initialize GLFW");
 
         glfwDefaultWindowHints();
-        //glfwWindowHint(GLFW.GLFW_SAMPLES, 4);
+        glfwWindowHint(GLFW.GLFW_SAMPLES, 4);
+
 
         if (Objects.equals(System.getProperty(SystemProperties.GLFW_HINT_ALWAYSONTOP), "true")) {
             glfwWindowHint(GLFW_FLOATING, 1);
@@ -323,6 +325,15 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
                     .y(Mouse.getY())
                     .drag(isDown)
                     .build());
+
+                if(isDown) {
+                    stage.dispatchEvent(InteractiveEvent.builder()
+                            .type(InteractiveEvent.DRAG)
+                            .x(Mouse.getX())
+                            .y(Mouse.getY())
+                            .drag(isDown)
+                            .build());
+                }
 
                 InteractiveManager.getInstance().screenMove(0, mouseX, mouseY, shift, control, alt);
             }
@@ -410,6 +421,9 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
 
         // TODO: remove loading demo texture data info from here
         D2D2.textureManager().loadTextureDataInfo(DEMO_TEXTURE_DATA_INF_FILE);
+
+
+        GL11.glEnable(GL13.GL_MULTISAMPLE);
 
         renderer.init(windowId);
         renderer.reshape();
