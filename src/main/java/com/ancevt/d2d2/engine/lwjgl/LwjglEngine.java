@@ -2,13 +2,13 @@
  * Copyright (C) 2024 the original author or authors.
  * See the notice.md file distributed with this work for additional
  * information regarding copyright ownership.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,7 +26,9 @@ import com.ancevt.d2d2.display.text.FractionalMetrics;
 import com.ancevt.d2d2.display.text.TrueTypeFontBuilder;
 import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
+import com.ancevt.d2d2.engine.ShaderFactory;
 import com.ancevt.d2d2.engine.SoundManager;
+import com.ancevt.d2d2.engine.lwjgl.shader.LwjglShaderFactory;
 import com.ancevt.d2d2.event.BaseEventDispatcher;
 import com.ancevt.d2d2.event.InteractiveEvent;
 import com.ancevt.d2d2.event.LifecycleEvent;
@@ -34,39 +36,19 @@ import com.ancevt.d2d2.input.KeyCode;
 import com.ancevt.d2d2.input.Mouse;
 import com.ancevt.d2d2.lifecycle.SystemProperties;
 import com.ancevt.d2d2.time.Timer;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.SneakyThrows;
-import lombok.ToString;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWCursorPosCallback;
-import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWMouseButtonCallback;
-import org.lwjgl.glfw.GLFWScrollCallback;
-import org.lwjgl.glfw.GLFWVidMode;
-import org.lwjgl.glfw.GLFWWindowSizeCallback;
+import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
 
 import javax.imageio.ImageIO;
-import java.awt.Color;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
-import java.awt.RenderingHints;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -74,34 +56,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
-import static org.lwjgl.glfw.GLFW.GLFW_FLOATING;
-import static org.lwjgl.glfw.GLFW.GLFW_MOD_ALT;
-import static org.lwjgl.glfw.GLFW.GLFW_MOD_CONTROL;
-import static org.lwjgl.glfw.GLFW.GLFW_MOD_SHIFT;
-import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
-import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
-import static org.lwjgl.glfw.GLFW.GLFW_REPEAT;
-import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
-import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
-import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
-import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
-import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
-import static org.lwjgl.glfw.GLFW.glfwInit;
-import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
-import static org.lwjgl.glfw.GLFW.glfwPollEvents;
-import static org.lwjgl.glfw.GLFW.glfwSetCharCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetScrollCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowPos;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
-import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
-import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
-import static org.lwjgl.glfw.GLFW.glfwTerminate;
-import static org.lwjgl.glfw.GLFW.glfwWindowHint;
-import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
+import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 // TODO: rewrite with VBO and refactor
@@ -134,6 +89,8 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
 
     private final LwjglDisplayManager displayManager = new LwjglDisplayManager();
 
+    private final ShaderFactory shaderFactory = new LwjglShaderFactory();
+
     private SoundManager soundManager;
 
     @Getter
@@ -151,7 +108,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
 
     @Override
     public SoundManager soundManager() {
-        if(soundManager == null) {
+        if (soundManager == null) {
             soundManager = new LwjglSoundManager();
         }
         return soundManager;
@@ -161,6 +118,11 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
     public void setCanvasSize(int width, int height) {
         canvasWidth = width;
         canvasHeight = height;
+    }
+
+    @Override
+    public ShaderFactory shaderFactory() {
+        return shaderFactory;
     }
 
     @Override
@@ -224,15 +186,15 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
     public void start() {
         running = true;
         stage.dispatchEvent(
-            LifecycleEvent.builder()
-                .type(LifecycleEvent.START_MAIN_LOOP)
-                .build()
+                LifecycleEvent.builder()
+                        .type(LifecycleEvent.START_MAIN_LOOP)
+                        .build()
         );
         startRenderLoop();
         stage.dispatchEvent(
-            LifecycleEvent.builder()
-                .type(LifecycleEvent.EXIT_MAIN_LOOP)
-                .build()
+                LifecycleEvent.builder()
+                        .type(LifecycleEvent.EXIT_MAIN_LOOP)
+                        .build()
         );
     }
 
@@ -280,15 +242,15 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
             @Override
             public void invoke(long win, double dx, double dy) {
                 stage.dispatchEvent(InteractiveEvent.builder()
-                    .type(InteractiveEvent.WHEEL)
-                    .x(Mouse.getX())
-                    .y(Mouse.getY())
-                    .delta((int) dy)
-                    .control(control)
-                    .shift(shift)
-                    .alt(alt)
-                    .drag(isDown)
-                    .build());
+                        .type(InteractiveEvent.WHEEL)
+                        .x(Mouse.getX())
+                        .y(Mouse.getY())
+                        .delta((int) dy)
+                        .control(control)
+                        .shift(shift)
+                        .alt(alt)
+                        .drag(isDown)
+                        .build());
             }
         });
 
@@ -297,15 +259,15 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
             public void invoke(long window, int mouseButton, int action, int mods) {
                 isDown = action == 1;
                 stage.dispatchEvent(InteractiveEvent.builder()
-                    .type(action == 1 ? InteractiveEvent.DOWN : InteractiveEvent.UP)
-                    .x(Mouse.getX())
-                    .y(Mouse.getY())
-                    .drag(isDown)
-                    .mouseButton(mouseButton)
-                    .shift((mods & GLFW_MOD_SHIFT) != 0)
-                    .control((mods & GLFW_MOD_CONTROL) != 0)
-                    .alt((mods & GLFW_MOD_ALT) != 0)
-                    .build());
+                        .type(action == 1 ? InteractiveEvent.DOWN : InteractiveEvent.UP)
+                        .x(Mouse.getX())
+                        .y(Mouse.getY())
+                        .drag(isDown)
+                        .mouseButton(mouseButton)
+                        .shift((mods & GLFW_MOD_SHIFT) != 0)
+                        .control((mods & GLFW_MOD_CONTROL) != 0)
+                        .alt((mods & GLFW_MOD_ALT) != 0)
+                        .build());
 
                 InteractiveManager.getInstance().screenTouch(mouseX, mouseY, 0, mouseButton, isDown, shift, control, alt);
             }
@@ -320,13 +282,13 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
                 Mouse.setXY(mouseX, mouseY);
 
                 stage.dispatchEvent(InteractiveEvent.builder()
-                    .type(InteractiveEvent.MOVE)
-                    .x(Mouse.getX())
-                    .y(Mouse.getY())
-                    .drag(isDown)
-                    .build());
+                        .type(InteractiveEvent.MOVE)
+                        .x(Mouse.getX())
+                        .y(Mouse.getY())
+                        .drag(isDown)
+                        .build());
 
-                if(isDown) {
+                if (isDown) {
                     stage.dispatchEvent(InteractiveEvent.builder()
                             .type(InteractiveEvent.DRAG)
                             .x(Mouse.getX())
@@ -341,16 +303,16 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
 
         glfwSetCharCallback(windowId, (window, codepoint) -> {
             stage.dispatchEvent(InteractiveEvent.builder()
-                .type(InteractiveEvent.KEY_TYPE)
-                .x(Mouse.getX())
-                .y(Mouse.getY())
-                .alt(alt)
-                .control(control)
-                .shift(shift)
-                .drag(isDown)
-                .codepoint(codepoint)
-                .keyType(String.valueOf(Character.toChars(codepoint)))
-                .build());
+                    .type(InteractiveEvent.KEY_TYPE)
+                    .x(Mouse.getX())
+                    .y(Mouse.getY())
+                    .alt(alt)
+                    .control(control)
+                    .shift(shift)
+                    .drag(isDown)
+                    .codepoint(codepoint)
+                    .keyType(String.valueOf(Character.toChars(codepoint)))
+                    .build());
         });
 
         glfwSetKeyCallback(windowId, (window, key, scancode, action, mods) -> {
@@ -362,29 +324,29 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
                     if (key == KeyCode.LEFT_ALT || key == KeyCode.RIGHT_ALT) alt = true;
 
                     stage.dispatchEvent(InteractiveEvent.builder()
-                        .type(InteractiveEvent.KEY_DOWN)
+                            .type(InteractiveEvent.KEY_DOWN)
+                            .x(Mouse.getX())
+                            .y(Mouse.getY())
+                            .character((char) key)
+                            .keyCode(key)
+                            .drag(isDown)
+                            .shift((mods & GLFW_MOD_SHIFT) != 0)
+                            .control((mods & GLFW_MOD_CONTROL) != 0)
+                            .alt((mods & GLFW_MOD_ALT) != 0)
+                            .build());
+                }
+
+                case GLFW_REPEAT -> stage.dispatchEvent(InteractiveEvent.builder()
+                        .type(InteractiveEvent.KEY_REPEAT)
                         .x(Mouse.getX())
                         .y(Mouse.getY())
-                        .character((char) key)
                         .keyCode(key)
+                        .character((char) key)
                         .drag(isDown)
                         .shift((mods & GLFW_MOD_SHIFT) != 0)
                         .control((mods & GLFW_MOD_CONTROL) != 0)
                         .alt((mods & GLFW_MOD_ALT) != 0)
                         .build());
-                }
-
-                case GLFW_REPEAT -> stage.dispatchEvent(InteractiveEvent.builder()
-                    .type(InteractiveEvent.KEY_REPEAT)
-                    .x(Mouse.getX())
-                    .y(Mouse.getY())
-                    .keyCode(key)
-                    .character((char) key)
-                    .drag(isDown)
-                    .shift((mods & GLFW_MOD_SHIFT) != 0)
-                    .control((mods & GLFW_MOD_CONTROL) != 0)
-                    .alt((mods & GLFW_MOD_ALT) != 0)
-                    .build());
 
                 case GLFW_RELEASE -> {
                     if (key == KeyCode.LEFT_SHIFT || key == KeyCode.RIGHT_SHIFT) shift = false;
@@ -392,16 +354,16 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
                     if (key == KeyCode.LEFT_ALT || key == KeyCode.RIGHT_ALT) alt = false;
 
                     stage.dispatchEvent(InteractiveEvent.builder()
-                        .type(InteractiveEvent.KEY_UP)
-                        .x(Mouse.getX())
-                        .y(Mouse.getY())
-                        .keyCode(key)
-                        .character((char) key)
-                        .drag(isDown)
-                        .shift((mods & GLFW_MOD_SHIFT) != 0)
-                        .control((mods & GLFW_MOD_CONTROL) != 0)
-                        .alt((mods & GLFW_MOD_ALT) != 0)
-                        .build());
+                            .type(InteractiveEvent.KEY_UP)
+                            .x(Mouse.getX())
+                            .y(Mouse.getY())
+                            .keyCode(key)
+                            .character((char) key)
+                            .drag(isDown)
+                            .shift((mods & GLFW_MOD_SHIFT) != 0)
+                            .control((mods & GLFW_MOD_CONTROL) != 0)
+                            .alt((mods & GLFW_MOD_ALT) != 0)
+                            .build());
                 }
             }
         });
@@ -409,9 +371,9 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
         GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
         glfwSetWindowPos(
-            windowId,
-            (videoMode.width() - initialWidth) / 2,
-            (videoMode.height() - initialHeight) / 2
+                windowId,
+                (videoMode.width() - initialWidth) / 2,
+                (videoMode.height() - initialHeight) / 2
         );
 
         glfwMakeContextCurrent(windowId);
@@ -423,7 +385,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
         D2D2.textureManager().loadTextureDataInfo(DEMO_TEXTURE_DATA_INF_FILE);
 
 
-        GL11.glEnable(GL13.GL_MULTISAMPLE);
+        //GL11.glEnable(GL13.GL_MULTISAMPLE);
 
         renderer.init(windowId);
         renderer.reshape();
@@ -441,19 +403,19 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
     @Override
     public void putToClipboard(String string) {
         Toolkit.getDefaultToolkit()
-            .getSystemClipboard()
-            .setContents(
-                new StringSelection(string),
-                null
-            );
+                .getSystemClipboard()
+                .setContents(
+                        new StringSelection(string),
+                        null
+                );
     }
 
     @Override
     public String getStringFromClipboard() {
         try {
             return Toolkit.getDefaultToolkit()
-                .getSystemClipboard()
-                .getData(DataFlavor.stringFlavor).toString();
+                    .getSystemClipboard()
+                    .getData(DataFlavor.stringFlavor).toString();
         } catch (UnsupportedFlavorException e) {
             //e.printStackTrace(); // ignore exception
             return "";
@@ -570,7 +532,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 
         InputStream inputStream = builder.getInputStream() != null ?
-            builder.getInputStream() : new FileInputStream(builder.getFilePath().toFile());
+                builder.getInputStream() : new FileInputStream(builder.getFilePath().toFile());
 
         java.awt.Font font = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, inputStream);
         String fontName = font.getName();
@@ -659,17 +621,17 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
 
         // char infos
         charInfos.forEach(charInfo ->
-            stringBuilder
-                .append(charInfo.character)
-                .append(' ')
-                .append(charInfo.x)
-                .append(' ')
-                .append(charInfo.y)
-                .append(' ')
-                .append(charInfo.width)
-                .append(' ')
-                .append(charInfo.height)
-                .append('\n')
+                stringBuilder
+                        .append(charInfo.character)
+                        .append(' ')
+                        .append(charInfo.x)
+                        .append(' ')
+                        .append(charInfo.y)
+                        .append(' ')
+                        .append(charInfo.width)
+                        .append(' ')
+                        .append(charInfo.height)
+                        .append('\n')
         );
 
         byte[] charsDataBytes = stringBuilder.toString().getBytes(StandardCharsets.UTF_8);
@@ -683,7 +645,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
             Path ttfPath = builder.getFilePath();
 
             String fileName = assetPath != null ?
-                Path.of(assetPath).getFileName().toString() : ttfPath.getFileName().toString();
+                    Path.of(assetPath).getFileName().toString() : ttfPath.getFileName().toString();
 
             String saveToPathString = System.getProperty(SystemProperties.D2D2_BITMAPFONT_SAVEBMF);
 
@@ -697,9 +659,9 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
         }
 
         return D2D2.bitmapFontManager().loadBitmapFont(
-            new ByteArrayInputStream(charsDataBytes),
-            new ByteArrayInputStream(pngDataBytes),
-            builder.getName()
+                new ByteArrayInputStream(charsDataBytes),
+                new ByteArrayInputStream(pngDataBytes),
+                builder.getName()
         );
     }
 
@@ -713,12 +675,12 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
         @Override
         public String toString() {
             return "CharInfo{" +
-                "character=" + character +
-                ", x=" + x +
-                ", y=" + y +
-                ", width=" + width +
-                ", height=" + height +
-                '}';
+                    "character=" + character +
+                    ", x=" + x +
+                    ", y=" + y +
+                    ", width=" + width +
+                    ", height=" + height +
+                    '}';
         }
     }
 }
