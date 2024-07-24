@@ -18,58 +18,24 @@
 package com.ancevt.d2d2.engine.lwjgl;
 
 import com.ancevt.d2d2.D2D2;
-import com.ancevt.d2d2.display.Color;
-import com.ancevt.d2d2.display.Colored;
-import com.ancevt.d2d2.display.Container;
-import com.ancevt.d2d2.display.DisplayObject;
-import com.ancevt.d2d2.display.Playable;
-import com.ancevt.d2d2.display.Renderer;
-import com.ancevt.d2d2.display.Sprite;
-import com.ancevt.d2d2.display.Stage;
+import com.ancevt.d2d2.display.*;
 import com.ancevt.d2d2.display.shape.Shape;
 import com.ancevt.d2d2.display.text.BitmapCharInfo;
 import com.ancevt.d2d2.display.text.Font;
 import com.ancevt.d2d2.display.text.Text;
-import com.ancevt.d2d2.display.texture.TextureClip;
 import com.ancevt.d2d2.display.texture.Texture;
-import com.ancevt.d2d2.engine.lwjgl.util.Vao;
-import com.ancevt.d2d2.engine.lwjgl.util.Vbo;
-import com.ancevt.d2d2.engine.lwjgl.util.shader.ShaderProgram;
-import com.ancevt.d2d2.engine.lwjgl.util.shader.VertexShader;
+import com.ancevt.d2d2.display.texture.TextureClip;
 import com.ancevt.d2d2.event.Event;
 import com.ancevt.d2d2.event.EventPool;
 import lombok.Getter;
 import lombok.Setter;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.util.glu.GLU;
 
 import static java.lang.Math.round;
-import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_REPEAT;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
-import static org.lwjgl.opengl.GL11.glBegin;
-import static org.lwjgl.opengl.GL11.glBlendFunc;
-import static org.lwjgl.opengl.GL11.glClear;
-import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.opengl.GL11.glColor4f;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glLoadIdentity;
-import static org.lwjgl.opengl.GL11.glMatrixMode;
-import static org.lwjgl.opengl.GL11.glPopMatrix;
-import static org.lwjgl.opengl.GL11.glPushMatrix;
-import static org.lwjgl.opengl.GL11.glRotatef;
-import static org.lwjgl.opengl.GL11.glScalef;
-import static org.lwjgl.opengl.GL11.glTexCoord2d;
-import static org.lwjgl.opengl.GL11.glTexParameteri;
-import static org.lwjgl.opengl.GL11.glTranslatef;
-import static org.lwjgl.opengl.GL11.glVertex2d;
-import static org.lwjgl.opengl.GL11.glViewport;
+import static org.lwjgl.opengl.GL11.*;
 
 
 // TODO: rewrite with VBO abd refactor
@@ -89,10 +55,6 @@ public class LwjglRenderer implements Renderer {
     @Setter
     private int fps = frameRate;
 
-    private Vao vao;
-
-    private ShaderProgram shaderProgram;
-
     public LwjglRenderer(Stage stage, LwjglEngine lwjglStarter) {
         this.stage = stage;
         this.lwjglEngine = lwjglStarter;
@@ -108,22 +70,6 @@ public class LwjglRenderer implements Renderer {
 
         glMatrixMode(GL11.GL_MODELVIEW);
 
-        VertexShader vertexShader = VertexShader.createFromResources("d2d2shader/shader.vert");
-        vertexShader.compile();
-
-        shaderProgram = new ShaderProgram();
-        shaderProgram.attachShader(vertexShader);
-        shaderProgram.link();
-
-        float[] vertices = {
-            0f, 0f, 0.0f,
-            1f, 0f, 0.0f,
-            1f, 1f, 0.0f,
-            0f, 1f, 0.0f,
-        };
-
-        vao = new Vao();
-        vao.addVbo(new Vbo(vertices), 0);
     }
 
     @Override
@@ -136,7 +82,6 @@ public class LwjglRenderer implements Renderer {
         glMatrixMode(GL11.GL_MODELVIEW);
         glLoadIdentity();
     }
-
 
     private long lastTime = System.currentTimeMillis();
     private double delta = 0;
@@ -275,6 +220,8 @@ public class LwjglRenderer implements Renderer {
             }
         }
 
+
+
         if (displayObject instanceof Container container) {
             for (int i = 0; i < container.getNumChildren(); i++) {
                 renderDisplayObject(container.getChild(i), level + 1, x + toX, y + toY, toScaleX, toScaleY, a);
@@ -289,8 +236,16 @@ public class LwjglRenderer implements Renderer {
                 renderBitmapText(btx, a);
             }
         } else if (displayObject instanceof Shape s) {
+            if(displayObject.getShaderProgram() != null) {
+                displayObject.getShaderProgram().use();
+            }
             renderShape(s, a);
+            if (displayObject.getShaderProgram() != null) {
+                GL20.glUseProgram(0);
+            }
         }
+
+
 
         if (displayObject instanceof Playable fs) {
             fs.processFrame();
@@ -310,14 +265,12 @@ public class LwjglRenderer implements Renderer {
     }
 
     private void renderSprite(Sprite sprite) {
-
         TextureClip textureClip = sprite.getTextureClip();
 
         if (textureClip == null) return;
         if (textureClip.getTexture().isDisposed()) return;
 
         Texture texture = textureClip.getTexture();
-
 
         boolean bindResult = D2D2.textureManager().getTextureEngine().bind(texture);
 

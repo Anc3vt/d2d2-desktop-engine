@@ -15,14 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.ancevt.d2d2.engine.lwjgl.util.shader;
+package com.ancevt.d2d2.engine.lwjgl.shader;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import org.lwjgl.opengl.GL20;
 
-public class ShaderFactory {
+public class LwjglFragmentShader extends LwjglShader {
+    public LwjglFragmentShader(String source) {
+        super(source, GL20.GL_FRAGMENT_SHADER);
+    }
 
-
+    public static LwjglFragmentShader createFromResources(String resourcesPath) {
+        return new LwjglFragmentShader(readStringFromResources(resourcesPath));
+    }
 }

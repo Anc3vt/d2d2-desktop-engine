@@ -15,8 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.ancevt.d2d2.engine.lwjgl.util.shader;
+package com.ancevt.d2d2.engine.lwjgl.shader;
 
+import com.ancevt.d2d2.display.shader.Shader;
 import lombok.Getter;
 import org.lwjgl.opengl.GL20;
 
@@ -25,21 +26,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public abstract class Shader {
+public abstract class LwjglShader implements Shader {
     private final int id;
 
     @Getter
     private final String source;
 
-    public Shader(String source, int type) {
+    public LwjglShader(String source, int type) {
         this.source = source;
         this.id = GL20.glCreateShader(type);
     }
 
-    public Shader(InputStream inputStream, int type) {
+    public LwjglShader(InputStream inputStream, int type) {
         this(convertInputStreamToString(inputStream), type);
     }
 
+    @Override
     public void compile() {
         GL20.glShaderSource(id, source);
         GL20.glCompileShader(id);
@@ -49,16 +51,18 @@ public abstract class Shader {
         }
     }
 
+    @Override
     public int getId() {
         return id;
     }
 
+    @Override
     public void delete() {
         GL20.glDeleteShader(id);
     }
 
     protected static String readStringFromResources(String resourcePath) {
-        try(InputStream inputStream = Shader.class.getClassLoader()
+        try(InputStream inputStream = LwjglShader.class.getClassLoader()
             .getResourceAsStream(resourcePath)) {
             return convertInputStreamToString(inputStream);
         } catch (IOException e) {
@@ -66,7 +70,7 @@ public abstract class Shader {
         }
     }
 
-    public static String convertInputStreamToString(InputStream inputStream)  {
+    private static String convertInputStreamToString(InputStream inputStream)  {
         StringBuilder stringBuilder = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
