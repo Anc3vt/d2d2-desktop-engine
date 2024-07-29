@@ -57,6 +57,8 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11C.glEnable;
+import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 // TODO: rewrite with VBO and refactor
@@ -215,7 +217,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
             throw new IllegalStateException("Unable to initialize GLFW");
 
         glfwDefaultWindowHints();
-        glfwWindowHint(GLFW.GLFW_SAMPLES, 4);
+
 
 
         if (Objects.equals(System.getProperty(SystemProperties.GLFW_HINT_ALWAYSONTOP), "true")) {
@@ -377,21 +379,19 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
         );
 
         glfwMakeContextCurrent(windowId);
+        glfwSwapInterval(1); // enable vsync
         GL.createCapabilities();
 
-        glfwSwapInterval(1);
 
         // TODO: remove loading demo texture data info from here
         D2D2.textureManager().loadTextureDataInfo(DEMO_TEXTURE_DATA_INF_FILE);
-
-
-        //GL11.glEnable(GL13.GL_MULTISAMPLE);
+        glfwWindowHint(GLFW.GLFW_SAMPLES, 4);
+        glEnable(GL_MULTISAMPLE);
 
         renderer.init(windowId);
         renderer.reshape();
 
         setSmoothMode(false);
-
         return windowId;
     }
 
