@@ -81,6 +81,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.joml</groupId>
+            <artifactId>joml</artifactId>
+            <version>1.10.5</version> <!-- можно выбрать последнюю -->
+        </dependency>
+        <dependency>
             <groupId>com.googlecode.soundlibs</groupId>
             <artifactId>mp3spi</artifactId>
             <version>${mp3spi.version}</version>
