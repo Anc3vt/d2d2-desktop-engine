@@ -19,12 +19,12 @@ package com.ancevt.d2d2.engine.lwjgl;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.asset.Assets;
-import com.ancevt.d2d2.display.Color;
-import com.ancevt.d2d2.display.text.Text;
-import com.ancevt.d2d2.display.texture.ITextureEngine;
-import com.ancevt.d2d2.display.texture.Texture;
-import com.ancevt.d2d2.display.texture.TextureClip;
-import com.ancevt.d2d2.display.texture.TextureClipCombinerCell;
+import com.ancevt.d2d2.scene.Color;
+import com.ancevt.d2d2.scene.text.Text;
+import com.ancevt.d2d2.scene.texture.ITextureEngine;
+import com.ancevt.d2d2.scene.texture.Texture;
+import com.ancevt.d2d2.scene.texture.TextureClip;
+import com.ancevt.d2d2.scene.texture.TextureClipCombinerCell;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL30;

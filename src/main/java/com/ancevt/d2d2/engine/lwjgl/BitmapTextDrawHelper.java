@@ -17,11 +17,11 @@
  */
 package com.ancevt.d2d2.engine.lwjgl;
 
-import com.ancevt.d2d2.display.Color;
-import com.ancevt.d2d2.display.text.BitmapCharInfo;
-import com.ancevt.d2d2.display.text.Font;
-import com.ancevt.d2d2.display.text.Text;
-import com.ancevt.d2d2.display.texture.Texture;
+import com.ancevt.d2d2.scene.Color;
+import com.ancevt.d2d2.scene.text.BitmapCharInfo;
+import com.ancevt.d2d2.scene.text.Font;
+import com.ancevt.d2d2.scene.text.Text;
+import com.ancevt.d2d2.scene.texture.Texture;
 
 
 class BitmapTextDrawHelper {

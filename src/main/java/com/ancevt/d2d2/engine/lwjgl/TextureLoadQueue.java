@@ -17,7 +17,7 @@
  */
 package com.ancevt.d2d2.engine.lwjgl;
 
-import com.ancevt.d2d2.display.texture.Texture;
+import com.ancevt.d2d2.scene.texture.Texture;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedList;

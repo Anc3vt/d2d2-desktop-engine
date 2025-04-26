@@ -18,13 +18,13 @@
 package com.ancevt.d2d2.engine.lwjgl;
 
 import com.ancevt.d2d2.D2D2;
-import com.ancevt.d2d2.display.*;
-import com.ancevt.d2d2.display.shape.Shape;
-import com.ancevt.d2d2.display.text.BitmapCharInfo;
-import com.ancevt.d2d2.display.text.Font;
-import com.ancevt.d2d2.display.text.Text;
-import com.ancevt.d2d2.display.texture.Texture;
-import com.ancevt.d2d2.display.texture.TextureClip;
+import com.ancevt.d2d2.scene.*;
+import com.ancevt.d2d2.scene.shape.Shape;
+import com.ancevt.d2d2.scene.text.BitmapCharInfo;
+import com.ancevt.d2d2.scene.text.Font;
+import com.ancevt.d2d2.scene.text.Text;
+import com.ancevt.d2d2.scene.texture.Texture;
+import com.ancevt.d2d2.scene.texture.TextureClip;
 import com.ancevt.d2d2.event.Event;
 import com.ancevt.d2d2.event.EventPool;
 import lombok.Getter;
@@ -41,7 +41,7 @@ import static org.lwjgl.opengl.GL11.*;
 // TODO: rewrite with VBO abd refactor
 public class LwjglRenderer implements Renderer {
 
-    private final Stage stage;
+    private final Scene scene;
     private final LwjglEngine lwjglEngine;
     boolean smoothMode = false;
     private LwjglTextureEngine textureEngine;
@@ -55,8 +55,8 @@ public class LwjglRenderer implements Renderer {
     @Setter
     private int fps = frameRate;
 
-    public LwjglRenderer(Stage stage, LwjglEngine lwjglStarter) {
-        this.stage = stage;
+    public LwjglRenderer(Scene scene, LwjglEngine lwjglStarter) {
+        this.scene = scene;
         this.lwjglEngine = lwjglStarter;
     }
 
@@ -97,7 +97,7 @@ public class LwjglRenderer implements Renderer {
 
         // Выполнить обновление игровой логики, даже если кадры пропущены
         while (delta >= 1) {
-            dispatchLoopUpdate(stage);
+            dispatchLoopUpdate(scene);
             delta--;
         }
 
@@ -126,16 +126,16 @@ public class LwjglRenderer implements Renderer {
         clear();
         glLoadIdentity();
 
-        renderDisplayObject(stage,
+        renderDisplayObject(scene,
             0,
-            stage.getX(),
-            stage.getY(),
-            stage.getScaleX(),
-            stage.getScaleY(),
-            stage.getAlpha()
+            scene.getX(),
+            scene.getY(),
+            scene.getScaleX(),
+            scene.getScaleY(),
+            scene.getAlpha()
         );
 
-        DisplayObject cursor = D2D2.getCursor();
+        SceneEntity cursor = D2D2.getCursor();
         if (cursor != null) {
             renderDisplayObject(cursor, 0, 0, 0, 1, 1, 1);
         }
@@ -146,12 +146,12 @@ public class LwjglRenderer implements Renderer {
         //Mouse.setXY((int) mouseX[0], (int) mouseY[0]);
     }
 
-    private void dispatchLoopUpdate(DisplayObject o) {
+    private void dispatchLoopUpdate(SceneEntity o) {
         if (!o.isVisible()) return;
 
         if (o instanceof Container c) {
             for (int i = 0; i < c.getNumChildren(); i++) {
-                DisplayObject child = c.getChild(i);
+                SceneEntity child = c.getChild(i);
                 dispatchLoopUpdate(child);
             }
         }
@@ -164,7 +164,7 @@ public class LwjglRenderer implements Renderer {
     private final double[] mouseY = new double[1];
 
     private void clear() {
-        Color backgroundColor = stage.getBackgroundColor();
+        Color backgroundColor = scene.getBackgroundColor();
         float backgroundColorRed = backgroundColor.getR() / 255.0f;
         float backgroundColorGreen = backgroundColor.getG() / 255.0f;
         float backgroundColorBlue = backgroundColor.getB() / 255.0f;
@@ -172,7 +172,7 @@ public class LwjglRenderer implements Renderer {
         glClear(GL11.GL_COLOR_BUFFER_BIT);
     }
 
-    private synchronized void renderDisplayObject(DisplayObject displayObject,
+    private synchronized void renderDisplayObject(SceneEntity sceneEntity,
                                                   int level,
                                                   float toX,
                                                   float toY,
@@ -180,24 +180,24 @@ public class LwjglRenderer implements Renderer {
                                                   float toScaleY,
                                                   float toAlpha) {
 
-        if (!displayObject.isVisible()) return;
+        if (!sceneEntity.isVisible()) return;
 
-        displayObject.onEnterFrame();
-        displayObject.dispatchEvent(EventPool.simpleEventSingleton(Event.ENTER_FRAME, displayObject));
+        sceneEntity.onEnterFrame();
+        sceneEntity.dispatchEvent(EventPool.simpleEventSingleton(Event.ENTER_FRAME, sceneEntity));
 
         zOrderCounter++;
-        displayObject.setAbsoluteZOrderIndex(zOrderCounter);
+        sceneEntity.setAbsoluteZOrderIndex(zOrderCounter);
 
-        float scX = displayObject.getScaleX() * toScaleX;
-        float scY = displayObject.getScaleY() * toScaleY;
-        float r = displayObject.getRotation();
+        float scX = sceneEntity.getScaleX() * toScaleX;
+        float scY = sceneEntity.getScaleY() * toScaleY;
+        float r = sceneEntity.getRotation();
 
-        float x = toScaleX * displayObject.getX();
-        float y = toScaleY * displayObject.getY();
+        float x = toScaleX * sceneEntity.getX();
+        float y = toScaleY * sceneEntity.getY();
 
-        float a = displayObject.getAlpha() * toAlpha;
+        float a = sceneEntity.getAlpha() * toAlpha;
 
-        if (displayObject.isIntegerPixelAlignmentEnabled()) {
+        if (sceneEntity.isIntegerPixelAlignmentEnabled()) {
             x = round(x);
             y = round(y);
         }
@@ -207,7 +207,7 @@ public class LwjglRenderer implements Renderer {
         glRotatef(r, 0, 0, 1);
         glScalef(scX, scY, 1);
 
-        if (displayObject instanceof Colored colored) {
+        if (sceneEntity instanceof Colored colored) {
             Color color = colored.getColor();
 
             if (color != null) {
@@ -222,39 +222,39 @@ public class LwjglRenderer implements Renderer {
 
 
 
-        if (displayObject instanceof Container container) {
+        if (sceneEntity instanceof Container container) {
             for (int i = 0; i < container.getNumChildren(); i++) {
                 renderDisplayObject(container.getChild(i), level + 1, x + toX, y + toY, toScaleX, toScaleY, a);
             }
 
-        } else if (displayObject instanceof Sprite s) {
+        } else if (sceneEntity instanceof Sprite s) {
             renderSprite(s);
-        } else if (displayObject instanceof Text btx) {
+        } else if (sceneEntity instanceof Text btx) {
             if (btx.isCacheAsSprite()) {
                 renderSprite(btx.cachedSprite());
             } else {
                 renderBitmapText(btx, a);
             }
-        } else if (displayObject instanceof Shape s) {
-            if(displayObject.getShaderProgram() != null) {
-                displayObject.getShaderProgram().use();
+        } else if (sceneEntity instanceof Shape s) {
+            if(sceneEntity.getShaderProgram() != null) {
+                sceneEntity.getShaderProgram().use();
             }
             renderShape(s, a);
-            if (displayObject.getShaderProgram() != null) {
+            if (sceneEntity.getShaderProgram() != null) {
                 GL20.glUseProgram(0);
             }
         }
 
 
 
-        if (displayObject instanceof Playable fs) {
+        if (sceneEntity instanceof Playable fs) {
             fs.processFrame();
         }
 
         glPopMatrix();
 
-        displayObject.onExitFrame();
-        displayObject.dispatchEvent(EventPool.simpleEventSingleton(Event.EXIT_FRAME, displayObject));
+        sceneEntity.onExitFrame();
+        sceneEntity.dispatchEvent(EventPool.simpleEventSingleton(Event.EXIT_FRAME, sceneEntity));
     }
 
     private void renderShape(Shape s, float alpha) {

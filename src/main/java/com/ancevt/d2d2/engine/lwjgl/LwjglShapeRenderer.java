@@ -17,12 +17,12 @@
  */
 package com.ancevt.d2d2.engine.lwjgl;
 
-import com.ancevt.d2d2.display.shape.FreeShape;
-import com.ancevt.d2d2.display.shape.LineBatch;
-import com.ancevt.d2d2.display.shape.RectangleShape;
-import com.ancevt.d2d2.display.shape.Shape;
-import com.ancevt.d2d2.display.shape.Triangle;
-import com.ancevt.d2d2.display.shape.Vertex;
+import com.ancevt.d2d2.scene.shape.FreeShape;
+import com.ancevt.d2d2.scene.shape.LineBatch;
+import com.ancevt.d2d2.scene.shape.RectangleShape;
+import com.ancevt.d2d2.scene.shape.Shape;
+import com.ancevt.d2d2.scene.shape.Triangle;
+import com.ancevt.d2d2.scene.shape.Vertex;
 import org.lwjgl.opengl.GL11;
 
 import static org.lwjgl.opengl.GL11.GL_LINE_STIPPLE;

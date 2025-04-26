@@ -18,23 +18,23 @@
 package com.ancevt.d2d2.engine.lwjgl;
 
 import com.ancevt.d2d2.D2D2;
-import com.ancevt.d2d2.display.Renderer;
-import com.ancevt.d2d2.display.Stage;
-import com.ancevt.d2d2.display.interactive.InteractiveManager;
-import com.ancevt.d2d2.display.text.Font;
-import com.ancevt.d2d2.display.text.FractionalMetrics;
-import com.ancevt.d2d2.display.text.TrueTypeFontBuilder;
 import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.engine.ShaderFactory;
 import com.ancevt.d2d2.engine.SoundManager;
 import com.ancevt.d2d2.engine.lwjgl.shader.LwjglShaderFactory;
-import com.ancevt.d2d2.event.BaseEventDispatcher;
+import com.ancevt.d2d2.event.EventDispatcherImpl;
 import com.ancevt.d2d2.event.InteractiveEvent;
 import com.ancevt.d2d2.event.LifecycleEvent;
 import com.ancevt.d2d2.input.KeyCode;
 import com.ancevt.d2d2.input.Mouse;
 import com.ancevt.d2d2.lifecycle.SystemProperties;
+import com.ancevt.d2d2.scene.Renderer;
+import com.ancevt.d2d2.scene.Scene;
+import com.ancevt.d2d2.scene.interactive.InteractiveManager;
+import com.ancevt.d2d2.scene.text.Font;
+import com.ancevt.d2d2.scene.text.FractionalMetrics;
+import com.ancevt.d2d2.scene.text.TrueTypeFontBuilder;
 import com.ancevt.d2d2.time.Timer;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +63,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 // TODO: rewrite with VBO and refactor
 @Slf4j
-public class LwjglEngine extends BaseEventDispatcher implements Engine {
+public class LwjglEngine extends EventDispatcherImpl implements Engine {
 
     private static final String DEMO_TEXTURE_DATA_INF_FILE = "d2d2-core-demo-texture-data.inf";
     private LwjglRenderer renderer;
@@ -73,7 +73,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
     private int mouseX;
     private int mouseY;
     private boolean isDown;
-    private Stage stage;
+    private Scene scene;
     private boolean running;
     private int frameRate = 60;
     private boolean alwaysOnTop;
@@ -153,12 +153,12 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
 
     @Override
     public void create() {
-        stage = new Stage();
-        renderer = new LwjglRenderer(stage, this);
+        scene = new Scene();
+        renderer = new LwjglRenderer(scene, this);
         renderer.setLWJGLTextureEngine((LwjglTextureEngine) D2D2.textureManager().getTextureEngine());
         displayManager.windowId = createWindow();
         displayManager.setVisible(true);
-        stage.setSize(initialWidth, initialHeight);
+        scene.setSize(initialWidth, initialHeight);
         renderer.reshape();
     }
 
@@ -187,13 +187,13 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
     @Override
     public void start() {
         running = true;
-        stage.dispatchEvent(
+        scene.dispatchEvent(
                 LifecycleEvent.builder()
                         .type(LifecycleEvent.START_MAIN_LOOP)
                         .build()
         );
         startRenderLoop();
-        stage.dispatchEvent(
+        scene.dispatchEvent(
                 LifecycleEvent.builder()
                         .type(LifecycleEvent.EXIT_MAIN_LOOP)
                         .build()
@@ -201,8 +201,8 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
     }
 
     @Override
-    public Stage stage() {
-        return stage;
+    public Scene stage() {
+        return scene;
     }
 
     @Override
@@ -217,7 +217,6 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
             throw new IllegalStateException("Unable to initialize GLFW");
 
         glfwDefaultWindowHints();
-
 
 
         if (Objects.equals(System.getProperty(SystemProperties.GLFW_HINT_ALWAYSONTOP), "true")) {
@@ -243,7 +242,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
         glfwSetScrollCallback(windowId, new GLFWScrollCallback() {
             @Override
             public void invoke(long win, double dx, double dy) {
-                stage.dispatchEvent(InteractiveEvent.builder()
+                scene.dispatchEvent(InteractiveEvent.builder()
                         .type(InteractiveEvent.WHEEL)
                         .x(Mouse.getX())
                         .y(Mouse.getY())
@@ -260,7 +259,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
             @Override
             public void invoke(long window, int mouseButton, int action, int mods) {
                 isDown = action == 1;
-                stage.dispatchEvent(InteractiveEvent.builder()
+                scene.dispatchEvent(InteractiveEvent.builder()
                         .type(action == 1 ? InteractiveEvent.DOWN : InteractiveEvent.UP)
                         .x(Mouse.getX())
                         .y(Mouse.getY())
@@ -278,12 +277,12 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
         glfwSetCursorPosCallback(windowId, new GLFWCursorPosCallback() {
             @Override
             public void invoke(long window, double x, double y) {
-                mouseX = (int) (x * stage.getWidth() / canvasWidth);
-                mouseY = (int) (y * stage.getHeight() / canvasHeight);
+                mouseX = (int) (x * scene.getWidth() / canvasWidth);
+                mouseY = (int) (y * scene.getHeight() / canvasHeight);
 
                 Mouse.setXY(mouseX, mouseY);
 
-                stage.dispatchEvent(InteractiveEvent.builder()
+                scene.dispatchEvent(InteractiveEvent.builder()
                         .type(InteractiveEvent.MOVE)
                         .x(Mouse.getX())
                         .y(Mouse.getY())
@@ -291,7 +290,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
                         .build());
 
                 if (isDown) {
-                    stage.dispatchEvent(InteractiveEvent.builder()
+                    scene.dispatchEvent(InteractiveEvent.builder()
                             .type(InteractiveEvent.DRAG)
                             .x(Mouse.getX())
                             .y(Mouse.getY())
@@ -304,7 +303,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
         });
 
         glfwSetCharCallback(windowId, (window, codepoint) -> {
-            stage.dispatchEvent(InteractiveEvent.builder()
+            scene.dispatchEvent(InteractiveEvent.builder()
                     .type(InteractiveEvent.KEY_TYPE)
                     .x(Mouse.getX())
                     .y(Mouse.getY())
@@ -325,7 +324,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
                     if (key == KeyCode.LEFT_CONTROL || key == KeyCode.RIGHT_CONTROL) control = true;
                     if (key == KeyCode.LEFT_ALT || key == KeyCode.RIGHT_ALT) alt = true;
 
-                    stage.dispatchEvent(InteractiveEvent.builder()
+                    scene.dispatchEvent(InteractiveEvent.builder()
                             .type(InteractiveEvent.KEY_DOWN)
                             .x(Mouse.getX())
                             .y(Mouse.getY())
@@ -338,7 +337,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
                             .build());
                 }
 
-                case GLFW_REPEAT -> stage.dispatchEvent(InteractiveEvent.builder()
+                case GLFW_REPEAT -> scene.dispatchEvent(InteractiveEvent.builder()
                         .type(InteractiveEvent.KEY_REPEAT)
                         .x(Mouse.getX())
                         .y(Mouse.getY())
@@ -355,7 +354,7 @@ public class LwjglEngine extends BaseEventDispatcher implements Engine {
                     if (key == KeyCode.LEFT_CONTROL || key == KeyCode.RIGHT_CONTROL) control = false;
                     if (key == KeyCode.LEFT_ALT || key == KeyCode.RIGHT_ALT) alt = false;
 
-                    stage.dispatchEvent(InteractiveEvent.builder()
+                    scene.dispatchEvent(InteractiveEvent.builder()
                             .type(InteractiveEvent.KEY_UP)
                             .x(Mouse.getX())
                             .y(Mouse.getY())

@@ -19,7 +19,7 @@ package com.ancevt.d2d2.engine.lwjgl.util.texture;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.asset.Assets;
-import com.ancevt.d2d2.display.texture.Texture;
+import com.ancevt.d2d2.scene.texture.Texture;
 import org.lwjgl.BufferUtils;
 
 import javax.imageio.ImageIO;

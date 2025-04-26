@@ -1,7 +1,7 @@
 package com.ancevt.d2d2.engine.lwjgl.shader;
 
-import com.ancevt.d2d2.display.shader.Shader;
-import com.ancevt.d2d2.display.shader.ShaderProgram;
+import com.ancevt.d2d2.scene.shader.Shader;
+import com.ancevt.d2d2.scene.shader.ShaderProgram;
 import com.ancevt.d2d2.engine.ShaderFactory;
 import com.ancevt.d2d2.exception.NotImplementedException;
 
