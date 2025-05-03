@@ -2,13 +2,13 @@
  * Copyright (C) 2025 the original author or authors.
  * See the notice.md file distributed with this work for additional
  * information regarding copyright ownership.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,8 @@
 package com.ancevt.d2d2.engine.lwjgl;
 
 import com.ancevt.d2d2.D2D2;
+import com.ancevt.d2d2.event.CommonEvent;
+import com.ancevt.d2d2.event.SceneEvent;
 import com.ancevt.d2d2.scene.*;
 import com.ancevt.d2d2.scene.shape.Shape;
 import com.ancevt.d2d2.scene.text.BitmapCharInfo;
@@ -26,8 +28,6 @@ import com.ancevt.d2d2.scene.text.Font;
 import com.ancevt.d2d2.scene.text.Text;
 import com.ancevt.d2d2.scene.texture.Texture;
 import com.ancevt.d2d2.scene.texture.TextureClip;
-import com.ancevt.d2d2.event.Event;
-import com.ancevt.d2d2.event.EventPool;
 import lombok.Getter;
 import lombok.Setter;
 import org.lwjgl.glfw.GLFW;
@@ -75,7 +75,7 @@ public class LwjglRenderer implements Renderer {
 
     @Override
     public void reshape() {
-        lwjglEngine.dispatchEvent(EventPool.simpleEventSingleton(Event.RESIZE, lwjglEngine));
+        lwjglEngine.dispatchEvent(CommonEvent.Resize.create(D2D2.stage().getWidth(), D2D2.stage().getHeight()));
         glViewport(0, 0, lwjglEngine.getCanvasWidth(), lwjglEngine.getCanvasHeight());
         glMatrixMode(GL11.GL_PROJECTION);
         glLoadIdentity();
@@ -128,12 +128,12 @@ public class LwjglRenderer implements Renderer {
         glLoadIdentity();
 
         renderDisplayObject(scene,
-            0,
-            scene.getX(),
-            scene.getY(),
-            scene.getScaleX(),
-            scene.getScaleY(),
-            scene.getAlpha()
+                0,
+                scene.getX(),
+                scene.getY(),
+                scene.getScaleX(),
+                scene.getScaleY(),
+                scene.getAlpha()
         );
 
         SceneEntity cursor = D2D2.getCursor();
@@ -157,7 +157,7 @@ public class LwjglRenderer implements Renderer {
             }
         }
 
-        o.dispatchEvent(EventPool.simpleEventSingleton(Event.LOOP_UPDATE, o));
+        o.dispatchEvent(SceneEvent.LoopUpdate.create());
         o.onLoopUpdate();
     }
 
@@ -184,7 +184,7 @@ public class LwjglRenderer implements Renderer {
         if (!sceneEntity.isVisible()) return;
 
         sceneEntity.onEnterFrame();
-        sceneEntity.dispatchEvent(EventPool.simpleEventSingleton(Event.ENTER_FRAME, sceneEntity));
+        sceneEntity.dispatchEvent(SceneEvent.EnterFrame.create());
 
         zOrderCounter++;
         sceneEntity.setAbsoluteZOrderIndex(zOrderCounter);
@@ -213,14 +213,13 @@ public class LwjglRenderer implements Renderer {
 
             if (color != null) {
                 glColor4f(
-                    color.getR() / 255f,
-                    color.getG() / 255f,
-                    color.getB() / 255f,
-                    a
+                        color.getR() / 255f,
+                        color.getG() / 255f,
+                        color.getB() / 255f,
+                        a
                 );
             }
         }
-
 
 
         if (sceneEntity instanceof Container container) {
@@ -237,7 +236,7 @@ public class LwjglRenderer implements Renderer {
                 renderBitmapText(btx, a);
             }
         } else if (sceneEntity instanceof Shape s) {
-            if(sceneEntity.getShaderProgram() != null) {
+            if (sceneEntity.getShaderProgram() != null) {
                 sceneEntity.getShaderProgram().use();
             }
             renderShape(s, a);
@@ -247,7 +246,6 @@ public class LwjglRenderer implements Renderer {
         }
 
 
-
         if (sceneEntity instanceof Playable fs) {
             fs.processFrame();
         }
@@ -255,7 +253,7 @@ public class LwjglRenderer implements Renderer {
         glPopMatrix();
 
         sceneEntity.onExitFrame();
-        sceneEntity.dispatchEvent(EventPool.simpleEventSingleton(Event.EXIT_FRAME, sceneEntity));
+        sceneEntity.dispatchEvent(SceneEvent.ExitFrame.create());
     }
 
     private void renderShape(Shape s, float alpha) {
@@ -374,11 +372,11 @@ public class LwjglRenderer implements Renderer {
         glBegin(GL11.GL_QUADS);
 
         BitmapTextDrawHelper.draw(text,
-            alpha,
-            1,
-            1,
-            LwjglRenderer::drawChar,
-            LwjglRenderer::applyColor
+                alpha,
+                1,
+                1,
+                LwjglRenderer::drawChar,
+                LwjglRenderer::applyColor
         );
 
         glEnd();
@@ -396,18 +394,18 @@ public class LwjglRenderer implements Renderer {
     }
 
     private static void drawChar(
-        Texture texture,
-        char c,
-        Text.ColorTextData.Letter letter,
-        float x,
-        float y,
-        int textureWidth,
-        int textureHeight,
-        BitmapCharInfo charInfo,
-        float scX,
-        float scY,
-        double textureBleedingFix,
-        double vertexBleedingFix) {
+            Texture texture,
+            char c,
+            Text.ColorTextData.Letter letter,
+            float x,
+            float y,
+            int textureWidth,
+            int textureHeight,
+            BitmapCharInfo charInfo,
+            float scX,
+            float scY,
+            double textureBleedingFix,
+            double vertexBleedingFix) {
 
         //scX = nextHalf(scX) ;
         scY = nextHalf(scY);

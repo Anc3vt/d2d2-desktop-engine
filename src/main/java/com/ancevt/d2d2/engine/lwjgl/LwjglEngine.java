@@ -2,13 +2,13 @@
  * Copyright (C) 2025 the original author or authors.
  * See the notice.md file distributed with this work for additional
  * information regarding copyright ownership.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,10 +24,9 @@ import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.engine.ShaderFactory;
 import com.ancevt.d2d2.engine.SoundManager;
 import com.ancevt.d2d2.engine.lwjgl.shader.LwjglShaderFactory;
-import com.ancevt.d2d2.event.EventDispatcherImpl;
-import com.ancevt.d2d2.event.InteractiveEvent;
-import com.ancevt.d2d2.event.LifecycleEvent;
-import com.ancevt.d2d2.input.KeyCode;
+import com.ancevt.d2d2.event.CommonEvent;
+import com.ancevt.d2d2.event.InputEvent;
+import com.ancevt.d2d2.event.dispatch.EventDispatcherImpl;
 import com.ancevt.d2d2.input.Mouse;
 import com.ancevt.d2d2.lifecycle.SystemProperties;
 import com.ancevt.d2d2.scene.Renderer;
@@ -188,17 +187,9 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
     @Override
     public void start() {
         running = true;
-        scene.dispatchEvent(
-                LifecycleEvent.builder()
-                        .type(LifecycleEvent.START_MAIN_LOOP)
-                        .build()
-        );
+        scene.dispatchEvent(CommonEvent.Start.create());
         startRenderLoop();
-        scene.dispatchEvent(
-                LifecycleEvent.builder()
-                        .type(LifecycleEvent.EXIT_MAIN_LOOP)
-                        .build()
-        );
+        scene.dispatchEvent(CommonEvent.Stop.create());
     }
 
     @Override
@@ -243,35 +234,54 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
         glfwSetScrollCallback(windowId, new GLFWScrollCallback() {
             @Override
             public void invoke(long win, double dx, double dy) {
-                scene.dispatchEvent(InteractiveEvent.builder()
-                        .type(InteractiveEvent.WHEEL)
-                        .x(Mouse.getX())
-                        .y(Mouse.getY())
-                        .delta((int) dy)
-                        .control(control)
-                        .shift(shift)
-                        .alt(alt)
-                        .drag(isDown)
-                        .build());
+                scene.dispatchEvent(InputEvent.MouseWheel.create(
+                        (int) dy,
+                        Mouse.getX(),
+                        Mouse.getY(),
+                        alt,
+                        control,
+                        shift
+                ));
+
             }
         });
 
         glfwSetMouseButtonCallback(windowId, new GLFWMouseButtonCallback() {
             @Override
             public void invoke(long window, int mouseButton, int action, int mods) {
-                isDown = action == 1;
-                scene.dispatchEvent(InteractiveEvent.builder()
-                        .type(action == 1 ? InteractiveEvent.DOWN : InteractiveEvent.UP)
-                        .x(Mouse.getX())
-                        .y(Mouse.getY())
-                        .drag(isDown)
-                        .mouseButton(mouseButton)
-                        .shift((mods & GLFW_MOD_SHIFT) != 0)
-                        .control((mods & GLFW_MOD_CONTROL) != 0)
-                        .alt((mods & GLFW_MOD_ALT) != 0)
-                        .build());
+                boolean down = action == GLFW_PRESS;
 
-                InteractiveManager.getInstance().screenTouch(mouseX, mouseY, 0, mouseButton, isDown, shift, control, alt);
+                scene.dispatchEvent(down
+                                ? InputEvent.MouseDown.create(
+                                Mouse.getX(), Mouse.getY(), mouseButton,
+                                mouseButton == GLFW_MOUSE_BUTTON_LEFT,
+                                mouseButton == GLFW_MOUSE_BUTTON_RIGHT,
+                                mouseButton == GLFW_MOUSE_BUTTON_MIDDLE,
+                                (mods & GLFW_MOD_SHIFT) != 0,
+                                (mods & GLFW_MOD_CONTROL) != 0,
+                                (mods & GLFW_MOD_ALT) != 0
+                        )
+                                : InputEvent.MouseUp.create(
+                                Mouse.getX(), Mouse.getY(), mouseButton,
+                                mouseButton == GLFW_MOUSE_BUTTON_LEFT,
+                                mouseButton == GLFW_MOUSE_BUTTON_RIGHT,
+                                mouseButton == GLFW_MOUSE_BUTTON_MIDDLE,
+                                (mods & GLFW_MOD_SHIFT) != 0,
+                                (mods & GLFW_MOD_CONTROL) != 0,
+                                (mods & GLFW_MOD_ALT) != 0
+                        )
+                );
+
+                InteractiveManager.getInstance().screenTouch(
+                        mouseX,
+                        mouseY,
+                        0,
+                        mouseButton,
+                        down,
+                        (mods & GLFW_MOD_SHIFT) != 0,
+                        (mods & GLFW_MOD_CONTROL) != 0,
+                        (mods & GLFW_MOD_ALT) != 0
+                );
             }
         });
 
@@ -283,20 +293,27 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
 
                 Mouse.setXY(mouseX, mouseY);
 
-                scene.dispatchEvent(InteractiveEvent.builder()
-                        .type(InteractiveEvent.MOVE)
-                        .x(Mouse.getX())
-                        .y(Mouse.getY())
-                        .drag(isDown)
-                        .build());
+                scene.dispatchEvent(InputEvent.MouseMove.create(
+                        Mouse.getX(),
+                        Mouse.getY(),
+                        true // or false — ты сам решаешь, но сейчас логика “onArea” не применима
+                        , alt,
+                        control,
+                        shift
+                ));
 
                 if (isDown) {
-                    scene.dispatchEvent(InteractiveEvent.builder()
-                            .type(InteractiveEvent.DRAG)
-                            .x(Mouse.getX())
-                            .y(Mouse.getY())
-                            .drag(isDown)
-                            .build());
+                    scene.dispatchEvent(InputEvent.MouseDrag.create(
+                            Mouse.getX(),
+                            Mouse.getY(),
+                            0, //TODO: pass mouse button info
+                            false,
+                            false,
+                            false,
+                            alt,
+                            control,
+                            shift
+                    ));
                 }
 
                 InteractiveManager.getInstance().screenMove(0, mouseX, mouseY, shift, control, alt);
@@ -304,71 +321,57 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
         });
 
         glfwSetCharCallback(windowId, (window, codepoint) -> {
-            scene.dispatchEvent(InteractiveEvent.builder()
-                    .type(InteractiveEvent.KEY_TYPE)
-                    .x(Mouse.getX())
-                    .y(Mouse.getY())
-                    .alt(alt)
-                    .control(control)
-                    .shift(shift)
-                    .drag(isDown)
-                    .codepoint(codepoint)
-                    .keyType(String.valueOf(Character.toChars(codepoint)))
-                    .build());
+            scene.dispatchEvent(InputEvent.KeyType.create(
+                    0,
+                    alt,
+                    control,
+                    shift,
+                    Character.toChars(codepoint)[0],
+                    codepoint,
+                    String.valueOf(Character.toChars(codepoint))
+            ));
         });
 
+
         glfwSetKeyCallback(windowId, (window, key, scancode, action, mods) -> {
+            boolean shiftNow = (mods & GLFW_MOD_SHIFT) != 0;
+            boolean ctrlNow = (mods & GLFW_MOD_CONTROL) != 0;
+            boolean altNow = (mods & GLFW_MOD_ALT) != 0;
+
+            shift = shiftNow;
+            control = ctrlNow;
+            alt = altNow;
 
             switch (action) {
                 case GLFW_PRESS -> {
-                    if (key == KeyCode.LEFT_SHIFT || key == KeyCode.RIGHT_SHIFT) shift = true;
-                    if (key == KeyCode.LEFT_CONTROL || key == KeyCode.RIGHT_CONTROL) control = true;
-                    if (key == KeyCode.LEFT_ALT || key == KeyCode.RIGHT_ALT) alt = true;
-
-                    scene.dispatchEvent(InteractiveEvent.builder()
-                            .type(InteractiveEvent.KEY_DOWN)
-                            .x(Mouse.getX())
-                            .y(Mouse.getY())
-                            .character((char) key)
-                            .keyCode(key)
-                            .drag(isDown)
-                            .shift((mods & GLFW_MOD_SHIFT) != 0)
-                            .control((mods & GLFW_MOD_CONTROL) != 0)
-                            .alt((mods & GLFW_MOD_ALT) != 0)
-                            .build());
+                    scene.dispatchEvent(InputEvent.KeyDown.create(
+                            key,
+                            altNow,
+                            ctrlNow,
+                            shiftNow
+                    ));
                 }
 
-                case GLFW_REPEAT -> scene.dispatchEvent(InteractiveEvent.builder()
-                        .type(InteractiveEvent.KEY_REPEAT)
-                        .x(Mouse.getX())
-                        .y(Mouse.getY())
-                        .keyCode(key)
-                        .character((char) key)
-                        .drag(isDown)
-                        .shift((mods & GLFW_MOD_SHIFT) != 0)
-                        .control((mods & GLFW_MOD_CONTROL) != 0)
-                        .alt((mods & GLFW_MOD_ALT) != 0)
-                        .build());
+                case GLFW_REPEAT -> {
+                    scene.dispatchEvent(InputEvent.KeyRepeat.create(
+                            key,
+                            altNow,
+                            ctrlNow,
+                            shiftNow
+                    ));
+                }
 
                 case GLFW_RELEASE -> {
-                    if (key == KeyCode.LEFT_SHIFT || key == KeyCode.RIGHT_SHIFT) shift = false;
-                    if (key == KeyCode.LEFT_CONTROL || key == KeyCode.RIGHT_CONTROL) control = false;
-                    if (key == KeyCode.LEFT_ALT || key == KeyCode.RIGHT_ALT) alt = false;
-
-                    scene.dispatchEvent(InteractiveEvent.builder()
-                            .type(InteractiveEvent.KEY_UP)
-                            .x(Mouse.getX())
-                            .y(Mouse.getY())
-                            .keyCode(key)
-                            .character((char) key)
-                            .drag(isDown)
-                            .shift((mods & GLFW_MOD_SHIFT) != 0)
-                            .control((mods & GLFW_MOD_CONTROL) != 0)
-                            .alt((mods & GLFW_MOD_ALT) != 0)
-                            .build());
+                    scene.dispatchEvent(InputEvent.KeyUp.create(
+                            key,
+                            altNow,
+                            ctrlNow,
+                            shiftNow
+                    ));
                 }
             }
         });
+
 
         GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
