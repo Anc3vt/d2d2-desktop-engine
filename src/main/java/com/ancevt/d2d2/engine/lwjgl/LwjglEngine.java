@@ -26,7 +26,7 @@ import com.ancevt.d2d2.engine.SoundManager;
 import com.ancevt.d2d2.engine.lwjgl.shader.LwjglShaderFactory;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.InputEvent;
-import com.ancevt.d2d2.event.dispatch.EventDispatcherImpl;
+import com.ancevt.d2d2.event.core.EventDispatcherImpl;
 import com.ancevt.d2d2.input.Mouse;
 import com.ancevt.d2d2.lifecycle.SystemProperties;
 import com.ancevt.d2d2.scene.Renderer;
@@ -266,6 +266,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
                                 mouseButton == GLFW_MOUSE_BUTTON_LEFT,
                                 mouseButton == GLFW_MOUSE_BUTTON_RIGHT,
                                 mouseButton == GLFW_MOUSE_BUTTON_MIDDLE,
+                                false,
                                 (mods & GLFW_MOD_SHIFT) != 0,
                                 (mods & GLFW_MOD_CONTROL) != 0,
                                 (mods & GLFW_MOD_ALT) != 0
@@ -346,6 +347,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
                 case GLFW_PRESS -> {
                     scene.dispatchEvent(InputEvent.KeyDown.create(
                             key,
+                            (char)key,
                             altNow,
                             ctrlNow,
                             shiftNow
