@@ -30,7 +30,7 @@ import com.ancevt.d2d2.event.core.EventDispatcherImpl;
 import com.ancevt.d2d2.input.Mouse;
 import com.ancevt.d2d2.lifecycle.SystemProperties;
 import com.ancevt.d2d2.scene.Renderer;
-import com.ancevt.d2d2.scene.Scene;
+import com.ancevt.d2d2.scene.Root;
 import com.ancevt.d2d2.scene.interactive.InteractiveManager;
 import com.ancevt.d2d2.scene.text.Font;
 import com.ancevt.d2d2.scene.text.FractionalMetrics;
@@ -73,7 +73,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
     private int mouseX;
     private int mouseY;
     private boolean isDown;
-    private Scene scene;
+    private Root root;
     private boolean running;
     private int frameRate = 60;
     private boolean alwaysOnTop;
@@ -153,12 +153,12 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void create() {
-        scene = new Scene();
-        renderer = new LwjglRenderer(scene, this);
+        root = new Root();
+        renderer = new LwjglRenderer(root, this);
         renderer.setLWJGLTextureEngine((LwjglTextureEngine) D2D2.textureManager().getTextureEngine());
         displayManager.windowId = createWindow();
         displayManager.setVisible(true);
-        scene.setSize(initialWidth, initialHeight);
+        root.setSize(initialWidth, initialHeight);
         renderer.reshape();
     }
 
@@ -187,14 +187,14 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
     @Override
     public void start() {
         running = true;
-        scene.dispatchEvent(CommonEvent.Start.create());
+        root.dispatchEvent(CommonEvent.Start.create());
         startRenderLoop();
-        scene.dispatchEvent(CommonEvent.Stop.create());
+        root.dispatchEvent(CommonEvent.Stop.create());
     }
 
     @Override
-    public Scene stage() {
-        return scene;
+    public Root stage() {
+        return root;
     }
 
     @Override
@@ -234,7 +234,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
         glfwSetScrollCallback(windowId, new GLFWScrollCallback() {
             @Override
             public void invoke(long win, double dx, double dy) {
-                scene.dispatchEvent(InputEvent.MouseWheel.create(
+                root.dispatchEvent(InputEvent.MouseWheel.create(
                         (int) dy,
                         Mouse.getX(),
                         Mouse.getY(),
@@ -251,7 +251,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
             public void invoke(long window, int mouseButton, int action, int mods) {
                 boolean down = action == GLFW_PRESS;
 
-                scene.dispatchEvent(down
+                root.dispatchEvent(down
                                 ? InputEvent.MouseDown.create(
                                 Mouse.getX(), Mouse.getY(), mouseButton,
                                 mouseButton == GLFW_MOUSE_BUTTON_LEFT,
@@ -289,12 +289,12 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
         glfwSetCursorPosCallback(windowId, new GLFWCursorPosCallback() {
             @Override
             public void invoke(long window, double x, double y) {
-                mouseX = (int) (x * scene.getWidth() / canvasWidth);
-                mouseY = (int) (y * scene.getHeight() / canvasHeight);
+                mouseX = (int) (x * root.getWidth() / canvasWidth);
+                mouseY = (int) (y * root.getHeight() / canvasHeight);
 
                 Mouse.setXY(mouseX, mouseY);
 
-                scene.dispatchEvent(InputEvent.MouseMove.create(
+                root.dispatchEvent(InputEvent.MouseMove.create(
                         Mouse.getX(),
                         Mouse.getY(),
                         true // or false — ты сам решаешь, но сейчас логика “onArea” не применима
@@ -304,7 +304,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
                 ));
 
                 if (isDown) {
-                    scene.dispatchEvent(InputEvent.MouseDrag.create(
+                    root.dispatchEvent(InputEvent.MouseDrag.create(
                             Mouse.getX(),
                             Mouse.getY(),
                             0, //TODO: pass mouse button info
@@ -322,7 +322,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
         });
 
         glfwSetCharCallback(windowId, (window, codepoint) -> {
-            scene.dispatchEvent(InputEvent.KeyType.create(
+            root.dispatchEvent(InputEvent.KeyType.create(
                     0,
                     alt,
                     control,
@@ -345,7 +345,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
 
             switch (action) {
                 case GLFW_PRESS -> {
-                    scene.dispatchEvent(InputEvent.KeyDown.create(
+                    root.dispatchEvent(InputEvent.KeyDown.create(
                             key,
                             (char)key,
                             altNow,
@@ -355,7 +355,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
                 }
 
                 case GLFW_REPEAT -> {
-                    scene.dispatchEvent(InputEvent.KeyRepeat.create(
+                    root.dispatchEvent(InputEvent.KeyRepeat.create(
                             key,
                             altNow,
                             ctrlNow,
@@ -364,7 +364,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
                 }
 
                 case GLFW_RELEASE -> {
-                    scene.dispatchEvent(InputEvent.KeyUp.create(
+                    root.dispatchEvent(InputEvent.KeyUp.create(
                             key,
                             altNow,
                             ctrlNow,

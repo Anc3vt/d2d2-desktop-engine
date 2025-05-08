@@ -20,7 +20,7 @@ package com.ancevt.d2d2.engine.lwjgl;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.event.CommonEvent;
-import com.ancevt.d2d2.event.SceneEvent;
+import com.ancevt.d2d2.event.NodeEvent;
 import com.ancevt.d2d2.scene.*;
 import com.ancevt.d2d2.scene.shape.Shape;
 import com.ancevt.d2d2.scene.text.BitmapCharInfo;
@@ -42,7 +42,7 @@ import static org.lwjgl.opengl.GL11.*;
 // TODO: rewrite with VBO abd refactor
 public class LwjglRenderer implements Renderer {
 
-    private final Scene scene;
+    private final Root root;
     private final LwjglEngine lwjglEngine;
     boolean smoothMode = false;
     private LwjglTextureEngine textureEngine;
@@ -56,8 +56,8 @@ public class LwjglRenderer implements Renderer {
     @Setter
     private int fps = frameRate;
 
-    public LwjglRenderer(Scene scene, LwjglEngine lwjglStarter) {
-        this.scene = scene;
+    public LwjglRenderer(Root root, LwjglEngine lwjglStarter) {
+        this.root = root;
         this.lwjglEngine = lwjglStarter;
     }
 
@@ -75,11 +75,11 @@ public class LwjglRenderer implements Renderer {
 
     @Override
     public void reshape() {
-        lwjglEngine.dispatchEvent(CommonEvent.Resize.create(D2D2.stage().getWidth(), D2D2.stage().getHeight()));
+        lwjglEngine.dispatchEvent(CommonEvent.Resize.create(D2D2.root().getWidth(), D2D2.root().getHeight()));
         glViewport(0, 0, lwjglEngine.getCanvasWidth(), lwjglEngine.getCanvasHeight());
         glMatrixMode(GL11.GL_PROJECTION);
         glLoadIdentity();
-        GLU.gluOrtho2D(0, D2D2.stage().getWidth(), D2D2.stage().getHeight(), 0);
+        GLU.gluOrtho2D(0, D2D2.root().getWidth(), D2D2.root().getHeight(), 0);
         glMatrixMode(GL11.GL_MODELVIEW);
         glLoadIdentity();
     }
@@ -98,7 +98,7 @@ public class LwjglRenderer implements Renderer {
 
         // Выполнить обновление игровой логики, даже если кадры пропущены
         while (delta >= 1) {
-            dispatchLoopUpdate(scene);
+            dispatchLoopUpdate(root);
             delta--;
         }
 
@@ -127,16 +127,16 @@ public class LwjglRenderer implements Renderer {
         clear();
         glLoadIdentity();
 
-        renderDisplayObject(scene,
+        renderDisplayObject(root,
                 0,
-                scene.getX(),
-                scene.getY(),
-                scene.getScaleX(),
-                scene.getScaleY(),
-                scene.getAlpha()
+                root.getX(),
+                root.getY(),
+                root.getScaleX(),
+                root.getScaleY(),
+                root.getAlpha()
         );
 
-        SceneEntity cursor = D2D2.getCursor();
+        Node cursor = D2D2.getCursor();
         if (cursor != null) {
             renderDisplayObject(cursor, 0, 0, 0, 1, 1, 1);
         }
@@ -147,17 +147,17 @@ public class LwjglRenderer implements Renderer {
         //Mouse.setXY((int) mouseX[0], (int) mouseY[0]);
     }
 
-    private void dispatchLoopUpdate(SceneEntity o) {
+    private void dispatchLoopUpdate(Node o) {
         if (!o.isVisible()) return;
 
-        if (o instanceof Container c) {
+        if (o instanceof Group c) {
             for (int i = 0; i < c.getNumChildren(); i++) {
-                SceneEntity child = c.getChild(i);
+                Node child = c.getChild(i);
                 dispatchLoopUpdate(child);
             }
         }
 
-        o.dispatchEvent(SceneEvent.LoopUpdate.create());
+        o.dispatchEvent(NodeEvent.LoopUpdate.create());
         o.onLoopUpdate();
     }
 
@@ -165,7 +165,7 @@ public class LwjglRenderer implements Renderer {
     private final double[] mouseY = new double[1];
 
     private void clear() {
-        Color backgroundColor = scene.getBackgroundColor();
+        Color backgroundColor = root.getBackgroundColor();
         float backgroundColorRed = backgroundColor.getR() / 255.0f;
         float backgroundColorGreen = backgroundColor.getG() / 255.0f;
         float backgroundColorBlue = backgroundColor.getB() / 255.0f;
@@ -173,7 +173,7 @@ public class LwjglRenderer implements Renderer {
         glClear(GL11.GL_COLOR_BUFFER_BIT);
     }
 
-    private synchronized void renderDisplayObject(SceneEntity sceneEntity,
+    private synchronized void renderDisplayObject(Node node,
                                                   int level,
                                                   float toX,
                                                   float toY,
@@ -181,24 +181,24 @@ public class LwjglRenderer implements Renderer {
                                                   float toScaleY,
                                                   float toAlpha) {
 
-        if (!sceneEntity.isVisible()) return;
+        if (!node.isVisible()) return;
 
-        sceneEntity.onEnterFrame();
-        sceneEntity.dispatchEvent(SceneEvent.EnterFrame.create());
+        node.onEnterFrame();
+        node.dispatchEvent(NodeEvent.EnterFrame.create());
 
         zOrderCounter++;
-        sceneEntity.setAbsoluteZOrderIndex(zOrderCounter);
+        node.setAbsoluteZOrderIndex(zOrderCounter);
 
-        float scX = sceneEntity.getScaleX() * toScaleX;
-        float scY = sceneEntity.getScaleY() * toScaleY;
-        float r = sceneEntity.getRotation();
+        float scX = node.getScaleX() * toScaleX;
+        float scY = node.getScaleY() * toScaleY;
+        float r = node.getRotation();
 
-        float x = toScaleX * sceneEntity.getX();
-        float y = toScaleY * sceneEntity.getY();
+        float x = toScaleX * node.getX();
+        float y = toScaleY * node.getY();
 
-        float a = sceneEntity.getAlpha() * toAlpha;
+        float a = node.getAlpha() * toAlpha;
 
-        if (sceneEntity.isIntegerPixelAlignmentEnabled()) {
+        if (node.isIntegerPixelAlignmentEnabled()) {
             x = round(x);
             y = round(y);
         }
@@ -208,7 +208,7 @@ public class LwjglRenderer implements Renderer {
         glRotatef(r, 0, 0, 1);
         glScalef(scX, scY, 1);
 
-        if (sceneEntity instanceof Colored colored) {
+        if (node instanceof Colored colored) {
             Color color = colored.getColor();
 
             if (color != null) {
@@ -222,38 +222,38 @@ public class LwjglRenderer implements Renderer {
         }
 
 
-        if (sceneEntity instanceof Container container) {
-            for (int i = 0; i < container.getNumChildren(); i++) {
-                renderDisplayObject(container.getChild(i), level + 1, x + toX, y + toY, toScaleX, toScaleY, a);
+        if (node instanceof Group group) {
+            for (int i = 0; i < group.getNumChildren(); i++) {
+                renderDisplayObject(group.getChild(i), level + 1, x + toX, y + toY, toScaleX, toScaleY, a);
             }
 
-        } else if (sceneEntity instanceof Sprite s) {
+        } else if (node instanceof Sprite s) {
             renderSprite(s);
-        } else if (sceneEntity instanceof Text btx) {
+        } else if (node instanceof Text btx) {
             if (btx.isCacheAsSprite()) {
                 renderSprite(btx.cachedSprite());
             } else {
                 renderBitmapText(btx, a);
             }
-        } else if (sceneEntity instanceof Shape s) {
-            if (sceneEntity.getShaderProgram() != null) {
-                sceneEntity.getShaderProgram().use();
+        } else if (node instanceof Shape s) {
+            if (node.getShaderProgram() != null) {
+                node.getShaderProgram().use();
             }
             renderShape(s, a);
-            if (sceneEntity.getShaderProgram() != null) {
+            if (node.getShaderProgram() != null) {
                 GL20.glUseProgram(0);
             }
         }
 
 
-        if (sceneEntity instanceof Playable fs) {
+        if (node instanceof Playable fs) {
             fs.processFrame();
         }
 
         glPopMatrix();
 
-        sceneEntity.onExitFrame();
-        sceneEntity.dispatchEvent(SceneEvent.ExitFrame.create());
+        node.onExitFrame();
+        node.dispatchEvent(NodeEvent.ExitFrame.create());
     }
 
     private void renderShape(Shape s, float alpha) {
