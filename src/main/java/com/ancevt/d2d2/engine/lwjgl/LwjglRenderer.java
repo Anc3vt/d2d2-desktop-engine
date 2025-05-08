@@ -184,7 +184,7 @@ public class LwjglRenderer implements Renderer {
         if (!node.isVisible()) return;
 
         node.onEnterFrame();
-        node.dispatchEvent(NodeEvent.EnterFrame.create());
+        node.dispatchEvent(NodeEvent.BeforeRenderFrame.create());
 
         zOrderCounter++;
         node.setAbsoluteZOrderIndex(zOrderCounter);
@@ -253,7 +253,7 @@ public class LwjglRenderer implements Renderer {
         glPopMatrix();
 
         node.onExitFrame();
-        node.dispatchEvent(NodeEvent.ExitFrame.create());
+        node.dispatchEvent(NodeEvent.AfterRenderFrame.create());
     }
 
     private void renderShape(Shape s, float alpha) {

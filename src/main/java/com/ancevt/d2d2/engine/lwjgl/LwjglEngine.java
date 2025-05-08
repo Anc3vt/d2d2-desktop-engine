@@ -347,7 +347,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
                 case GLFW_PRESS -> {
                     root.dispatchEvent(InputEvent.KeyDown.create(
                             key,
-                            (char)key,
+                            (char) key,
                             altNow,
                             ctrlNow,
                             shiftNow
