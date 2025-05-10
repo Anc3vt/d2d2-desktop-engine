@@ -20,7 +20,7 @@ package com.ancevt.d2d2.engine.lwjgl;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.event.CommonEvent;
-import com.ancevt.d2d2.event.NodeEvent;
+import com.ancevt.d2d2.event.SceneEvent;
 import com.ancevt.d2d2.scene.*;
 import com.ancevt.d2d2.scene.shape.Shape;
 import com.ancevt.d2d2.scene.text.BitmapCharInfo;
@@ -157,8 +157,8 @@ public class LwjglRenderer implements Renderer {
             }
         }
 
-        o.dispatchEvent(NodeEvent.LoopUpdate.create());
-        o.onLoopUpdate();
+        o.dispatchEvent(SceneEvent.Tick.create());
+        o.tick();
     }
 
     private final double[] mouseX = new double[1];
@@ -183,11 +183,11 @@ public class LwjglRenderer implements Renderer {
 
         if (!node.isVisible()) return;
 
-        node.onEnterFrame();
-        node.dispatchEvent(NodeEvent.BeforeRenderFrame.create());
+        node.preFrame();
+        node.dispatchEvent(SceneEvent.PreFrame.create());
 
         zOrderCounter++;
-        node.setAbsoluteZOrderIndex(zOrderCounter);
+        node.setGlobalZOrderIndex(zOrderCounter);
 
         float scX = node.getScaleX() * toScaleX;
         float scY = node.getScaleY() * toScaleY;
@@ -252,8 +252,8 @@ public class LwjglRenderer implements Renderer {
 
         glPopMatrix();
 
-        node.onExitFrame();
-        node.dispatchEvent(NodeEvent.AfterRenderFrame.create());
+        node.postFrame();
+        node.dispatchEvent(SceneEvent.PostFrame.create());
     }
 
     private void renderShape(Shape s, float alpha) {

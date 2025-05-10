@@ -28,7 +28,7 @@ import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.InputEvent;
 import com.ancevt.d2d2.event.core.EventDispatcherImpl;
 import com.ancevt.d2d2.input.Mouse;
-import com.ancevt.d2d2.lifecycle.SystemProperties;
+import com.ancevt.d2d2.lifecycle.D2D2PropertyConstants;
 import com.ancevt.d2d2.scene.Renderer;
 import com.ancevt.d2d2.scene.Root;
 import com.ancevt.d2d2.scene.interactive.InteractiveManager;
@@ -193,7 +193,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
     }
 
     @Override
-    public Root stage() {
+    public Root root() {
         return root;
     }
 
@@ -211,7 +211,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
         glfwDefaultWindowHints();
 
 
-        if (Objects.equals(System.getProperty(SystemProperties.GLFW_HINT_ALWAYSONTOP), "true")) {
+        if (Objects.equals(System.getProperty(D2D2PropertyConstants.D2D2_ALWAYS_ON_TOP), "true")) {
             glfwWindowHint(GLFW_FLOATING, 1);
         }
 
@@ -645,14 +645,14 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
         ImageIO.write(bufferedImage, "png", pngOutputStream);
         byte[] pngDataBytes = pngOutputStream.toByteArray();
 
-        if (System.getProperty(SystemProperties.D2D2_BITMAPFONT_SAVEBMF) != null) {
+        if (System.getProperty(D2D2PropertyConstants.D2D2_BITMAPFONT_SAVEBMF) != null) {
             String assetPath = builder.getAssetPath();
             Path ttfPath = builder.getFilePath();
 
             String fileName = assetPath != null ?
                     Path.of(assetPath).getFileName().toString() : ttfPath.getFileName().toString();
 
-            String saveToPathString = System.getProperty(SystemProperties.D2D2_BITMAPFONT_SAVEBMF);
+            String saveToPathString = System.getProperty(D2D2PropertyConstants.D2D2_BITMAPFONT_SAVEBMF);
 
             Path destinationPath = Files.createDirectories(Path.of(saveToPathString));
 
