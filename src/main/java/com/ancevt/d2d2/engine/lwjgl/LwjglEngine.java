@@ -21,9 +21,7 @@ package com.ancevt.d2d2.engine.lwjgl;
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
-import com.ancevt.d2d2.engine.ShaderFactory;
 import com.ancevt.d2d2.engine.SoundManager;
-import com.ancevt.d2d2.engine.lwjgl.shader.LwjglShaderFactory;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.InputEvent;
 import com.ancevt.d2d2.event.core.EventDispatcherImpl;
@@ -91,8 +89,6 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
 
     private final LwjglDisplayManager displayManager = new LwjglDisplayManager();
 
-    private final ShaderFactory shaderFactory = new LwjglShaderFactory();
-
     private SoundManager soundManager;
 
     @Getter
@@ -120,11 +116,6 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
     public void setCanvasSize(int width, int height) {
         canvasWidth = width;
         canvasHeight = height;
-    }
-
-    @Override
-    public ShaderFactory shaderFactory() {
-        return shaderFactory;
     }
 
     @Override

@@ -32,7 +32,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
 import org.lwjgl.util.glu.GLU;
 
 import static java.lang.Math.round;
@@ -236,15 +235,8 @@ public class LwjglRenderer implements Renderer {
                 renderBitmapText(btx, a);
             }
         } else if (node instanceof Shape s) {
-            if (node.getShaderProgram() != null) {
-                node.getShaderProgram().use();
-            }
             renderShape(s, a);
-            if (node.getShaderProgram() != null) {
-                GL20.glUseProgram(0);
-            }
         }
-
 
         if (node instanceof Playable fs) {
             fs.processFrame();
