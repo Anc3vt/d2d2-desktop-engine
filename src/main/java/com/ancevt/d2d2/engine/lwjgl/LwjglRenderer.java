@@ -238,7 +238,7 @@ public class LwjglRenderer implements Renderer {
             renderShape(s, a);
         }
 
-        if (node instanceof Playable fs) {
+        if (node instanceof Animated fs) {
             fs.processFrame();
         }
 
