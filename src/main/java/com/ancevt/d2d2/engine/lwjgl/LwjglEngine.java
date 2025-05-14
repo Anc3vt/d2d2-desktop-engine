@@ -36,7 +36,6 @@ import com.ancevt.d2d2.scene.text.FractionalMetrics;
 import com.ancevt.d2d2.scene.text.TrueTypeFontBuilder;
 import com.ancevt.d2d2.time.Timer;
 import lombok.*;
-import lombok.extern.slf4j.Slf4j;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
@@ -55,13 +54,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static com.ancevt.d2d2.D2D2.log;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11C.glEnable;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 // TODO: rewrite with VBO and refactor
-@Slf4j
 public class LwjglEngine extends EventDispatcherImpl implements Engine {
 
     private static final String DEMO_TEXTURE_DATA_INF_FILE = "d2d2-core-demo-texture-data.inf";
@@ -514,7 +513,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
 
         String prop = System.getProperty("d2d2.glfw.no-terminate");
         if (prop != null && prop.equals("true")) {
-            log.warn("d2d2.glfw.no-terminate is set");
+            log.error(getClass(), "d2d2.glfw.no-terminate is set");
             return;
         }
 
@@ -716,7 +715,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
 
             Files.write(destinationPath.resolve(fileName + ".png"), pngDataBytes);
             Files.writeString(destinationPath.resolve(fileName + ".bmf"), stringBuilder.toString());
-            log.info("BMF written {}/{}", destinationPath, fileName);
+            log.info(getClass(), "BMF written %s/%s".formatted(destinationPath, fileName));
         }
 
         return D2D2.bitmapFontManager().loadBitmapFont(

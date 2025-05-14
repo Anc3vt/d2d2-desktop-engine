@@ -27,7 +27,7 @@ import com.ancevt.d2d2.scene.text.BitmapCharInfo;
 import com.ancevt.d2d2.scene.text.Font;
 import com.ancevt.d2d2.scene.text.Text;
 import com.ancevt.d2d2.scene.texture.Texture;
-import com.ancevt.d2d2.scene.texture.TextureClip;
+import com.ancevt.d2d2.scene.texture.TextureRegion;
 import lombok.Getter;
 import lombok.Setter;
 import org.lwjgl.glfw.GLFW;
@@ -256,12 +256,12 @@ public class LwjglRenderer implements Renderer {
     }
 
     private void renderSprite(Sprite sprite) {
-        TextureClip textureClip = sprite.getTextureClip();
+        TextureRegion textureRegion = sprite.getTextureRegion();
 
-        if (textureClip == null) return;
-        if (textureClip.getTexture().isDisposed()) return;
+        if (textureRegion == null) return;
+        if (textureRegion.getTexture().isDisposed()) return;
 
-        Texture texture = textureClip.getTexture();
+        Texture texture = textureRegion.getTexture();
 
         boolean bindResult = D2D2.textureManager().getTextureEngine().bind(texture);
 
@@ -271,10 +271,10 @@ public class LwjglRenderer implements Renderer {
 
         D2D2.textureManager().getTextureEngine().enable(texture);
 
-        int tX = textureClip.getX();
-        int tY = textureClip.getY();
-        int tW = textureClip.getWidth();
-        int tH = textureClip.getHeight();
+        int tX = textureRegion.getX();
+        int tY = textureRegion.getY();
+        int tW = textureRegion.getWidth();
+        int tH = textureRegion.getHeight();
 
         float totalW = texture.getWidth();
         float totalH = texture.getHeight();

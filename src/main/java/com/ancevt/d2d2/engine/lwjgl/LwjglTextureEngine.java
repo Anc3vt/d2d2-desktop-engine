@@ -24,8 +24,8 @@ import com.ancevt.d2d2.scene.Color;
 import com.ancevt.d2d2.scene.text.Text;
 import com.ancevt.d2d2.scene.texture.ITextureEngine;
 import com.ancevt.d2d2.scene.texture.Texture;
-import com.ancevt.d2d2.scene.texture.TextureClip;
-import com.ancevt.d2d2.scene.texture.TextureClipCombinerCell;
+import com.ancevt.d2d2.scene.texture.TextureRegion;
+import com.ancevt.d2d2.scene.texture.TextureRegionCombinerCell;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL30;
@@ -91,11 +91,11 @@ public class LwjglTextureEngine implements ITextureEngine {
     }
 
     @Override
-    public Texture createTexture(int width, int height, TextureClipCombinerCell[] cells) {
+    public Texture createTexture(int width, int height, TextureRegionCombinerCell[] cells) {
         final BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         final Graphics2D g = (Graphics2D) image.getGraphics();
 
-        for (final TextureClipCombinerCell cell : cells) {
+        for (final TextureRegionCombinerCell cell : cells) {
             // Установка альфа-композита
             AlphaComposite alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, cell.getAlpha());
             g.setComposite(alphaComposite);
@@ -126,13 +126,13 @@ public class LwjglTextureEngine implements ITextureEngine {
 
         final Texture texture = createTextureFromBufferedImage(image);
         mapping.images().put(texture.getId(), image);
-        D2D2.textureManager().addTextureClip("_texture_" + texture.getId(), texture.createTextureClip());
+        D2D2.textureManager().addTextureRegion("_texture_" + texture.getId(), texture.createTextureRegion());
         return texture;
     }
 
 
 
-    private void drawCell(Graphics2D g, final TextureClipCombinerCell cell) {
+    private void drawCell(Graphics2D g, final TextureRegionCombinerCell cell) {
         int x = cell.getX();
         int y = cell.getY();
         float repeatX = cell.getRepeatX();
@@ -140,7 +140,7 @@ public class LwjglTextureEngine implements ITextureEngine {
         float scaleX = cell.getScaleX();
         float scaleY = cell.getScaleY();
 
-        BufferedImage fullImageRegion = textureRegionToImage(cell.getTextureClip());
+        BufferedImage fullImageRegion = textureRegionToImage(cell.getTextureRegion());
 
         // Определяем цветовые масштабы и смещения, если цвет задан
         float[] scales = null;
@@ -160,8 +160,8 @@ public class LwjglTextureEngine implements ITextureEngine {
 
         BufferedImage imageRegion;
 
-        float texWidth = cell.getTextureClip().getWidth();
-        float texHeight = cell.getTextureClip().getHeight();
+        float texWidth = cell.getTextureRegion().getWidth();
+        float texHeight = cell.getTextureRegion().getHeight();
 
         int originWidth = fullImageRegion.getWidth(null);
         int originHeight = fullImageRegion.getHeight(null);
@@ -188,7 +188,7 @@ public class LwjglTextureEngine implements ITextureEngine {
                     }
 
                     imageRegion = textureRegionToImage(
-                        cell.getTextureClip().createSubTextureClip(
+                        cell.getTextureRegion().createSubregion(
                             0,
                             0,
                             (int) (texWidth * valX),
@@ -373,7 +373,7 @@ public class LwjglTextureEngine implements ITextureEngine {
 
 
         final Texture texture = createTextureFromBufferedImage(image);
-        D2D2.textureManager().addTextureClip("_texture_text_" + texture.getId(), texture.createTextureClip());
+        D2D2.textureManager().addTextureRegion("_texture_text_" + texture.getId(), texture.createTextureRegion());
         return texture;
     }
 
@@ -407,13 +407,13 @@ public class LwjglTextureEngine implements ITextureEngine {
         return bufferedImage.getSubimage(x, y, width, height);
     }
 
-    private BufferedImage textureRegionToImage(TextureClip textureClip) {
+    private BufferedImage textureRegionToImage(TextureRegion textureRegion) {
         return textureRegionToImage(
-            textureClip.getTexture(),
-            textureClip.getX(),
-            textureClip.getY(),
-            textureClip.getWidth(),
-            textureClip.getHeight()
+            textureRegion.getTexture(),
+            textureRegion.getX(),
+            textureRegion.getY(),
+            textureRegion.getWidth(),
+            textureRegion.getHeight()
         );
     }
 }
