@@ -20,22 +20,22 @@ package com.ancevt.d2d2.engine.lwjgl;
 
 import com.ancevt.d2d2.scene.Color;
 import com.ancevt.d2d2.scene.text.BitmapCharInfo;
-import com.ancevt.d2d2.scene.text.Font;
-import com.ancevt.d2d2.scene.text.Text;
+import com.ancevt.d2d2.scene.text.BitmapFont;
+import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.scene.texture.Texture;
 
 
 class BitmapTextDrawHelper {
 
-    static void draw(Text bitmapText,
+    static void draw(BitmapText bitmapText,
                      float alpha,
                      float scaleX,
                      float scaleY,
                      DrawCharFunction drawCharFunction,
                      ApplyColorFunction applyColorFunction) {
 
-        Font font = bitmapText.getFont();
-        Texture texture = font.getTexture();
+        BitmapFont bitmapFont = bitmapText.getBitmapFont();
+        Texture texture = bitmapFont.getTexture();
 
         int textureWidth = texture.getWidth();
         int textureHeight = texture.getHeight();
@@ -47,7 +47,7 @@ class BitmapTextDrawHelper {
         float boundHeight = bitmapText.getHeight() * scaleY;
 
         float drawX = 0;
-        float drawY = font.getPaddingTop() * scaleY;
+        float drawY = bitmapFont.getPaddingTop() * scaleY;
 
         double textureBleedingFix = bitmapText.getTextureBleedingFix();
         double vertexBleedingFix = bitmapText.getVertexBleedingFix();
@@ -59,10 +59,10 @@ class BitmapTextDrawHelper {
 
         float nextWordWidth;
 
-        Text.ColorTextData colorTextData = multicolor ? bitmapText.getColorTextData() : null;
+        BitmapText.ColorTextData colorTextData = multicolor ? bitmapText.getColorTextData() : null;
 
         for (int i = 0; multicolor ? i < colorTextData.length() : i < text.length(); i++) {
-            Text.ColorTextData.Letter letter = null;
+            BitmapText.ColorTextData.Letter letter = null;
 
             if (multicolor) {
                 letter = colorTextData.getColoredLetter(i);
@@ -87,12 +87,12 @@ class BitmapTextDrawHelper {
                 nextWordWidth = 0f;
             }
 
-            BitmapCharInfo charInfo = font.getCharInfo(c);
+            BitmapCharInfo charInfo = bitmapFont.getCharInfo(c);
 
             if (charInfo == null) continue;
 
             if (charInfo.character() == ' ') {
-                drawX += font.getZeroCharWidth();
+                drawX += bitmapFont.getZeroCharWidth();
                 continue;
             }
 
@@ -137,13 +137,13 @@ class BitmapTextDrawHelper {
 
     }
 
-    private static float getNextWordWidth(Text text, int charIndex, float scaleX) {
-        String nextWord = getNextWord(text.getPlainText(), charIndex);
+    private static float getNextWordWidth(BitmapText bitmapText, int charIndex, float scaleX) {
+        String nextWord = getNextWord(bitmapText.getPlainText(), charIndex);
         if (nextWord.length() > 0) {
             char firstChar = nextWord.charAt(0);
             if (!Character.isLetterOrDigit(firstChar) && firstChar != '_') return 0f;
         }
-        return meterStringWidth(text, nextWord) * scaleX;
+        return meterStringWidth(bitmapText, nextWord) * scaleX;
     }
 
     public static String getNextWord(String text, int charIndexFrom) {
@@ -178,14 +178,14 @@ class BitmapTextDrawHelper {
             ch == ':' || ch == ';' || ch == ',';
     }
 
-    private static float meterStringWidth(Text text, String string) {
+    private static float meterStringWidth(BitmapText bitmapText, String string) {
         float result = 0f;
 
-        Font font = text.getFont();
+        BitmapFont bitmapFont = bitmapText.getBitmapFont();
 
         for (char c : string.toCharArray()) {
-            BitmapCharInfo charInfo = font.getCharInfo(c);
-            result += charInfo.width() + text.getSpacing();
+            BitmapCharInfo charInfo = bitmapFont.getCharInfo(c);
+            result += charInfo.width() + bitmapText.getSpacing();
         }
 
         return result;
@@ -201,7 +201,7 @@ class BitmapTextDrawHelper {
         void drawChar(
             Texture atlas,
             char c,
-            Text.ColorTextData.Letter letter,
+            BitmapText.ColorTextData.Letter letter,
             float x,
             float y,
             int textureWidth,

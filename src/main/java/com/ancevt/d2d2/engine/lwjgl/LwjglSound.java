@@ -41,7 +41,7 @@ public class LwjglSound implements Sound {
     private boolean disposed = false;
 
     public LwjglSound(String assetPath) {
-        this(Assets.getAsset(assetPath));
+        this(Assets.getAsset(assetPath).getInputStream());
     }
 
     @SneakyThrows

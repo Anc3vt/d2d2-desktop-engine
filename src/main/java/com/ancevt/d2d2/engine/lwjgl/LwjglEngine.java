@@ -31,7 +31,7 @@ import com.ancevt.d2d2.log.Log;
 import com.ancevt.d2d2.scene.Renderer;
 import com.ancevt.d2d2.scene.Root;
 import com.ancevt.d2d2.scene.interactive.InteractiveManager;
-import com.ancevt.d2d2.scene.text.Font;
+import com.ancevt.d2d2.scene.text.BitmapFont;
 import com.ancevt.d2d2.scene.text.FractionalMetrics;
 import com.ancevt.d2d2.scene.text.TrueTypeFontBuilder;
 import com.ancevt.d2d2.time.Timer;
@@ -587,7 +587,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
 
     @SneakyThrows
     @Override
-    public Font generateBitmapFont(TrueTypeFontBuilder builder) {
+    public BitmapFont generateBitmapFont(TrueTypeFontBuilder builder) {
 
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 

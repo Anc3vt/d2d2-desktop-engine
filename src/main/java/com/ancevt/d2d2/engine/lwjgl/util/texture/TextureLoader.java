@@ -56,7 +56,7 @@ public class TextureLoader {
 
     public static Texture createTexture(String assetPath) {
         try {
-            InputStream pngInputStream = Assets.getAsset(assetPath);
+            InputStream pngInputStream = Assets.getAsset(assetPath).getInputStream();
             return createTextureFromBufferedImage(ImageIO.read(pngInputStream));
         } catch (IOException ex) {
             throw new RuntimeException(ex);

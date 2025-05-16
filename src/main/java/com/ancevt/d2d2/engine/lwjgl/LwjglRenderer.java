@@ -24,8 +24,8 @@ import com.ancevt.d2d2.event.SceneEvent;
 import com.ancevt.d2d2.scene.*;
 import com.ancevt.d2d2.scene.shape.Shape;
 import com.ancevt.d2d2.scene.text.BitmapCharInfo;
-import com.ancevt.d2d2.scene.text.Font;
-import com.ancevt.d2d2.scene.text.Text;
+import com.ancevt.d2d2.scene.text.BitmapFont;
+import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.scene.texture.Texture;
 import com.ancevt.d2d2.scene.texture.TextureRegion;
 import lombok.Getter;
@@ -228,7 +228,7 @@ public class LwjglRenderer implements Renderer {
 
         } else if (node instanceof Sprite s) {
             renderSprite(s);
-        } else if (node instanceof Text btx) {
+        } else if (node instanceof BitmapText btx) {
             if (btx.isCacheAsSprite()) {
                 renderSprite(btx.cachedSprite());
             } else {
@@ -346,11 +346,11 @@ public class LwjglRenderer implements Renderer {
         D2D2.textureManager().getTextureEngine().disable(texture);
     }
 
-    private void renderBitmapText(Text text, float alpha) {
-        if (text.isEmpty()) return;
+    private void renderBitmapText(BitmapText bitmapText, float alpha) {
+        if (bitmapText.isEmpty()) return;
 
-        Font font = text.getFont();
-        Texture texture = font.getTexture();
+        BitmapFont bitmapFont = bitmapText.getBitmapFont();
+        Texture texture = bitmapFont.getTexture();
 
         D2D2.textureManager().getTextureEngine().enable(texture);
 
@@ -363,7 +363,7 @@ public class LwjglRenderer implements Renderer {
 
         glBegin(GL11.GL_QUADS);
 
-        BitmapTextDrawHelper.draw(text,
+        BitmapTextDrawHelper.draw(bitmapText,
                 alpha,
                 1,
                 1,
@@ -388,7 +388,7 @@ public class LwjglRenderer implements Renderer {
     private static void drawChar(
             Texture texture,
             char c,
-            Text.ColorTextData.Letter letter,
+            BitmapText.ColorTextData.Letter letter,
             float x,
             float y,
             int textureWidth,

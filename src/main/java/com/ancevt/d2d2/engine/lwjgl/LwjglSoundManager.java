@@ -78,12 +78,12 @@ public class LwjglSoundManager implements SoundManager {
     }
 
     @Override
-    public Sound createSound(InputStream inputStream) {
+    public Sound loadSound(InputStream inputStream) {
         return new LwjglSound(inputStream);
     }
 
     @Override
-    public Sound createSoundFromAsset(String assetFileName) {
+    public Sound loadSound(String assetFileName) {
         return new LwjglSound(assetFileName);
     }
 }
