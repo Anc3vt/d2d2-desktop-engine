@@ -31,7 +31,6 @@ import com.ancevt.d2d2.scene.Renderer;
 import com.ancevt.d2d2.scene.Root;
 import com.ancevt.d2d2.scene.text.BitmapFont;
 import com.ancevt.d2d2.scene.text.TrueTypeFontBuilder;
-import com.ancevt.d2d2.time.Timer;
 import lombok.Getter;
 import lombok.Setter;
 import org.lwjgl.glfw.GLFW;
@@ -43,7 +42,6 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 
-import static com.ancevt.d2d2.D2D2.log;
 import static org.lwjgl.glfw.GLFW.*;
 
 // TODO: rewrite with VBO and refactor
@@ -54,19 +52,10 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
     private final int initialHeight;
     private final String initialTitle;
     private Root root;
-    private boolean running;
     private int frameRate = 60;
     private boolean alwaysOnTop;
 
-    @Getter
-    private int canvasWidth;
-
-    @Getter
-    private int canvasHeight;
-
     private final DesktopDisplayManager displayManager = new DesktopDisplayManager();
-
-    private SoundManager soundManager;
 
     @Getter
     @Setter
@@ -76,28 +65,33 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
         this.initialWidth = initialWidth;
         this.initialHeight = initialHeight;
         this.initialTitle = initialTitle;
-        this.canvasWidth = initialWidth;
-        this.canvasHeight = initialHeight;
+        setCanvasSize(initialWidth, initialHeight);
         D2D2.textureManager().setTextureEngine(new DesktopTextureEngine());
     }
 
     @Override
     public SoundManager soundManager() {
-        if (soundManager == null) {
-            soundManager = new DesktopSoundManager();
-        }
-        return soundManager;
+        return DesktopSoundManager.getInstance();
     }
 
     @Override
     public void setCanvasSize(int width, int height) {
-        canvasWidth = width;
-        canvasHeight = height;
+        WindowHelper.setCanvasSize(width, height);
     }
 
     @Override
-    public Logger createLogger() {
-        return new DesktopLogger();
+    public int getCanvasWidth() {
+        return WindowHelper.getCanvasWidth();
+    }
+
+    @Override
+    public int getCanvasHeight() {
+        return WindowHelper.getCanvasHeight();
+    }
+
+    @Override
+    public Logger logger() {
+        return DesktopLogger.getInstance();
     }
 
     @Override
@@ -118,8 +112,8 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void stop() {
-        if (!running) return;
-        running = false;
+        if (!WindowHelper.isRunning()) return;
+        WindowHelper.setRunning(false);
     }
 
     @Override
@@ -156,9 +150,9 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void start() {
-        running = true;
+        WindowHelper.setRunning(true);
         root.dispatchEvent(CommonEvent.Start.create());
-        startRenderLoop();
+        WindowHelper.startRenderLoop(this);
         root.dispatchEvent(CommonEvent.Stop.create());
     }
 
@@ -216,32 +210,6 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
         return renderer.getFps();
     }
 
-    private void startRenderLoop() {
-        long windowId = WindowHelper.getWindowId();
-
-        while (!glfwWindowShouldClose(windowId) && running) {
-            glfwPollEvents();
-            renderer.renderFrame();
-            glfwSwapBuffers(windowId);
-            Timer.processTimers();
-        }
-
-        String prop = System.getProperty("d2d2.glfw.no-terminate");
-        if (prop != null && prop.equals("true")) {
-            log.error(getClass(), "d2d2.glfw.no-terminate is set");
-            return;
-        }
-
-        glfwTerminate();
-    }
-
-    private static void sleep(long t) {
-        try {
-            Thread.sleep(t);
-        } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
-        }
-    }
 
     @Override
     public BitmapFont generateBitmapFont(TrueTypeFontBuilder builder) {

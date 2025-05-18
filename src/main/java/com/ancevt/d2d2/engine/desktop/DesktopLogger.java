@@ -5,7 +5,17 @@ import com.ancevt.d2d2.log.Logger;
 import java.io.PrintStream;
 
 public class DesktopLogger implements Logger {
+
+    private static class Holder {
+        private static final DesktopLogger INSTANCE = new DesktopLogger();
+    }
+
+    public static DesktopLogger getInstance() {
+        return Holder.INSTANCE;
+    }
+
     private int level = INFO;
+
     private boolean colorized = true;
 
     @Override

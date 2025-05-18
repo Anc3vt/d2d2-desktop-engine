@@ -1,6 +1,7 @@
 package com.ancevt.d2d2.engine.desktop.lwjgl;
 
 import com.ancevt.d2d2.D2D2;
+import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.engine.desktop.DesktopEngine;
 import com.ancevt.d2d2.engine.desktop.WindowIconLoader;
 import com.ancevt.d2d2.event.InputEvent;
@@ -9,7 +10,9 @@ import com.ancevt.d2d2.lifecycle.D2D2PropertyConstants;
 import com.ancevt.d2d2.scene.Renderer;
 import com.ancevt.d2d2.scene.Root;
 import com.ancevt.d2d2.scene.interactive.InteractiveManager;
+import com.ancevt.d2d2.time.Timer;
 import lombok.Getter;
+import lombok.Setter;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
 
@@ -27,6 +30,14 @@ public class WindowHelper {
     @Getter
     private static long windowId;
 
+    @Getter
+    @Setter
+    private static int canvasWidth;
+
+    @Getter
+    @Setter
+    private static int canvasHeight;
+
     private static int mouseX;
     private static int mouseY;
     private static boolean isDown;
@@ -34,6 +45,14 @@ public class WindowHelper {
     private static boolean shift;
     private static boolean alt;
 
+    @Getter
+    @Setter
+    private static boolean running;
+
+    public static void setCanvasSize(int width, int height) {
+        canvasWidth = width;
+        canvasHeight = height;
+    }
 
     public static void init(DesktopEngine engine, int initialWidth, int initialHeight, String initialTitle) {
         GLFWErrorCallback.createPrint(System.err).set();
@@ -219,7 +238,6 @@ public class WindowHelper {
         glfwSwapInterval(1); // enable vsync
         GL.createCapabilities();
 
-
         // TODO: remove loading demo texture data info from here
         D2D2.textureManager().loadTextureDataInfo(DEMO_TEXTURE_DATA_INF_FILE);
         glfwWindowHint(GLFW.GLFW_SAMPLES, 4);
@@ -231,5 +249,20 @@ public class WindowHelper {
         engine.setSmoothMode(false);
     }
 
+
+    public static void startRenderLoop(Engine engine) {
+        long windowId = WindowHelper.getWindowId();
+
+        Renderer renderer = engine.getRenderer();
+
+        while (!glfwWindowShouldClose(windowId) && running) {
+            glfwPollEvents();
+            renderer.renderFrame();
+            glfwSwapBuffers(windowId);
+            Timer.processTimers();
+        }
+
+        glfwTerminate();
+    }
 
 }
