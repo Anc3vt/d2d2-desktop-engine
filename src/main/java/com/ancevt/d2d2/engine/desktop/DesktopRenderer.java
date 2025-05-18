@@ -19,6 +19,7 @@
 package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.D2D2;
+import com.ancevt.d2d2.engine.desktop.lwjgl.WindowHelper;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.SceneEvent;
 import com.ancevt.d2d2.scene.*;
@@ -142,7 +143,7 @@ public class DesktopRenderer implements Renderer {
 
         textureEngine.unloadTexture();
 
-        GLFW.glfwGetCursorPos(desktopEngine.displayManager().getWindowId(), mouseX, mouseY);
+        GLFW.glfwGetCursorPos(WindowHelper.getWindowId(), mouseX, mouseY);
         //Mouse.setXY((int) mouseX[0], (int) mouseY[0]);
     }
 

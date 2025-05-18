@@ -2,13 +2,13 @@
  * Copyright (C) 2025 the original author or authors.
  * See the notice.md file distributed with this work for additional
  * information regarding copyright ownership.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,7 @@ package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.engine.Monitor;
 import com.ancevt.d2d2.engine.VideoMode;
+import com.ancevt.d2d2.engine.desktop.lwjgl.WindowHelper;
 import lombok.RequiredArgsConstructor;
 import org.lwjgl.glfw.GLFWVidMode;
 
@@ -27,12 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static org.lwjgl.glfw.GLFW.glfwGetMonitorName;
-import static org.lwjgl.glfw.GLFW.glfwGetMonitorPhysicalSize;
-import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
-import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
-import static org.lwjgl.glfw.GLFW.glfwGetVideoModes;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowMonitor;
+import static org.lwjgl.glfw.GLFW.*;
 
 @RequiredArgsConstructor
 public final class DesktopMonitor implements Monitor {
@@ -61,17 +57,17 @@ public final class DesktopMonitor implements Monitor {
         List<VideoMode> videoModes = new ArrayList<>();
 
         Objects.requireNonNull(glfwGetVideoModes(id))
-            .stream()
-            .toList()
-            .forEach(glfwVidMode ->
-                videoModes.add(
-                    VideoMode.builder()
-                        .width(glfwVidMode.width())
-                        .height(glfwVidMode.height())
-                        .refreshRate(glfwVidMode.refreshRate())
-                        .build()
-                )
-            );
+                .stream()
+                .toList()
+                .forEach(glfwVidMode ->
+                        videoModes.add(
+                                VideoMode.builder()
+                                        .width(glfwVidMode.width())
+                                        .height(glfwVidMode.height())
+                                        .refreshRate(glfwVidMode.refreshRate())
+                                        .build()
+                        )
+                );
 
         return videoModes;
     }
@@ -89,7 +85,7 @@ public final class DesktopMonitor implements Monitor {
         int width = videoMode.getWidth();
         int height = videoMode.getHeight();
         int refreshRate = videoMode.getRefreshRate();
-        glfwSetWindowMonitor(displayManager.getWindowId(), id, 0, 0, width, height, refreshRate);
+        glfwSetWindowMonitor(WindowHelper.getWindowId(), id, 0, 0, width, height, refreshRate);
     }
 
     @Override

@@ -1,34 +1,59 @@
 package com.ancevt.d2d2.engine.desktop.lwjgl;
 
+import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.engine.desktop.DesktopEngine;
+import com.ancevt.d2d2.engine.desktop.WindowIconLoader;
 import com.ancevt.d2d2.event.InputEvent;
 import com.ancevt.d2d2.input.Mouse;
+import com.ancevt.d2d2.lifecycle.D2D2PropertyConstants;
 import com.ancevt.d2d2.scene.Renderer;
 import com.ancevt.d2d2.scene.Root;
 import com.ancevt.d2d2.scene.interactive.InteractiveManager;
-import lombok.RequiredArgsConstructor;
-import org.lwjgl.glfw.GLFWCursorPosCallback;
-import org.lwjgl.glfw.GLFWMouseButtonCallback;
-import org.lwjgl.glfw.GLFWScrollCallback;
-import org.lwjgl.glfw.GLFWWindowSizeCallback;
+import lombok.Getter;
+import org.lwjgl.glfw.*;
+import org.lwjgl.opengl.GL;
+
+import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11C.glEnable;
+import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
+import static org.lwjgl.system.MemoryUtil.NULL;
 
-@RequiredArgsConstructor
-public class GLFWHelper {
+public class WindowHelper {
 
-    private final DesktopEngine engine;
+    private static final String DEMO_TEXTURE_DATA_INF_FILE = "d2d2-core-demo-texture-data.inf";
 
-    private int mouseX;
-    private int mouseY;
-    private boolean isDown;
-    private boolean control;
-    private boolean shift;
-    private boolean alt;
+    @Getter
+    private static long windowId;
+
+    private static int mouseX;
+    private static int mouseY;
+    private static boolean isDown;
+    private static boolean control;
+    private static boolean shift;
+    private static boolean alt;
 
 
-    public void init() {
-        long windowId = engine.getWindowId();
+    public static void init(DesktopEngine engine, int initialWidth, int initialHeight, String initialTitle) {
+        GLFWErrorCallback.createPrint(System.err).set();
+
+        if (!glfwInit())
+            throw new IllegalStateException("Unable to initialize GLFW");
+
+        glfwDefaultWindowHints();
+
+        if (Objects.equals(System.getProperty(D2D2PropertyConstants.D2D2_ALWAYS_ON_TOP), "true")) {
+            glfwWindowHint(GLFW_FLOATING, 1);
+        }
+
+        windowId = glfwCreateWindow(initialWidth, initialHeight, initialTitle, NULL, NULL);
+
+        if (windowId == NULL)
+            throw new RuntimeException("Failed to create the GLFW window");
+
+        WindowIconLoader.loadIcons(windowId);
+
         Root root = engine.root();
         Renderer renderer = engine.getRenderer();
 
@@ -106,8 +131,8 @@ public class GLFWHelper {
                 root.dispatchEvent(InputEvent.MouseMove.create(
                         Mouse.getX(),
                         Mouse.getY(),
-                        true // or false — ты сам решаешь, но сейчас логика “onArea” не применима
-                        , alt,
+                        true,
+                        alt,
                         control,
                         shift
                 ));
@@ -181,6 +206,29 @@ public class GLFWHelper {
                 }
             }
         });
+
+        GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+        glfwSetWindowPos(
+                windowId,
+                (videoMode.width() - engine.getCanvasWidth()) / 2,
+                (videoMode.height() - engine.getCanvasHeight()) / 2
+        );
+
+        glfwMakeContextCurrent(windowId);
+        glfwSwapInterval(1); // enable vsync
+        GL.createCapabilities();
+
+
+        // TODO: remove loading demo texture data info from here
+        D2D2.textureManager().loadTextureDataInfo(DEMO_TEXTURE_DATA_INF_FILE);
+        glfwWindowHint(GLFW.GLFW_SAMPLES, 4);
+        glEnable(GL_MULTISAMPLE);
+
+        renderer.init(windowId);
+        renderer.reshape();
+
+        engine.setSmoothMode(false);
     }
 
 

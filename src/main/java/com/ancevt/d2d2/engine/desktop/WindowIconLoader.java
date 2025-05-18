@@ -37,7 +37,7 @@ public class WindowIconLoader {
     private static final String DEFAULT_ASSET_ICON_DIR = "assets/defaultd2d2windowicon";
     private static final int[] SIZES = {16, 32, 64, 128};
 
-    static void loadIcons(long windowId) {
+    public static void loadIcons(long windowId) {
         boolean success = false;
 
         if (isIconDirectoryExists()) {
