@@ -22,21 +22,22 @@ import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.engine.SoundManager;
+import com.ancevt.d2d2.engine.desktop.awt.BitmapTextHelper;
+import com.ancevt.d2d2.engine.desktop.lwjgl.GLFWHelper;
 import com.ancevt.d2d2.event.CommonEvent;
-import com.ancevt.d2d2.event.InputEvent;
 import com.ancevt.d2d2.event.core.EventDispatcherImpl;
-import com.ancevt.d2d2.input.Mouse;
 import com.ancevt.d2d2.lifecycle.D2D2PropertyConstants;
 import com.ancevt.d2d2.log.Logger;
 import com.ancevt.d2d2.scene.Renderer;
 import com.ancevt.d2d2.scene.Root;
-import com.ancevt.d2d2.scene.interactive.InteractiveManager;
 import com.ancevt.d2d2.scene.text.BitmapFont;
 import com.ancevt.d2d2.scene.text.FractionalMetrics;
 import com.ancevt.d2d2.scene.text.TrueTypeFontBuilder;
 import com.ancevt.d2d2.time.Timer;
 import lombok.*;
-import org.lwjgl.glfw.*;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 
@@ -68,17 +69,15 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
     private final int initialWidth;
     private final int initialHeight;
     private final String initialTitle;
-    private int mouseX;
-    private int mouseY;
-    private boolean isDown;
     private Root root;
     private boolean running;
     private int frameRate = 60;
     private boolean alwaysOnTop;
-    private boolean control;
-    private boolean shift;
-    private boolean alt;
 
+    private final GLFWHelper glfwHelper;
+    private final BitmapTextHelper bitmapTextHelper;
+
+    @Getter
     private long windowId;
 
     @Getter
@@ -102,6 +101,9 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
         this.canvasWidth = initialWidth;
         this.canvasHeight = initialHeight;
         D2D2.textureManager().setTextureEngine(new DesktopTextureEngine());
+
+        glfwHelper = new GLFWHelper(this);
+        bitmapTextHelper = new BitmapTextHelper(this);
     }
 
     @Override
@@ -120,7 +122,6 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public Logger createLogger() {
-        //TODO: refactor
         return new DesktopLogger();
     }
 
@@ -140,19 +141,17 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
         return alwaysOnTop;
     }
 
-
     @Override
     public void stop() {
         if (!running) return;
         running = false;
     }
 
-
     @Override
     public void create() {
         root = new Root();
         renderer = new DesktopRenderer(root, this);
-        renderer.setLWJGLTextureEngine((DesktopTextureEngine) D2D2.textureManager().getTextureEngine());
+        renderer.setDesktopTextureEngine((DesktopTextureEngine) D2D2.textureManager().getTextureEngine());
         displayManager.windowId = createWindow();
         displayManager.setVisible(true);
         root.setSize(initialWidth, initialHeight);
@@ -175,10 +174,9 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
         }
     }
 
-
     @Override
     public boolean isSmoothMode() {
-        return ((DesktopRenderer) renderer).smoothMode;
+        return renderer.smoothMode;
     }
 
     @Override
@@ -219,158 +217,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
         WindowIconLoader.loadIcons(windowId);
 
-        glfwSetWindowSizeCallback(windowId, new GLFWWindowSizeCallback() {
-            @Override
-            public void invoke(long l, int width, int height) {
-                canvasWidth = width;
-                canvasHeight = height;
-                renderer.reshape();
-            }
-        });
-
-        glfwSetScrollCallback(windowId, new GLFWScrollCallback() {
-            @Override
-            public void invoke(long win, double dx, double dy) {
-                root.dispatchEvent(InputEvent.MouseWheel.create(
-                        (int) dy,
-                        Mouse.getX(),
-                        Mouse.getY(),
-                        alt,
-                        control,
-                        shift
-                ));
-
-            }
-        });
-
-        glfwSetMouseButtonCallback(windowId, new GLFWMouseButtonCallback() {
-            @Override
-            public void invoke(long window, int mouseButton, int action, int mods) {
-                boolean down = action == GLFW_PRESS;
-
-                root.dispatchEvent(down
-                                ? InputEvent.MouseDown.create(
-                                Mouse.getX(), Mouse.getY(), mouseButton,
-                                mouseButton == GLFW_MOUSE_BUTTON_LEFT,
-                                mouseButton == GLFW_MOUSE_BUTTON_RIGHT,
-                                mouseButton == GLFW_MOUSE_BUTTON_MIDDLE,
-                                (mods & GLFW_MOD_SHIFT) != 0,
-                                (mods & GLFW_MOD_CONTROL) != 0,
-                                (mods & GLFW_MOD_ALT) != 0
-                        )
-                                : InputEvent.MouseUp.create(
-                                Mouse.getX(), Mouse.getY(), mouseButton,
-                                mouseButton == GLFW_MOUSE_BUTTON_LEFT,
-                                mouseButton == GLFW_MOUSE_BUTTON_RIGHT,
-                                mouseButton == GLFW_MOUSE_BUTTON_MIDDLE,
-                                false,
-                                (mods & GLFW_MOD_SHIFT) != 0,
-                                (mods & GLFW_MOD_CONTROL) != 0,
-                                (mods & GLFW_MOD_ALT) != 0
-                        )
-                );
-
-                InteractiveManager.getInstance().screenTouch(
-                        mouseX,
-                        mouseY,
-                        0,
-                        mouseButton,
-                        down,
-                        (mods & GLFW_MOD_SHIFT) != 0,
-                        (mods & GLFW_MOD_CONTROL) != 0,
-                        (mods & GLFW_MOD_ALT) != 0
-                );
-            }
-        });
-
-        glfwSetCursorPosCallback(windowId, new GLFWCursorPosCallback() {
-            @Override
-            public void invoke(long window, double x, double y) {
-                mouseX = (int) (x * root.getWidth() / canvasWidth);
-                mouseY = (int) (y * root.getHeight() / canvasHeight);
-
-                Mouse.setXY(mouseX, mouseY);
-
-                root.dispatchEvent(InputEvent.MouseMove.create(
-                        Mouse.getX(),
-                        Mouse.getY(),
-                        true // or false — ты сам решаешь, но сейчас логика “onArea” не применима
-                        , alt,
-                        control,
-                        shift
-                ));
-
-                if (isDown) {
-                    root.dispatchEvent(InputEvent.MouseDrag.create(
-                            Mouse.getX(),
-                            Mouse.getY(),
-                            0, //TODO: pass mouse button info
-                            false,
-                            false,
-                            false,
-                            alt,
-                            control,
-                            shift
-                    ));
-                }
-
-                InteractiveManager.getInstance().screenMove(0, mouseX, mouseY, shift, control, alt);
-            }
-        });
-
-        glfwSetCharCallback(windowId, (window, codepoint) -> {
-            root.dispatchEvent(InputEvent.KeyType.create(
-                    0,
-                    alt,
-                    control,
-                    shift,
-                    Character.toChars(codepoint)[0],
-                    codepoint,
-                    String.valueOf(Character.toChars(codepoint))
-            ));
-        });
-
-
-        glfwSetKeyCallback(windowId, (window, key, scancode, action, mods) -> {
-            boolean shiftNow = (mods & GLFW_MOD_SHIFT) != 0;
-            boolean ctrlNow = (mods & GLFW_MOD_CONTROL) != 0;
-            boolean altNow = (mods & GLFW_MOD_ALT) != 0;
-
-            shift = shiftNow;
-            control = ctrlNow;
-            alt = altNow;
-
-            switch (action) {
-                case GLFW_PRESS -> {
-                    root.dispatchEvent(InputEvent.KeyDown.create(
-                            key,
-                            (char) key,
-                            altNow,
-                            ctrlNow,
-                            shiftNow
-                    ));
-                }
-
-                case GLFW_REPEAT -> {
-                    root.dispatchEvent(InputEvent.KeyRepeat.create(
-                            key,
-                            altNow,
-                            ctrlNow,
-                            shiftNow
-                    ));
-                }
-
-                case GLFW_RELEASE -> {
-                    root.dispatchEvent(InputEvent.KeyUp.create(
-                            key,
-                            altNow,
-                            ctrlNow,
-                            shiftNow
-                    ));
-                }
-            }
-        });
-
+        glfwHelper.init();
 
         GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
@@ -478,32 +325,6 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
         private final int w;
         private final int h;
     }
-
-    /*
-    private static Size computeAtlasSize(Font font, String string, TrueTypeBitmapFontBuilder builder) {
-        FontMetrics metrics = new Canvas().getFontMetrics(font);
-        int width = 0;
-        int currentHeight = 0;
-        int maxWidth = 0;
-
-        for (int i = 0; i < string.length(); i++) {
-            char currentChar = string.charAt(i);
-            int charWidth = metrics.charWidth(currentChar);
-            width += charWidth;
-
-            if (width > 4096) {
-                maxWidth = Math.max(maxWidth, width - charWidth);
-                width = charWidth;
-                currentHeight += builder.getSpacingY();
-            }
-        }
-
-        maxWidth = Math.max(maxWidth, width);
-        currentHeight += metrics.getHeight();
-
-        return new Size(maxWidth, currentHeight);
-    }
-     */
 
     private static Size computeSize(java.awt.Font font, String string, TrueTypeFontBuilder builder) {
         int x = 0;

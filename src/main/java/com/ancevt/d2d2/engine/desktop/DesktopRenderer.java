@@ -429,7 +429,7 @@ public class DesktopRenderer implements Renderer {
         glVertex2d(x - vf, charHeight * -scY + y - vf);
     }
 
-    public void setLWJGLTextureEngine(DesktopTextureEngine textureEngine) {
+    public void setDesktopTextureEngine(DesktopTextureEngine textureEngine) {
         this.textureEngine = textureEngine;
     }
 
