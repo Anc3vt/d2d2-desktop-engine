@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.ancevt.d2d2.engine.lwjgl;
+package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.engine.Monitor;
 import com.ancevt.d2d2.engine.VideoMode;
@@ -35,11 +35,11 @@ import static org.lwjgl.glfw.GLFW.glfwGetVideoModes;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowMonitor;
 
 @RequiredArgsConstructor
-public final class LwjglMonitor implements Monitor {
+public final class DesktopMonitor implements Monitor {
 
     private final long id;
 
-    private final LwjglDisplayManager displayManager;
+    private final DesktopDisplayManager displayManager;
 
     @Override
     public long getId() {
@@ -115,7 +115,7 @@ public final class LwjglMonitor implements Monitor {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        LwjglMonitor that = (LwjglMonitor) o;
+        DesktopMonitor that = (DesktopMonitor) o;
 
         return id == that.id;
     }

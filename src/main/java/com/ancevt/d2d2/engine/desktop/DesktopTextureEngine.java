@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package com.ancevt.d2d2.engine.lwjgl;
+package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.asset.Assets;
 import com.ancevt.d2d2.scene.Color;
 import com.ancevt.d2d2.scene.text.BitmapText;
-import com.ancevt.d2d2.scene.texture.ITextureEngine;
+import com.ancevt.d2d2.scene.texture.TextureEngine;
 import com.ancevt.d2d2.scene.texture.Texture;
 import com.ancevt.d2d2.scene.texture.TextureRegion;
 import com.ancevt.d2d2.scene.texture.TextureRegionCombinerCell;
@@ -58,14 +58,14 @@ import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 
-public class LwjglTextureEngine implements ITextureEngine {
+public class DesktopTextureEngine implements TextureEngine {
 
     private final TextureLoadQueue loadQueue;
     private final Queue<Texture> unloadQueue;
     private final TextureMapping mapping;
     private int textureIdCounter;
 
-    public LwjglTextureEngine() {
+    public DesktopTextureEngine() {
         mapping = new TextureMapping();
         loadQueue = new TextureLoadQueue();
         unloadQueue = new LinkedList<>();

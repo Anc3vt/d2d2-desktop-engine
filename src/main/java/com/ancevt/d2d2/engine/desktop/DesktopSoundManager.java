@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.ancevt.d2d2.engine.lwjgl;
+package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.engine.SoundManager;
 import com.ancevt.d2d2.sound.Sound;
@@ -38,13 +38,13 @@ import static org.lwjgl.openal.ALC10.alcOpenDevice;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class LwjglSoundManager implements SoundManager {
+public class DesktopSoundManager implements SoundManager {
 
 
     private long device;
     private long context;
 
-    public LwjglSoundManager() {
+    public DesktopSoundManager() {
         device = alcOpenDevice((ByteBuffer) null);
         if (device == NULL) {
             throw new IllegalStateException("Failed to open the default OpenAL device.");
@@ -79,11 +79,11 @@ public class LwjglSoundManager implements SoundManager {
 
     @Override
     public Sound loadSound(InputStream inputStream) {
-        return new LwjglSound(inputStream);
+        return new DesktopSound(inputStream);
     }
 
     @Override
     public Sound loadSound(String assetFileName) {
-        return new LwjglSound(assetFileName);
+        return new DesktopSound(assetFileName);
     }
 }

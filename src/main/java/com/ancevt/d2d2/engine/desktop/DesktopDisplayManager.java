@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.ancevt.d2d2.engine.lwjgl;
+package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Monitor;
@@ -49,7 +49,7 @@ import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public final class LwjglDisplayManager implements DisplayManager {
+public final class DesktopDisplayManager implements DisplayManager {
 
     private WindowState savedWindowState;
     private boolean mouseVisible;
@@ -65,7 +65,7 @@ public final class LwjglDisplayManager implements DisplayManager {
         PointerBuffer glfwMonitors = glfwGetMonitors();
         for (int i = 0; i < Objects.requireNonNull(glfwMonitors).limit(); i++) {
             long id = glfwMonitors.get(i);
-            result.add(new LwjglMonitor(id, this));
+            result.add(new DesktopMonitor(id, this));
         }
         return result;
     }

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.ancevt.d2d2.engine.lwjgl.util.texture;
+package com.ancevt.d2d2.engine.desktop.util.texture;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.asset.Assets;

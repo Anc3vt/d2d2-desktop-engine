@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.ancevt.d2d2.engine.lwjgl;
+package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.asset.Assets;
 import com.ancevt.d2d2.sound.Sound;
@@ -34,18 +34,18 @@ import java.util.List;
 
 import static org.lwjgl.openal.AL10.*;
 
-public class LwjglSound implements Sound {
+public class DesktopSound implements Sound {
 
     private final int bufferId;
     private final int sourceId;
     private boolean disposed = false;
 
-    public LwjglSound(String assetPath) {
+    public DesktopSound(String assetPath) {
         this(Assets.getAsset(assetPath).getInputStream());
     }
 
     @SneakyThrows
-    public LwjglSound(InputStream inputStream) {
+    public DesktopSound(InputStream inputStream) {
         Bitstream bitstream = new Bitstream(inputStream);
         Decoder decoder = new Decoder();
 

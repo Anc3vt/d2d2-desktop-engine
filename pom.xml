@@ -6,13 +6,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.ancevt.d2d2</groupId>
-    <artifactId>d2d2-lwjgl-opengl</artifactId>
+    <artifactId>d2d2-desktop-engine</artifactId>
     <version>0.1.7-SNAPSHOT</version>
 
+    <name>D2D2 Desktop Engine</name>
 
-    <name>LWJGL+OpenGL D2D2 Engine</name>
-
-    <url>https://github.com/Anc3vt/d2d2-lwjgl-opengl</url>
+    <url>https://github.com/Anc3vt/d2d2-desktop-engine</url>
 
     <licenses>
         <license>

@@ -2,13 +2,13 @@
  * Copyright (C) 2025 the original author or authors.
  * See the notice.md file distributed with this work for additional
  * information regarding copyright ownership.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,27 +16,14 @@
  * limitations under the License.
  */
 
-package com.ancevt.d2d2.engine.lwjgl;
+package com.ancevt.d2d2.engine.desktop;
 
-import com.ancevt.d2d2.scene.shape.FreeShape;
-import com.ancevt.d2d2.scene.shape.LineBatch;
-import com.ancevt.d2d2.scene.shape.RectangleShape;
-import com.ancevt.d2d2.scene.shape.Shape;
-import com.ancevt.d2d2.scene.shape.Triangle;
-import com.ancevt.d2d2.scene.shape.Vertex;
+import com.ancevt.d2d2.scene.shape.*;
 import org.lwjgl.opengl.GL11;
 
-import static org.lwjgl.opengl.GL11.GL_LINE_STIPPLE;
-import static org.lwjgl.opengl.GL11.glBegin;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glLineStipple;
-import static org.lwjgl.opengl.GL11.glLineWidth;
-import static org.lwjgl.opengl.GL11.glVertex2f;
+import static org.lwjgl.opengl.GL11.*;
 
-class LwjglShapeRenderer {
-
+class ShapeRenderHelper {
 
     public static void drawShape(Shape shape, float alpha) {
         if (shape instanceof RectangleShape s) {
@@ -49,7 +36,6 @@ class LwjglShapeRenderer {
     }
 
     private static void drawLineBatch(LineBatch s) {
-
         glLineWidth(s.getLineWidth());
 
         if (s.getStipple() != 0) {
@@ -73,16 +59,12 @@ class LwjglShapeRenderer {
 
         }
 
-
         glEnd();
-
         glDisable(GL_LINE_STIPPLE);
     }
 
     private static void drawFreeShape(FreeShape s) {
-
         for (Triangle triangle : s.getTriangles()) {
-
             glBegin(GL11.GL_TRIANGLES);
 
             glVertex2f(triangle.getX1(), triangle.getY1());
@@ -92,8 +74,6 @@ class LwjglShapeRenderer {
             glEnd();
 
         }
-
-
     }
 
     private static void drawRectangleShape(RectangleShape s) {

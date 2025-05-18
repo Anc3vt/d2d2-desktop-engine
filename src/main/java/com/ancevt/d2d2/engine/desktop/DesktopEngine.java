@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.ancevt.d2d2.engine.lwjgl;
+package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.engine.DisplayManager;
@@ -61,10 +61,10 @@ import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 // TODO: rewrite with VBO and refactor
-public class LwjglEngine extends EventDispatcherImpl implements Engine {
+public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     private static final String DEMO_TEXTURE_DATA_INF_FILE = "d2d2-core-demo-texture-data.inf";
-    private LwjglRenderer renderer;
+    private DesktopRenderer renderer;
     private final int initialWidth;
     private final int initialHeight;
     private final String initialTitle;
@@ -87,7 +87,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
     @Getter
     private int canvasHeight;
 
-    private final LwjglDisplayManager displayManager = new LwjglDisplayManager();
+    private final DesktopDisplayManager displayManager = new DesktopDisplayManager();
 
     private SoundManager soundManager;
 
@@ -95,19 +95,19 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
     @Setter
     private int timerCheckFrameFrequency = 1;
 
-    public LwjglEngine(int initialWidth, int initialHeight, String initialTitle) {
+    public DesktopEngine(int initialWidth, int initialHeight, String initialTitle) {
         this.initialWidth = initialWidth;
         this.initialHeight = initialHeight;
         this.initialTitle = initialTitle;
         this.canvasWidth = initialWidth;
         this.canvasHeight = initialHeight;
-        D2D2.textureManager().setTextureEngine(new LwjglTextureEngine());
+        D2D2.textureManager().setTextureEngine(new DesktopTextureEngine());
     }
 
     @Override
     public SoundManager soundManager() {
         if (soundManager == null) {
-            soundManager = new LwjglSoundManager();
+            soundManager = new DesktopSoundManager();
         }
         return soundManager;
     }
@@ -209,8 +209,8 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
     @Override
     public void create() {
         root = new Root();
-        renderer = new LwjglRenderer(root, this);
-        renderer.setLWJGLTextureEngine((LwjglTextureEngine) D2D2.textureManager().getTextureEngine());
+        renderer = new DesktopRenderer(root, this);
+        renderer.setLWJGLTextureEngine((DesktopTextureEngine) D2D2.textureManager().getTextureEngine());
         displayManager.windowId = createWindow();
         displayManager.setVisible(true);
         root.setSize(initialWidth, initialHeight);
@@ -236,7 +236,7 @@ public class LwjglEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public boolean isSmoothMode() {
-        return ((LwjglRenderer) renderer).smoothMode;
+        return ((DesktopRenderer) renderer).smoothMode;
     }
 
     @Override

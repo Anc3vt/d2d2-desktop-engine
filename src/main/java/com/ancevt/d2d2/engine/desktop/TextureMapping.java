@@ -16,28 +16,26 @@
  * limitations under the License.
  */
 
-package com.ancevt.d2d2.engine.lwjgl;
+package com.ancevt.d2d2.engine.desktop;
 
-public class OSDetector {
+import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
 
-    private static final String OS = System.getProperty("os.name").toLowerCase();
+class TextureMapping {
+    private final Map<Integer, Integer> ids;
+    private final Map<Integer, BufferedImage> images;
 
-    public static boolean isWindows() {
-        return OS.contains("win");
+    public TextureMapping() {
+        ids = new HashMap<>();
+        images = new HashMap<>();
     }
 
-    public static boolean isMac() {
-        return OS.contains("mac");
+    public Map<Integer, Integer> ids() {
+        return ids;
     }
 
-    public static boolean isUnix() {
-        return OS.contains("nix")
-                || OS.contains("nux")
-                || OS.indexOf("aix") > 0;
+    public Map<Integer, BufferedImage> images() {
+        return images;
     }
-
-    public static boolean isSolaris() {
-        return OS.contains("sunos");
-    }
-
 }

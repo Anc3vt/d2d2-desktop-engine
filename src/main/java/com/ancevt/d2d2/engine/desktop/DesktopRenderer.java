@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.ancevt.d2d2.engine.lwjgl;
+package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.event.CommonEvent;
@@ -39,12 +39,12 @@ import static org.lwjgl.opengl.GL11.*;
 
 
 // TODO: rewrite with VBO abd refactor
-public class LwjglRenderer implements Renderer {
+public class DesktopRenderer implements Renderer {
 
     private final Root root;
-    private final LwjglEngine lwjglEngine;
+    private final DesktopEngine desktopEngine;
     boolean smoothMode = false;
-    private LwjglTextureEngine textureEngine;
+    private DesktopTextureEngine textureEngine;
     private int zOrderCounter;
 
     @Getter
@@ -55,9 +55,9 @@ public class LwjglRenderer implements Renderer {
     @Setter
     private int fps = frameRate;
 
-    public LwjglRenderer(Root root, LwjglEngine lwjglStarter) {
+    public DesktopRenderer(Root root, DesktopEngine lwjglStarter) {
         this.root = root;
-        this.lwjglEngine = lwjglStarter;
+        this.desktopEngine = lwjglStarter;
     }
 
     @Override
@@ -74,8 +74,8 @@ public class LwjglRenderer implements Renderer {
 
     @Override
     public void reshape() {
-        lwjglEngine.dispatchEvent(CommonEvent.Resize.create(D2D2.root().getWidth(), D2D2.root().getHeight()));
-        glViewport(0, 0, lwjglEngine.getCanvasWidth(), lwjglEngine.getCanvasHeight());
+        desktopEngine.dispatchEvent(CommonEvent.Resize.create(D2D2.root().getWidth(), D2D2.root().getHeight()));
+        glViewport(0, 0, desktopEngine.getCanvasWidth(), desktopEngine.getCanvasHeight());
         glMatrixMode(GL11.GL_PROJECTION);
         glLoadIdentity();
         GLU.gluOrtho2D(0, D2D2.root().getWidth(), D2D2.root().getHeight(), 0);
@@ -142,7 +142,7 @@ public class LwjglRenderer implements Renderer {
 
         textureEngine.unloadTexture();
 
-        GLFW.glfwGetCursorPos(lwjglEngine.displayManager().getWindowId(), mouseX, mouseY);
+        GLFW.glfwGetCursorPos(desktopEngine.displayManager().getWindowId(), mouseX, mouseY);
         //Mouse.setXY((int) mouseX[0], (int) mouseY[0]);
     }
 
@@ -251,7 +251,7 @@ public class LwjglRenderer implements Renderer {
     private void renderShape(Shape s, float alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        LwjglShapeRenderer.drawShape(s, alpha);
+        ShapeRenderHelper.drawShape(s, alpha);
         glDisable(GL_BLEND);
     }
 
@@ -367,8 +367,8 @@ public class LwjglRenderer implements Renderer {
                 alpha,
                 1,
                 1,
-                LwjglRenderer::drawChar,
-                LwjglRenderer::applyColor
+                DesktopRenderer::drawChar,
+                DesktopRenderer::applyColor
         );
 
         glEnd();
@@ -429,7 +429,7 @@ public class LwjglRenderer implements Renderer {
         glVertex2d(x - vf, charHeight * -scY + y - vf);
     }
 
-    public void setLWJGLTextureEngine(LwjglTextureEngine textureEngine) {
+    public void setLWJGLTextureEngine(DesktopTextureEngine textureEngine) {
         this.textureEngine = textureEngine;
     }
 
