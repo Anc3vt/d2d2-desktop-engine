@@ -23,7 +23,7 @@ import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.engine.SoundManager;
 import com.ancevt.d2d2.engine.desktop.awt.BitmapTextAwtHelper;
-import com.ancevt.d2d2.engine.desktop.lwjgl.WindowHelper;
+import com.ancevt.d2d2.engine.desktop.lwjgl.WindowGLFWHelper;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.core.EventDispatcherImpl;
 import com.ancevt.d2d2.log.Logger;
@@ -33,8 +33,6 @@ import com.ancevt.d2d2.scene.text.BitmapFont;
 import com.ancevt.d2d2.scene.text.TrueTypeFontBuilder;
 import lombok.Getter;
 import lombok.Setter;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
@@ -42,9 +40,6 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 
-import static org.lwjgl.glfw.GLFW.*;
-
-// TODO: rewrite with VBO and refactor
 public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     private DesktopRenderer renderer;
@@ -52,8 +47,6 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
     private final int initialHeight;
     private final String initialTitle;
     private Root root;
-    private int frameRate = 60;
-    private boolean alwaysOnTop;
 
     private final DesktopDisplayManager displayManager = new DesktopDisplayManager();
 
@@ -76,17 +69,17 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void setCanvasSize(int width, int height) {
-        WindowHelper.setCanvasSize(width, height);
+        WindowGLFWHelper.setCanvasSize(width, height);
     }
 
     @Override
     public int getCanvasWidth() {
-        return WindowHelper.getCanvasWidth();
+        return WindowGLFWHelper.getCanvasWidth();
     }
 
     @Override
     public int getCanvasHeight() {
-        return WindowHelper.getCanvasHeight();
+        return WindowGLFWHelper.getCanvasHeight();
     }
 
     @Override
@@ -101,19 +94,18 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void setAlwaysOnTop(boolean b) {
-        this.alwaysOnTop = b;
-        glfwWindowHint(GLFW_FLOATING, alwaysOnTop ? GLFW_TRUE : GLFW_FALSE);
+        WindowGLFWHelper.setAlwaysOnTop(b);
     }
 
     @Override
     public boolean isAlwaysOnTop() {
-        return alwaysOnTop;
+        return WindowGLFWHelper.isAlwaysOnTop();
     }
 
     @Override
     public void stop() {
-        if (!WindowHelper.isRunning()) return;
-        WindowHelper.setRunning(false);
+        if (!WindowGLFWHelper.isRunning()) return;
+        WindowGLFWHelper.setRunning(false);
     }
 
     @Override
@@ -121,7 +113,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
         root = new Root();
         renderer = new DesktopRenderer(root, this);
         renderer.setDesktopTextureEngine((DesktopTextureEngine) D2D2.textureManager().getTextureEngine());
-        WindowHelper.init(this, initialWidth, initialHeight, initialTitle);
+        WindowGLFWHelper.init(this, initialWidth, initialHeight, initialTitle);
         displayManager.setVisible(true);
         root.setSize(initialWidth, initialHeight);
         renderer.reshape();
@@ -129,30 +121,19 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void setSmoothMode(boolean value) {
-        renderer.smoothMode = value;
-
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
-
-        if (value) {
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
-        } else {
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
-        }
+        WindowGLFWHelper.setSmoothMode(value);
     }
 
     @Override
     public boolean isSmoothMode() {
-        return renderer.smoothMode;
+        return WindowGLFWHelper.isSmoothMode();
     }
 
     @Override
     public void start() {
-        WindowHelper.setRunning(true);
+        WindowGLFWHelper.setRunning(true);
         root.dispatchEvent(CommonEvent.Start.create());
-        WindowHelper.startRenderLoop(this);
+        WindowGLFWHelper.startRenderLoop(this);
         root.dispatchEvent(CommonEvent.Stop.create());
     }
 
@@ -168,7 +149,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void setCursorXY(int x, int y) {
-        GLFW.glfwSetCursorPos(WindowHelper.getWindowId(), x, y);
+        WindowGLFWHelper.setCursorXY(x, y);
     }
 
     @Override
@@ -196,13 +177,12 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void setFrameRate(int frameRate) {
-        this.frameRate = frameRate;
         renderer.setFrameRate(frameRate);
     }
 
     @Override
     public int getFrameRate() {
-        return frameRate;
+        return renderer.getFrameRate();
     }
 
     @Override

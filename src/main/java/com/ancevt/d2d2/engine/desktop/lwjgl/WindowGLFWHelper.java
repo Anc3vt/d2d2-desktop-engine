@@ -15,6 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
 
 import java.util.Objects;
 
@@ -23,7 +24,7 @@ import static org.lwjgl.opengl.GL11C.glEnable;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class WindowHelper {
+public class WindowGLFWHelper {
 
     private static final String DEMO_TEXTURE_DATA_INF_FILE = "d2d2-core-demo-texture-data.inf";
 
@@ -48,6 +49,11 @@ public class WindowHelper {
     @Getter
     @Setter
     private static boolean running;
+
+    @Getter
+    private static boolean smoothMode;
+    @Getter
+    private static boolean alwaysOnTop;
 
     public static void setCanvasSize(int width, int height) {
         canvasWidth = width;
@@ -251,7 +257,7 @@ public class WindowHelper {
 
 
     public static void startRenderLoop(Engine engine) {
-        long windowId = WindowHelper.getWindowId();
+        long windowId = WindowGLFWHelper.getWindowId();
 
         Renderer renderer = engine.getRenderer();
 
@@ -263,6 +269,30 @@ public class WindowHelper {
         }
 
         glfwTerminate();
+    }
+
+    public static void setCursorXY(int x, int y) {
+        GLFW.glfwSetCursorPos(WindowGLFWHelper.getWindowId(), x, y);
+    }
+
+    public static void setSmoothMode(boolean smoothMode) {
+        WindowGLFWHelper.smoothMode = smoothMode;
+
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
+
+        if (smoothMode) {
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+        } else {
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+        }
+    }
+
+    public static void setAlwaysOnTop(boolean alwaysOnTop) {
+        WindowGLFWHelper.alwaysOnTop = alwaysOnTop;
+        glfwWindowHint(GLFW_FLOATING, WindowGLFWHelper.alwaysOnTop ? GLFW_TRUE : GLFW_FALSE);
     }
 
 }
