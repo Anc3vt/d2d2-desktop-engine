@@ -23,14 +23,14 @@ import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.engine.SoundManager;
 import com.ancevt.d2d2.engine.desktop.awt.BitmapTextAwtHelper;
-import com.ancevt.d2d2.engine.desktop.lwjgl.WindowGLFWHelper;
+import com.ancevt.d2d2.engine.desktop.lwjgl.CanvasHelper;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.core.EventDispatcherImpl;
 import com.ancevt.d2d2.log.Logger;
 import com.ancevt.d2d2.scene.Renderer;
-import com.ancevt.d2d2.scene.Root;
+import com.ancevt.d2d2.scene.Stage;
 import com.ancevt.d2d2.scene.text.BitmapFont;
-import com.ancevt.d2d2.scene.text.TrueTypeFontBuilder;
+import com.ancevt.d2d2.scene.text.FontBuilder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -43,10 +43,8 @@ import java.io.IOException;
 public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     private DesktopRenderer renderer;
-    private final int initialWidth;
-    private final int initialHeight;
-    private final String initialTitle;
-    private Root root;
+
+    private Stage stage;
 
     private final DesktopDisplayManager displayManager = new DesktopDisplayManager();
 
@@ -55,10 +53,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
     private int timerCheckFrameFrequency = 1;
 
     public DesktopEngine(int initialWidth, int initialHeight, String initialTitle) {
-        this.initialWidth = initialWidth;
-        this.initialHeight = initialHeight;
-        this.initialTitle = initialTitle;
-        setCanvasSize(initialWidth, initialHeight);
+        CanvasHelper.init(initialWidth, initialHeight, initialTitle);
         D2D2.textureManager().setTextureEngine(new DesktopTextureEngine());
     }
 
@@ -69,17 +64,17 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void setCanvasSize(int width, int height) {
-        WindowGLFWHelper.setCanvasSize(width, height);
+        CanvasHelper.setCanvasSize(width, height);
     }
 
     @Override
     public int getCanvasWidth() {
-        return WindowGLFWHelper.getCanvasWidth();
+        return CanvasHelper.getCanvasWidth();
     }
 
     @Override
     public int getCanvasHeight() {
-        return WindowGLFWHelper.getCanvasHeight();
+        return CanvasHelper.getCanvasHeight();
     }
 
     @Override
@@ -94,52 +89,52 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void setAlwaysOnTop(boolean b) {
-        WindowGLFWHelper.setAlwaysOnTop(b);
+        CanvasHelper.setAlwaysOnTop(b);
     }
 
     @Override
     public boolean isAlwaysOnTop() {
-        return WindowGLFWHelper.isAlwaysOnTop();
+        return CanvasHelper.isAlwaysOnTop();
     }
 
     @Override
     public void stop() {
-        if (!WindowGLFWHelper.isRunning()) return;
-        WindowGLFWHelper.setRunning(false);
+        if (!CanvasHelper.isRunning()) return;
+        CanvasHelper.setRunning(false);
     }
 
     @Override
     public void create() {
-        root = new Root();
-        renderer = new DesktopRenderer(root, this);
+        stage = new Stage();
+        renderer = new DesktopRenderer(stage, this);
         renderer.setDesktopTextureEngine((DesktopTextureEngine) D2D2.textureManager().getTextureEngine());
-        WindowGLFWHelper.init(this, initialWidth, initialHeight, initialTitle);
+        CanvasHelper.createAndSetupGLFWWindow(this);
         displayManager.setVisible(true);
-        root.setSize(initialWidth, initialHeight);
+        stage.setSize(CanvasHelper.getCanvasWidth(), CanvasHelper.getCanvasHeight());
         renderer.reshape();
     }
 
     @Override
     public void setSmoothMode(boolean value) {
-        WindowGLFWHelper.setSmoothMode(value);
+        CanvasHelper.setSmoothMode(value);
     }
 
     @Override
     public boolean isSmoothMode() {
-        return WindowGLFWHelper.isSmoothMode();
+        return CanvasHelper.isSmoothMode();
     }
 
     @Override
     public void start() {
-        WindowGLFWHelper.setRunning(true);
-        root.dispatchEvent(CommonEvent.Start.create());
-        WindowGLFWHelper.startRenderLoop(this);
-        root.dispatchEvent(CommonEvent.Stop.create());
+        CanvasHelper.setRunning(true);
+        stage.dispatchEvent(CommonEvent.Start.create());
+        CanvasHelper.startRenderLoop(this);
+        stage.dispatchEvent(CommonEvent.Stop.create());
     }
 
     @Override
-    public Root root() {
-        return root;
+    public Stage stage() {
+        return stage;
     }
 
     @Override
@@ -149,7 +144,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void setCursorXY(int x, int y) {
-        WindowGLFWHelper.setCursorXY(x, y);
+        CanvasHelper.setCursorXY(x, y);
     }
 
     @Override
@@ -192,7 +187,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
 
     @Override
-    public BitmapFont generateBitmapFont(TrueTypeFontBuilder builder) {
+    public BitmapFont generateBitmapFont(FontBuilder builder) {
         return BitmapTextAwtHelper.generateBitmapFont(builder);
     }
 }

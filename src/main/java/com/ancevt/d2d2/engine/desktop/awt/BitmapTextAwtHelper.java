@@ -4,7 +4,7 @@ import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.lifecycle.D2D2PropertyConstants;
 import com.ancevt.d2d2.scene.text.BitmapFont;
 import com.ancevt.d2d2.scene.text.FractionalMetrics;
-import com.ancevt.d2d2.scene.text.TrueTypeFontBuilder;
+import com.ancevt.d2d2.scene.text.FontBuilder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -28,7 +28,7 @@ import static com.ancevt.d2d2.D2D2.log;
 public class BitmapTextAwtHelper {
 
     @SneakyThrows
-    public static BitmapFont generateBitmapFont(TrueTypeFontBuilder builder) {
+    public static BitmapFont generateBitmapFont(FontBuilder builder) {
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 
         InputStream inputStream = builder.getInputStream() != null ?
@@ -165,7 +165,7 @@ public class BitmapTextAwtHelper {
         );
     }
 
-    private static Size computeSize(Font font, String string, TrueTypeFontBuilder builder) {
+    private static Size computeSize(Font font, String string, FontBuilder builder) {
         int x = 0;
         int y = 0;
         FontMetrics fontMetrics = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).getGraphics().getFontMetrics(font);

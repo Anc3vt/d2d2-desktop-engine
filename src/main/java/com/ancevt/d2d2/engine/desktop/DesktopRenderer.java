@@ -19,7 +19,7 @@
 package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.D2D2;
-import com.ancevt.d2d2.engine.desktop.lwjgl.WindowGLFWHelper;
+import com.ancevt.d2d2.engine.desktop.lwjgl.CanvasHelper;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.SceneEvent;
 import com.ancevt.d2d2.scene.*;
@@ -42,7 +42,7 @@ import static org.lwjgl.opengl.GL11.*;
 // TODO: rewrite with VBO abd refactor
 public class DesktopRenderer implements Renderer {
 
-    private final Root root;
+    private final Stage stage;
     private final DesktopEngine desktopEngine;
     private DesktopTextureEngine textureEngine;
     private int zOrderCounter;
@@ -55,8 +55,8 @@ public class DesktopRenderer implements Renderer {
     @Setter
     private int fps = frameRate;
 
-    public DesktopRenderer(Root root, DesktopEngine lwjglStarter) {
-        this.root = root;
+    public DesktopRenderer(Stage stage, DesktopEngine lwjglStarter) {
+        this.stage = stage;
         this.desktopEngine = lwjglStarter;
     }
 
@@ -74,11 +74,11 @@ public class DesktopRenderer implements Renderer {
 
     @Override
     public void reshape() {
-        desktopEngine.dispatchEvent(CommonEvent.Resize.create(D2D2.root().getWidth(), D2D2.root().getHeight()));
+        desktopEngine.dispatchEvent(CommonEvent.Resize.create(D2D2.stage().getWidth(), D2D2.stage().getHeight()));
         glViewport(0, 0, desktopEngine.getCanvasWidth(), desktopEngine.getCanvasHeight());
         glMatrixMode(GL11.GL_PROJECTION);
         glLoadIdentity();
-        GLU.gluOrtho2D(0, D2D2.root().getWidth(), D2D2.root().getHeight(), 0);
+        GLU.gluOrtho2D(0, D2D2.stage().getWidth(), D2D2.stage().getHeight(), 0);
         glMatrixMode(GL11.GL_MODELVIEW);
         glLoadIdentity();
     }
@@ -97,7 +97,7 @@ public class DesktopRenderer implements Renderer {
 
         // Выполнить обновление игровой логики, даже если кадры пропущены
         while (delta >= 1) {
-            dispatchLoopUpdate(root);
+            dispatchLoopUpdate(stage);
             delta--;
         }
 
@@ -126,13 +126,13 @@ public class DesktopRenderer implements Renderer {
         clear();
         glLoadIdentity();
 
-        renderDisplayObject(root,
+        renderDisplayObject(stage,
                 0,
-                root.getX(),
-                root.getY(),
-                root.getScaleX(),
-                root.getScaleY(),
-                root.getAlpha()
+                stage.getX(),
+                stage.getY(),
+                stage.getScaleX(),
+                stage.getScaleY(),
+                stage.getAlpha()
         );
 
         Node cursor = D2D2.getCursor();
@@ -142,7 +142,7 @@ public class DesktopRenderer implements Renderer {
 
         textureEngine.unloadTexture();
 
-        GLFW.glfwGetCursorPos(WindowGLFWHelper.getWindowId(), mouseX, mouseY);
+        GLFW.glfwGetCursorPos(CanvasHelper.getWindowId(), mouseX, mouseY);
         //Mouse.setXY((int) mouseX[0], (int) mouseY[0]);
     }
 
@@ -164,7 +164,7 @@ public class DesktopRenderer implements Renderer {
     private final double[] mouseY = new double[1];
 
     private void clear() {
-        Color backgroundColor = root.getBackgroundColor();
+        Color backgroundColor = stage.getBackgroundColor();
         float backgroundColorRed = backgroundColor.getR() / 255.0f;
         float backgroundColorGreen = backgroundColor.getG() / 255.0f;
         float backgroundColorBlue = backgroundColor.getB() / 255.0f;
