@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-package com.ancevt.d2d2.engine.desktop;
+package com.ancevt.d2d2.engine.desktop_old;
 
 import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Monitor;
 import com.ancevt.d2d2.engine.WindowState;
-import com.ancevt.d2d2.engine.desktop.lwjgl.CanvasHelper;
+import com.ancevt.d2d2.engine.desktop_old.lwjgl.CanvasHelper;
 import com.ancevt.d2d2.exception.MonitorException;
 import org.lwjgl.PointerBuffer;
 
@@ -32,7 +32,7 @@ import java.util.Objects;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public final class DesktopDisplayManager implements DisplayManager {
+public final class DesktopDisplayManager_old implements DisplayManager {
     private WindowState savedWindowState;
 
     private boolean mouseVisible;
@@ -50,7 +50,7 @@ public final class DesktopDisplayManager implements DisplayManager {
         PointerBuffer glfwMonitors = glfwGetMonitors();
         for (int i = 0; i < Objects.requireNonNull(glfwMonitors).limit(); i++) {
             long id = glfwMonitors.get(i);
-            result.add(new DesktopMonitor(id, this));
+            result.add(new DesktopMonitor_old(id, this));
         }
         return result;
     }

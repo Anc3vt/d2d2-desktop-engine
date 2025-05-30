@@ -1,16 +1,16 @@
-package com.ancevt.d2d2.engine.desktop;
+package com.ancevt.d2d2.engine.desktop_old;
 
 import com.ancevt.d2d2.log.Logger;
 
 import java.io.PrintStream;
 
-class DesktopLogger implements Logger {
+public class DesktopLogger_old implements Logger {
 
     private static class Holder {
-        private static final DesktopLogger INSTANCE = new DesktopLogger();
+        private static final DesktopLogger_old INSTANCE = new DesktopLogger_old();
     }
 
-    public static DesktopLogger getInstance() {
+    public static DesktopLogger_old getInstance() {
         return Holder.INSTANCE;
     }
 

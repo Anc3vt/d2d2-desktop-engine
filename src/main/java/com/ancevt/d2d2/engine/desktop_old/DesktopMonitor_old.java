@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-package com.ancevt.d2d2.engine.desktop;
+package com.ancevt.d2d2.engine.desktop_old;
 
 import com.ancevt.d2d2.engine.Monitor;
 import com.ancevt.d2d2.engine.VideoMode;
-import com.ancevt.d2d2.engine.desktop.lwjgl.CanvasHelper;
+import com.ancevt.d2d2.engine.desktop_old.lwjgl.CanvasHelper;
 import lombok.RequiredArgsConstructor;
 import org.lwjgl.glfw.GLFWVidMode;
 
@@ -31,11 +31,11 @@ import java.util.Objects;
 import static org.lwjgl.glfw.GLFW.*;
 
 @RequiredArgsConstructor
-public final class DesktopMonitor implements Monitor {
+public final class DesktopMonitor_old implements Monitor {
 
     private final long id;
 
-    private final DesktopDisplayManager displayManager;
+    private final DesktopDisplayManager_old displayManager;
 
     @Override
     public long getId() {
@@ -111,7 +111,7 @@ public final class DesktopMonitor implements Monitor {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        DesktopMonitor that = (DesktopMonitor) o;
+        DesktopMonitor_old that = (DesktopMonitor_old) o;
 
         return id == that.id;
     }

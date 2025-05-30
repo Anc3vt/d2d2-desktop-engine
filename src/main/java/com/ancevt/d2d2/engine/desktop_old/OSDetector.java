@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.ancevt.d2d2.engine.desktop;
+package com.ancevt.d2d2.engine.desktop_old;
 
 public class OSDetector {
 

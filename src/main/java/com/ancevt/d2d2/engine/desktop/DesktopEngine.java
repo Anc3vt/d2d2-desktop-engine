@@ -1,29 +1,10 @@
-/**
- * Copyright (C) 2025 the original author or authors.
- * See the notice.md file distributed with this work for additional
- * information regarding copyright ownership.
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.engine.SoundManager;
-import com.ancevt.d2d2.engine.desktop.awt.BitmapTextAwtHelper;
-import com.ancevt.d2d2.engine.desktop.lwjgl.CanvasHelper;
+import com.ancevt.d2d2.engine.desktop.lwjgl.CanvasControl;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.core.EventDispatcherImpl;
 import com.ancevt.d2d2.log.Logger;
@@ -31,110 +12,59 @@ import com.ancevt.d2d2.scene.Renderer;
 import com.ancevt.d2d2.scene.Stage;
 import com.ancevt.d2d2.scene.text.BitmapFont;
 import com.ancevt.d2d2.scene.text.FontBuilder;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.awt.*;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.IOException;
 
 public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
+    private Stage stage;
     private DesktopRenderer renderer;
 
-    private Stage stage;
-
-    private final DesktopDisplayManager displayManager = new DesktopDisplayManager();
-
-    @Getter
-    @Setter
-    private int timerCheckFrameFrequency = 1;
-
     public DesktopEngine(int initialWidth, int initialHeight, String initialTitle) {
-        CanvasHelper.init(initialWidth, initialHeight, initialTitle);
+        CanvasControl.init(initialWidth, initialHeight, initialTitle);
         D2D2.textureManager().setTextureEngine(new DesktopTextureEngine());
-    }
-
-    @Override
-    public SoundManager soundManager() {
-        return DesktopSoundManager.getInstance();
-    }
-
-    @Override
-    public void setCanvasSize(int width, int height) {
-        CanvasHelper.setCanvasSize(width, height);
-    }
-
-    @Override
-    public int getCanvasWidth() {
-        return CanvasHelper.getCanvasWidth();
-    }
-
-    @Override
-    public int getCanvasHeight() {
-        return CanvasHelper.getCanvasHeight();
-    }
-
-    @Override
-    public Logger logger() {
-        return DesktopLogger.getInstance();
-    }
-
-    @Override
-    public DisplayManager displayManager() {
-        return displayManager;
-    }
-
-    @Override
-    public void setAlwaysOnTop(boolean b) {
-        CanvasHelper.setAlwaysOnTop(b);
-    }
-
-    @Override
-    public boolean isAlwaysOnTop() {
-        return CanvasHelper.isAlwaysOnTop();
-    }
-
-    @Override
-    public void stop() {
-        if (!CanvasHelper.isRunning()) return;
-        CanvasHelper.setRunning(false);
     }
 
     @Override
     public void create() {
         stage = new Stage();
-        renderer = new DesktopRenderer(stage, this);
-        renderer.setDesktopTextureEngine((DesktopTextureEngine) D2D2.textureManager().getTextureEngine());
-        CanvasHelper.createAndSetupGLFWWindow(this);
-        displayManager.setVisible(true);
-        stage.setSize(CanvasHelper.getCanvasWidth(), CanvasHelper.getCanvasHeight());
-        renderer.reshape();
+        renderer = new DesktopRenderer(this);
+        CanvasControl.createAndSetupGlfwWindow(this);
     }
 
     @Override
-    public void setSmoothMode(boolean value) {
-        CanvasHelper.setSmoothMode(value);
+    public Stage getStage() {
+        return stage;
     }
 
     @Override
-    public boolean isSmoothMode() {
-        return CanvasHelper.isSmoothMode();
+    public void setAlwaysOnTop(boolean b) {
+
+    }
+
+    @Override
+    public boolean isAlwaysOnTop() {
+        return false;
+    }
+
+    @Override
+    public void setFrameRate(int value) {
+
+    }
+
+    @Override
+    public int getFrameRate() {
+        return 0;
+    }
+
+    @Override
+    public int getActualFps() {
+        return 0;
     }
 
     @Override
     public void start() {
-        CanvasHelper.setRunning(true);
         stage.dispatchEvent(CommonEvent.Start.create());
-        CanvasHelper.startRenderLoop(this);
+        renderer.startRenderLoop();
         stage.dispatchEvent(CommonEvent.Stop.create());
-    }
-
-    @Override
-    public Stage stage() {
-        return stage;
     }
 
     @Override
@@ -143,51 +73,67 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
     }
 
     @Override
-    public void setCursorXY(int x, int y) {
-        CanvasHelper.setCursorXY(x, y);
+    public void stop() {
+
     }
 
     @Override
     public void putToClipboard(String string) {
-        Toolkit.getDefaultToolkit()
-                .getSystemClipboard()
-                .setContents(
-                        new StringSelection(string),
-                        null
-                );
+
     }
 
     @Override
     public String getStringFromClipboard() {
-        try {
-            return Toolkit.getDefaultToolkit()
-                    .getSystemClipboard()
-                    .getData(DataFlavor.stringFlavor).toString();
-        } catch (UnsupportedFlavorException e) {
-            return "";
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
+        return "";
     }
 
     @Override
-    public void setFrameRate(int frameRate) {
-        renderer.setFrameRate(frameRate);
+    public BitmapFont generateBitmapFont(FontBuilder fontBuilder) {
+        return null;
     }
 
     @Override
-    public int getFrameRate() {
-        return renderer.getFrameRate();
+    public void setTimerCheckFrameFrequency(int v) {
+
     }
 
     @Override
-    public int getActualFps() {
-        return renderer.getFps();
+    public int getTimerCheckFrameFrequency() {
+        return 0;
     }
 
+    @Override
+    public DisplayManager displayManager() {
+        return null;
+    }
 
     @Override
-    public BitmapFont generateBitmapFont(FontBuilder builder) {
-        return BitmapTextAwtHelper.generateBitmapFont(builder);
+    public SoundManager soundManager() {
+        return null;
+    }
+
+    @Override
+    public void setCursorXY(int x, int y) {
+
+    }
+
+    @Override
+    public void setCanvasSize(int width, int height) {
+
+    }
+
+    @Override
+    public int getCanvasWidth() {
+        return 0;
+    }
+
+    @Override
+    public int getCanvasHeight() {
+        return 0;
+    }
+
+    @Override
+    public Logger logger() {
+        return DesktopLogger.getInstance();
     }
 }
