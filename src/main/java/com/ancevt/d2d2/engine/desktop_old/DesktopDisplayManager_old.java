@@ -21,7 +21,7 @@ package com.ancevt.d2d2.engine.desktop_old;
 import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Monitor;
 import com.ancevt.d2d2.engine.WindowState;
-import com.ancevt.d2d2.engine.desktop_old.lwjgl.CanvasHelper;
+import com.ancevt.d2d2.engine.desktop_old.lwjgl.CanvasHelper_old;
 import com.ancevt.d2d2.exception.MonitorException;
 import org.lwjgl.PointerBuffer;
 
@@ -41,7 +41,7 @@ public final class DesktopDisplayManager_old implements DisplayManager {
     private String windowTitle;
 
     private static long getWindowId() {
-        return CanvasHelper.getWindowId();
+        return CanvasHelper_old.getWindowId();
     }
 
     @Override

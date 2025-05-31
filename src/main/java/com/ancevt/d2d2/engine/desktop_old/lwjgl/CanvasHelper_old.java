@@ -24,7 +24,7 @@ import static org.lwjgl.opengl.GL11C.glEnable;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class CanvasHelper {
+public class CanvasHelper_old {
 
     private static final String DEMO_TEXTURE_DATA_INF_FILE = "d2d2-core-demo-texture-data.inf";
 
@@ -61,7 +61,7 @@ public class CanvasHelper {
     public static void init(int width, int height, String title) {
         canvasWidth = width;
         canvasHeight = height;
-        CanvasHelper.title = title;
+        CanvasHelper_old.title = title;
     }
 
     public static void setCanvasSize(int width, int height) {
@@ -270,7 +270,7 @@ public class CanvasHelper {
 
 
     public static void startRenderLoop(Engine engine) {
-        long windowId = CanvasHelper.getWindowId();
+        long windowId = CanvasHelper_old.getWindowId();
 
         Renderer renderer = engine.getRenderer();
 
@@ -285,11 +285,11 @@ public class CanvasHelper {
     }
 
     public static void setCursorXY(int x, int y) {
-        GLFW.glfwSetCursorPos(CanvasHelper.getWindowId(), x, y);
+        GLFW.glfwSetCursorPos(CanvasHelper_old.getWindowId(), x, y);
     }
 
     public static void setSmoothMode(boolean smoothMode) {
-        CanvasHelper.smoothMode = smoothMode;
+        CanvasHelper_old.smoothMode = smoothMode;
 
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
@@ -304,8 +304,8 @@ public class CanvasHelper {
     }
 
     public static void setAlwaysOnTop(boolean alwaysOnTop) {
-        CanvasHelper.alwaysOnTop = alwaysOnTop;
-        glfwWindowHint(GLFW_FLOATING, CanvasHelper.alwaysOnTop ? GLFW_TRUE : GLFW_FALSE);
+        CanvasHelper_old.alwaysOnTop = alwaysOnTop;
+        glfwWindowHint(GLFW_FLOATING, CanvasHelper_old.alwaysOnTop ? GLFW_TRUE : GLFW_FALSE);
     }
 
 }

@@ -5,6 +5,7 @@ import com.ancevt.d2d2.D2D2Config;
 import com.ancevt.d2d2.asset.Assets;
 import com.ancevt.d2d2.engine.desktop.DesktopEngine;
 import com.ancevt.d2d2.lifecycle.D2D2Application;
+import com.ancevt.d2d2.scene.Color;
 import com.ancevt.d2d2.scene.Sprite;
 import com.ancevt.d2d2.scene.Stage;
 
@@ -15,15 +16,37 @@ public class TestEntry implements D2D2Application {
                 new TestEntry(),
                 new D2D2Config()
                         .fromArgs(args)
+                        .noScaleMode(true)
                         .engine(DesktopEngine.class)
         );
     }
 
     @Override
     public void start(Stage stage) {
-        Sprite sprite = Assets.loadTexture("test.png").createSprite();
-
+        Sprite sprite = Assets.loadTexture("test2.png").createSprite();
         stage.addChild(sprite, 100, 100);
+
+        sprite.setAlpha(0.5f);
+
+        System.out.println(sprite.getAlpha());
+        //sprite.setColor(Color.YELLOW);
+
+
+        new Thread(() -> {
+
+            while(true) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+                sprite.moveX(1f);
+            }
+
+
+        }).start();
+
 
         System.out.println("done");
     }

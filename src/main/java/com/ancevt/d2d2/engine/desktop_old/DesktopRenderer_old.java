@@ -19,7 +19,7 @@
 package com.ancevt.d2d2.engine.desktop_old;
 
 import com.ancevt.d2d2.D2D2;
-import com.ancevt.d2d2.engine.desktop_old.lwjgl.CanvasHelper;
+import com.ancevt.d2d2.engine.desktop_old.lwjgl.CanvasHelper_old;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.SceneEvent;
 import com.ancevt.d2d2.scene.*;
@@ -142,7 +142,7 @@ public class DesktopRenderer_old implements Renderer {
 
         textureEngine.unloadTexture();
 
-        GLFW.glfwGetCursorPos(CanvasHelper.getWindowId(), mouseX, mouseY);
+        GLFW.glfwGetCursorPos(CanvasHelper_old.getWindowId(), mouseX, mouseY);
         //Mouse.setXY((int) mouseX[0], (int) mouseY[0]);
     }
 

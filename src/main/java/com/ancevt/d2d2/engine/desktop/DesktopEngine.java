@@ -5,6 +5,7 @@ import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.engine.SoundManager;
 import com.ancevt.d2d2.engine.desktop.lwjgl.CanvasControl;
+import com.ancevt.d2d2.engine.desktop_old.lwjgl.CanvasHelper_old;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.core.EventDispatcherImpl;
 import com.ancevt.d2d2.log.Logger;
@@ -12,13 +13,21 @@ import com.ancevt.d2d2.scene.Renderer;
 import com.ancevt.d2d2.scene.Stage;
 import com.ancevt.d2d2.scene.text.BitmapFont;
 import com.ancevt.d2d2.scene.text.FontBuilder;
+import lombok.Getter;
 
 public class DesktopEngine extends EventDispatcherImpl implements Engine {
+
+    @Getter
+    private final int initialWidth;
+    @Getter
+    private final int initialHeight;
 
     private Stage stage;
     private DesktopRenderer renderer;
 
     public DesktopEngine(int initialWidth, int initialHeight, String initialTitle) {
+        this.initialWidth = initialWidth;
+        this.initialHeight = initialHeight;
         CanvasControl.init(initialWidth, initialHeight, initialTitle);
         D2D2.textureManager().setTextureEngine(new DesktopTextureEngine());
     }
@@ -26,6 +35,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
     @Override
     public void create() {
         stage = new Stage();
+        stage.setSize(initialWidth, initialHeight);
         renderer = new DesktopRenderer(this);
         CanvasControl.createAndSetupGlfwWindow(this);
     }
@@ -75,7 +85,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void stop() {
-
+        renderer.running = false;
     }
 
     @Override
@@ -120,7 +130,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void setCanvasSize(int width, int height) {
-
+        CanvasControl.setSize(width, height);
     }
 
     @Override

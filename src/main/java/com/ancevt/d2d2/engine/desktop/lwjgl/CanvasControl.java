@@ -8,6 +8,7 @@ import com.ancevt.d2d2.scene.Renderer;
 import com.ancevt.d2d2.scene.Stage;
 import com.ancevt.d2d2.scene.interactive.InteractiveManager;
 import lombok.Getter;
+import lombok.Setter;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryUtil;
@@ -18,9 +19,11 @@ import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 public class CanvasControl {
 
     @Getter
+    @Setter
     private static int width;
 
     @Getter
+    @Setter
     private static int height;
 
     @Getter
@@ -222,5 +225,10 @@ public class CanvasControl {
 
         renderer.init(windowId);
         renderer.setProjection(engine.getCanvasWidth(), engine.getCanvasHeight());
+    }
+
+    public static void setSize(int width, int height) {
+        CanvasControl.width = width;
+        CanvasControl.height = height;
     }
 }

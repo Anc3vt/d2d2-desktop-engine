@@ -20,7 +20,7 @@ package com.ancevt.d2d2.engine.desktop_old;
 
 import com.ancevt.d2d2.engine.Monitor;
 import com.ancevt.d2d2.engine.VideoMode;
-import com.ancevt.d2d2.engine.desktop_old.lwjgl.CanvasHelper;
+import com.ancevt.d2d2.engine.desktop_old.lwjgl.CanvasHelper_old;
 import lombok.RequiredArgsConstructor;
 import org.lwjgl.glfw.GLFWVidMode;
 
@@ -85,7 +85,7 @@ public final class DesktopMonitor_old implements Monitor {
         int width = videoMode.getWidth();
         int height = videoMode.getHeight();
         int refreshRate = videoMode.getRefreshRate();
-        glfwSetWindowMonitor(CanvasHelper.getWindowId(), id, 0, 0, width, height, refreshRate);
+        glfwSetWindowMonitor(CanvasHelper_old.getWindowId(), id, 0, 0, width, height, refreshRate);
     }
 
     @Override

@@ -23,7 +23,7 @@ import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.engine.SoundManager;
 import com.ancevt.d2d2.engine.desktop_old.awt.BitmapTextAwtHelper;
-import com.ancevt.d2d2.engine.desktop_old.lwjgl.CanvasHelper;
+import com.ancevt.d2d2.engine.desktop_old.lwjgl.CanvasHelper_old;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.core.EventDispatcherImpl;
 import com.ancevt.d2d2.log.Logger;
@@ -53,7 +53,7 @@ public class DesktopEngine_old extends EventDispatcherImpl implements Engine {
     private int timerCheckFrameFrequency = 1;
 
     public DesktopEngine_old(int initialWidth, int initialHeight, String initialTitle) {
-        CanvasHelper.init(initialWidth, initialHeight, initialTitle);
+        CanvasHelper_old.init(initialWidth, initialHeight, initialTitle);
         D2D2.textureManager().setTextureEngine(new DesktopTextureEngine_old());
     }
 
@@ -64,17 +64,17 @@ public class DesktopEngine_old extends EventDispatcherImpl implements Engine {
 
     @Override
     public void setCanvasSize(int width, int height) {
-        CanvasHelper.setCanvasSize(width, height);
+        CanvasHelper_old.setCanvasSize(width, height);
     }
 
     @Override
     public int getCanvasWidth() {
-        return CanvasHelper.getCanvasWidth();
+        return CanvasHelper_old.getCanvasWidth();
     }
 
     @Override
     public int getCanvasHeight() {
-        return CanvasHelper.getCanvasHeight();
+        return CanvasHelper_old.getCanvasHeight();
     }
 
     @Override
@@ -89,18 +89,18 @@ public class DesktopEngine_old extends EventDispatcherImpl implements Engine {
 
     @Override
     public void setAlwaysOnTop(boolean b) {
-        CanvasHelper.setAlwaysOnTop(b);
+        CanvasHelper_old.setAlwaysOnTop(b);
     }
 
     @Override
     public boolean isAlwaysOnTop() {
-        return CanvasHelper.isAlwaysOnTop();
+        return CanvasHelper_old.isAlwaysOnTop();
     }
 
     @Override
     public void stop() {
-        if (!CanvasHelper.isRunning()) return;
-        CanvasHelper.setRunning(false);
+        if (!CanvasHelper_old.isRunning()) return;
+        CanvasHelper_old.setRunning(false);
     }
 
     @Override
@@ -108,27 +108,27 @@ public class DesktopEngine_old extends EventDispatcherImpl implements Engine {
         stage = new Stage();
         renderer = new DesktopRenderer_old(stage, this);
         renderer.setDesktopTextureEngine((DesktopTextureEngine_old) D2D2.textureManager().getTextureEngine());
-        CanvasHelper.createAndSetupGLFWWindow(this);
+        CanvasHelper_old.createAndSetupGLFWWindow(this);
         displayManager.setVisible(true);
-        stage.setSize(CanvasHelper.getCanvasWidth(), CanvasHelper.getCanvasHeight());
+        stage.setSize(CanvasHelper_old.getCanvasWidth(), CanvasHelper_old.getCanvasHeight());
         renderer.reshape();
     }
 
     @Override
     public void setSmoothMode(boolean value) {
-        CanvasHelper.setSmoothMode(value);
+        CanvasHelper_old.setSmoothMode(value);
     }
 
     @Override
     public boolean isSmoothMode() {
-        return CanvasHelper.isSmoothMode();
+        return CanvasHelper_old.isSmoothMode();
     }
 
     @Override
     public void start() {
-        CanvasHelper.setRunning(true);
+        CanvasHelper_old.setRunning(true);
         stage.dispatchEvent(CommonEvent.Start.create());
-        CanvasHelper.startRenderLoop(this);
+        CanvasHelper_old.startRenderLoop(this);
         stage.dispatchEvent(CommonEvent.Stop.create());
     }
 
@@ -144,7 +144,7 @@ public class DesktopEngine_old extends EventDispatcherImpl implements Engine {
 
     @Override
     public void setCursorXY(int x, int y) {
-        CanvasHelper.setCursorXY(x, y);
+        CanvasHelper_old.setCursorXY(x, y);
     }
 
     @Override
