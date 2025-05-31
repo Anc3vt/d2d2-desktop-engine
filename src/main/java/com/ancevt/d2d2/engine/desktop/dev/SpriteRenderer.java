@@ -210,7 +210,7 @@ public class SpriteRenderer {
         // Собираем все спрайты в список с вычисленными глобальными трансформациями
         List<SpriteDrawInfo> spritesToDraw = new ArrayList<>();
         // Запускаем рекурсивный обход дерева, начиная с корневого узла, без родительской трансформации (identity)
-        collectSprites(root,
+        collectNodes(root,
                 // Параметры единичной матрицы 2D-трансформации:
                 1.0f, 0.0f, 0.0f,   // a, b, c для матрицы 3x3 (a,b - косинус/син, c - трансляция X)
                 0.0f, 1.0f, 0.0f,   // d, e, f (d,e - син/кос, f - трансляция Y)
@@ -342,10 +342,10 @@ public class SpriteRenderer {
      * @param parentF элемент f матрицы родителя (f = трансляция Y родителя)
      * @param outList список, в который добавляется информация о спрайтах для отрисовки.
      */
-    private void collectSprites(Node node,
-                                float parentA, float parentB, float parentC,
-                                float parentD, float parentE, float parentF,
-                                List<SpriteDrawInfo> outList) {
+    private void collectNodes(Node node,
+                              float parentA, float parentB, float parentC,
+                              float parentD, float parentE, float parentF,
+                              List<SpriteDrawInfo> outList) {
         // Извлекаем локальные трансформации узла
         float x = node.getX();
         float y = node.getY();
@@ -394,7 +394,7 @@ public class SpriteRenderer {
         if (node instanceof Group group) {
             List<Node> children = group.children().toList();
             for (Node child : children) {
-                collectSprites(child, a, b, c, d, e, f, outList);
+                collectNodes(child, a, b, c, d, e, f, outList);
             }
         }
     }

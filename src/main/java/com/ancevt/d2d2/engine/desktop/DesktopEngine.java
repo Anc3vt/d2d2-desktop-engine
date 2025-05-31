@@ -62,6 +62,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void start() {
+        renderer.running = true;
         stage.dispatchEvent(CommonEvent.Start.create());
         renderer.startRenderLoop();
         stage.dispatchEvent(CommonEvent.Stop.create());
@@ -124,12 +125,12 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public int getCanvasWidth() {
-        return 0;
+        return CanvasControl.getWidth();
     }
 
     @Override
     public int getCanvasHeight() {
-        return 0;
+        return CanvasControl.getHeight();
     }
 
     @Override

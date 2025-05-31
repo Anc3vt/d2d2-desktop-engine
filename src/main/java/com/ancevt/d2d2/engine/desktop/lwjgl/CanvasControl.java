@@ -1,6 +1,7 @@
 package com.ancevt.d2d2.engine.desktop.lwjgl;
 
 import com.ancevt.d2d2.engine.desktop.DesktopEngine;
+import com.ancevt.d2d2.engine.desktop.DesktopRenderer;
 import com.ancevt.d2d2.event.InputEvent;
 import com.ancevt.d2d2.input.Mouse;
 import com.ancevt.d2d2.scene.Renderer;
@@ -16,8 +17,13 @@ import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 
 public class CanvasControl {
 
+    @Getter
     private static int width;
+
+    @Getter
     private static int height;
+
+    @Getter
     private static String title;
 
     private static boolean isDown;
@@ -62,8 +68,7 @@ public class CanvasControl {
         GL.createCapabilities();
 
         Stage stage = engine.getStage();
-        Renderer renderer = engine.getRenderer();
-
+        DesktopRenderer renderer = (DesktopRenderer) engine.getRenderer();
 
         glfwSetWindowSizeCallback(windowId, new GLFWWindowSizeCallback() {
             @Override
@@ -215,6 +220,7 @@ public class CanvasControl {
             }
         });
 
-
+        renderer.init(windowId);
+        renderer.setProjection(engine.getCanvasWidth(), engine.getCanvasHeight());
     }
 }
