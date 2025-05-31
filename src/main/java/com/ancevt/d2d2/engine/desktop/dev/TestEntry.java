@@ -8,6 +8,7 @@ import com.ancevt.d2d2.lifecycle.D2D2Application;
 import com.ancevt.d2d2.scene.Color;
 import com.ancevt.d2d2.scene.Sprite;
 import com.ancevt.d2d2.scene.Stage;
+import com.ancevt.d2d2.time.Timer;
 
 public class TestEntry implements D2D2Application {
 
@@ -29,23 +30,25 @@ public class TestEntry implements D2D2Application {
         sprite.setAlpha(0.5f);
 
         System.out.println(sprite.getAlpha());
-        //sprite.setColor(Color.YELLOW);
+        sprite.setColor(Color.YELLOW);
 
+        sprite.onPostFrame(e -> sprite.moveX(1));
 
-        new Thread(() -> {
+        Timer timer = Timer.setInterval(100, t -> {
+            sprite.moveY(1);
+        });
 
-            while(true) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-
-                sprite.moveX(1f);
-            }
-
-
-        }).start();
+//        new Thread(() -> {
+//            while(true) {
+//                try {
+//                    Thread.sleep(100);
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+//
+//                sprite.moveX(1f);
+//            }
+//        }).start();
 
 
         System.out.println("done");

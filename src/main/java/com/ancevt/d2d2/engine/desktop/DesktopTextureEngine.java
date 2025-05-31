@@ -60,6 +60,9 @@ public class DesktopTextureEngine implements TextureEngine {
     }
 
     private static Texture loadTextureFromInputStream(InputStream inputStream) {
+        System.out.println(">is: " + inputStream);
+
+
         try (MemoryStack stack = MemoryStack.stackPush()) {
             byte[] imageBytes = inputStream.readAllBytes();
 

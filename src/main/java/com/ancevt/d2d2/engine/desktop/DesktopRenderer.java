@@ -1,6 +1,7 @@
 package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.D2D2;
+import com.ancevt.d2d2.event.SceneEvent;
 import com.ancevt.d2d2.scene.*;
 import com.ancevt.d2d2.time.Timer;
 import lombok.RequiredArgsConstructor;
@@ -192,6 +193,11 @@ public class DesktopRenderer implements Renderer {
         int currentTextureId = -1;
 
         for (SpriteDrawInfo info : spritesToDraw) {
+
+            Node node = info.node;
+            node.preFrame();
+            node.dispatchEvent(SceneEvent.PreFrame.create());
+
             int texId = info.textureId;
             if (currentTextureId == -1 || texId != currentTextureId || spritesInBatch >= batchSize) {
                 if (spritesInBatch > 0) flushBatch(spritesInBatch);
@@ -206,7 +212,6 @@ public class DesktopRenderer implements Renderer {
                 r = c.getR() / 255f;
                 g = c.getG() / 255f;
                 b = c.getB() / 255f;
-
             }
 
             float x = info.x, y = info.y;
@@ -233,6 +238,10 @@ public class DesktopRenderer implements Renderer {
             };
             vertexBuffer.position(baseIndex);
             vertexBuffer.put(data);
+
+            node.postFrame();
+            node.dispatchEvent(SceneEvent.PostFrame.create());
+
             spritesInBatch++;
         }
 

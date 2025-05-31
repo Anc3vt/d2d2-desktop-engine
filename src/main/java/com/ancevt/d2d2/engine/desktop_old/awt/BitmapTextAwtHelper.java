@@ -27,6 +27,7 @@ import static com.ancevt.d2d2.D2D2.log;
 
 public class BitmapTextAwtHelper {
 
+
     @SneakyThrows
     public static BitmapFont generateBitmapFont(FontBuilder builder) {
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
