@@ -2,6 +2,7 @@ package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.event.SceneEvent;
 import com.ancevt.d2d2.scene.*;
+import com.ancevt.d2d2.scene.shape.LineBatch;
 import com.ancevt.d2d2.scene.shape.RectangleShape;
 import com.ancevt.d2d2.scene.text.BitmapCharInfo;
 import com.ancevt.d2d2.scene.text.BitmapFont;
@@ -43,6 +44,12 @@ public class DesktopRenderer implements Renderer {
     private int uTextureLocation;
 
     private Texture whiteTexture;
+
+    private int lineVaoId;
+    private int lineVboId;
+    private static final int FLOATS_PER_LINE_VERTEX = 8;
+    private static final int MAX_LINES = 8192;
+    private final FloatBuffer lineBuffer = BufferUtils.createFloatBuffer(MAX_LINES * 2 * FLOATS_PER_LINE_VERTEX);
 
     private final FloatBuffer vertexBuffer = BufferUtils.createFloatBuffer(batchSize * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX);
     private final float[] projectionMatrix = new float[16];
@@ -140,6 +147,31 @@ public class DesktopRenderer implements Renderer {
         GL20.glUseProgram(0);
 
         whiteTexture = createWhiteTexture();
+
+
+
+        lineVaoId = GL30.glGenVertexArrays();
+        GL30.glBindVertexArray(lineVaoId);
+
+        lineVboId = GL15.glGenBuffers();
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, lineVboId);
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER,
+                MAX_LINES * 2 * FLOATS_PER_LINE_VERTEX * Float.BYTES,
+                GL15.GL_DYNAMIC_DRAW);
+
+// Атрибуты: x, y, u, v, r, g, b, a
+        GL20.glVertexAttribPointer(0, 2, GL11.GL_FLOAT, false, FLOATS_PER_LINE_VERTEX * Float.BYTES, 0);
+        GL20.glEnableVertexAttribArray(0);
+        GL20.glVertexAttribPointer(1, 2, GL11.GL_FLOAT, false, FLOATS_PER_LINE_VERTEX * Float.BYTES, 2 * Float.BYTES);
+        GL20.glEnableVertexAttribArray(1);
+        GL20.glVertexAttribPointer(2, 4, GL11.GL_FLOAT, false, FLOATS_PER_LINE_VERTEX * Float.BYTES, 4 * Float.BYTES);
+        GL20.glEnableVertexAttribArray(2);
+
+        GL30.glBindVertexArray(0);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+
+
+
     }
 
     public void setProjection(int width, int height) {
@@ -178,6 +210,7 @@ public class DesktopRenderer implements Renderer {
     @Override
     public void renderFrame() {
         List<ShapeDrawInfo> shapesToDraw = new ArrayList<>();
+        List<LineDrawInfo> linesToDraw = new ArrayList<>();
 
         Stage stage = engine.getStage();
 
@@ -191,7 +224,7 @@ public class DesktopRenderer implements Renderer {
 
         List<SpriteDrawInfo> spritesToDraw = new ArrayList<>();
         List<BitmapTextDrawInfo> bitmapTextsToDraw = new ArrayList<>();
-        collectNodes(stage, 1f, 0f, 0f, 0f, 1f, 0f, spritesToDraw, bitmapTextsToDraw, shapesToDraw);
+        collectNodes(stage, 1f, 0f, 0f, 0f, 1f, 0f, spritesToDraw, bitmapTextsToDraw, shapesToDraw, linesToDraw);
 
         spritesToDraw.sort(Comparator.comparingInt(info -> info.zOrder));
 
@@ -421,11 +454,66 @@ public class DesktopRenderer implements Renderer {
             spritesInBatch++;
         }
 
+        // === LINE BATCH ===
+        GL20.glUseProgram(shaderProgram);
+        GL20.glUniformMatrix4fv(uProjectionLocation, false, projectionMatrix);
+        GL30.glBindVertexArray(lineVaoId);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, lineVboId);
+        lineBuffer.clear();
+
+        int totalLineVertices = 0;
+
+        for (LineDrawInfo info : linesToDraw) {
+            LineBatch lineBatch = info.lineBatch;
+            if (lineBatch.getLines().isEmpty()) continue;
+
+            float r = 1f, g = 1f, b = 1f, a = lineBatch.getAlpha();
+            Color color = lineBatch.getColor();
+            if (color != null) {
+                r = color.getR() / 255f;
+                g = color.getG() / 255f;
+                b = color.getB() / 255f;
+            }
+
+            for (LineBatch.Line line : lineBatch.getLines()) {
+                float x1 = line.vertexA.x;
+                float y1 = line.vertexA.y;
+                float x2 = line.vertexB.x;
+                float y2 = line.vertexB.y;
+
+                float a_ = info.a, b_ = info.b, c_ = info.c;
+                float d_ = info.d, e_ = info.e, f_ = info.f;
+
+                float x1t = a_ * x1 + b_ * y1 + c_;
+                float y1t = d_ * x1 + e_ * y1 + f_;
+                float x2t = a_ * x2 + b_ * y2 + c_;
+                float y2t = d_ * x2 + e_ * y2 + f_;
+
+                lineBuffer.put(new float[]{x1t, y1t, 0f, 0f, r, g, b, a});
+                lineBuffer.put(new float[]{x2t, y2t, 0f, 0f, r, g, b, a});
+                totalLineVertices += 2;
+            }
+        }
+
+        if (totalLineVertices > 0) {
+            lineBuffer.flip();
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, whiteTexture.getId());
+            GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, lineBuffer);
+            GL11.glDrawArrays(GL11.GL_LINES, 0, totalLineVertices);
+        }
+
+
+
+
+        ////-----
+
         if (spritesInBatch > 0) flushBatch(spritesInBatch);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
         GL30.glBindVertexArray(0);
         GL20.glUseProgram(0);
+
+
     }
 
     private static void collectNodes(Node node,
@@ -433,7 +521,8 @@ public class DesktopRenderer implements Renderer {
                                      float parentD, float parentE, float parentF,
                                      List<SpriteDrawInfo> outSprites,
                                      List<BitmapTextDrawInfo> outTexts,
-                                     List<ShapeDrawInfo> outShapes) {
+                                     List<ShapeDrawInfo> outShapes,
+                                     List<LineDrawInfo> outLines) {
         float x = node.getX(), y = node.getY();
         float scaleX = node.getScaleX(), scaleY = node.getScaleY();
         float rad = (float) Math.toRadians(node.getRotation());
@@ -468,7 +557,7 @@ public class DesktopRenderer implements Renderer {
 
         } else if (node instanceof BitmapText btx) {
             if (btx.isCacheAsSprite()) {
-                collectNodes(btx.cachedSprite(), a, b, c, d, e, f, outSprites, outTexts, outShapes);
+                collectNodes(btx.cachedSprite(), a, b, c, d, e, f, outSprites, outTexts, outShapes, outLines);
             } else {
                 BitmapTextDrawInfo info = new BitmapTextDrawInfo();
                 info.bitmapText = btx;
@@ -494,25 +583,51 @@ public class DesktopRenderer implements Renderer {
             info.x = c;
             info.y = f;
             outShapes.add(info);
+        } else if (node instanceof LineBatch lineBatch) {
+            LineDrawInfo info = new LineDrawInfo();
+            info.lineBatch = lineBatch;
+            info.a = a;
+            info.b = b;
+            info.c = c;
+            info.d = d;
+            info.e = e;
+            info.f = f;
+            info.x = c;
+            info.y = f;
+            outLines.add(info);
         }
 
 
         if (node instanceof Group group) {
             for (Node child : group.children().toList()) {
-                collectNodes(child, a, b, c, d, e, f, outSprites, outTexts, outShapes);
+                collectNodes(child, a, b, c, d, e, f, outSprites, outTexts, outShapes, outLines);
             }
         }
     }
 
 
     private void flushBatch(int spriteCount) {
-        if (spriteCount == 0) return;
+        if (spriteCount <= 0) return;
+
+        // 💡 Убедимся, что привязаны все буферы
+        GL30.glBindVertexArray(vaoId);
+        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, eboId);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
+
+        // 🧠 Установка лимита и позиции перед заливкой данных
         vertexBuffer.limit(spriteCount * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX);
         vertexBuffer.position(0);
+
+        // 🚀 Отправка данных в VBO
         GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, vertexBuffer);
+
+        // ✅ Отрисовка индексов
         GL11.glDrawElements(GL11.GL_TRIANGLES, spriteCount * INDICES_PER_SPRITE, GL11.GL_UNSIGNED_INT, 0);
+
+        // 🧹 Очистка буфера для следующего кадра
         vertexBuffer.clear();
     }
+
 
     private static int getSpriteTextureId(Sprite sprite) {
         if (sprite != null && sprite.getTextureRegion() != null) {
@@ -568,5 +683,12 @@ public class DesktopRenderer implements Renderer {
         float a, b, c, d, e, f;
         float x, y;
     }
+
+    private static class LineDrawInfo {
+        LineBatch lineBatch;
+        float a, b, c, d, e, f;
+        float x, y;
+    }
+
 
 }

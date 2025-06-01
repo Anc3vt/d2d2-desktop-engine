@@ -8,6 +8,7 @@ import com.ancevt.d2d2.lifecycle.D2D2Application;
 import com.ancevt.d2d2.scene.Color;
 import com.ancevt.d2d2.scene.Sprite;
 import com.ancevt.d2d2.scene.Stage;
+import com.ancevt.d2d2.scene.shape.BorderedRectangle;
 import com.ancevt.d2d2.scene.shape.RectangleShape;
 import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.time.Timer;
@@ -57,5 +58,10 @@ public class TestEntry implements D2D2Application {
 
         RectangleShape rectangleShape = new RectangleShape(50, 50, Color.YELLOW);
         stage.addChild(rectangleShape, 300, 300);
+
+
+        BorderedRectangle borderedRectangle = new BorderedRectangle(50, 50, Color.BLUE_VIOLET, Color.RED);
+
+        stage.addChild(borderedRectangle, 400, 400);
     }
 }
