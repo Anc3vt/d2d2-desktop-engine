@@ -725,6 +725,12 @@ public class DesktopRenderer implements Renderer {
         return new Texture(texId, 1, 1);
     }
 
+    private interface DrawInfo {
+        void render();
+        int getTextureId();
+    }
+
+
     private static class SpriteDrawInfo {
         float a, b, c, d, e, f;
         float x, y;
