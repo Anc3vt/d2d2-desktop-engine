@@ -21,7 +21,7 @@ package com.ancevt.d2d2.engine.desktop_old;
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.engine.desktop_old.lwjgl.CanvasHelper_old;
 import com.ancevt.d2d2.event.CommonEvent;
-import com.ancevt.d2d2.event.SceneEvent;
+import com.ancevt.d2d2.event.StageEvent;
 import com.ancevt.d2d2.scene.*;
 import com.ancevt.d2d2.scene.shape.Shape;
 import com.ancevt.d2d2.scene.text.BitmapCharInfo;
@@ -97,12 +97,8 @@ public class DesktopRenderer_old implements Renderer {
 
         // Выполнить обновление игровой логики, даже если кадры пропущены
         while (delta >= 1) {
-            dispatchLoopUpdate(stage);
+            stage.dispatchEvent(StageEvent.Tick.create());
             delta--;
-        }
-
-        if (D2D2.getCursor() != null) {
-            dispatchLoopUpdate(D2D2.getCursor());
         }
 
         render();
@@ -126,6 +122,8 @@ public class DesktopRenderer_old implements Renderer {
         clear();
         glLoadIdentity();
 
+        stage.dispatchEvent(StageEvent.PreFrame.create());
+
         renderNode(stage,
                 0,
                 stage.getX(),
@@ -134,6 +132,8 @@ public class DesktopRenderer_old implements Renderer {
                 stage.getScaleY(),
                 stage.getAlpha()
         );
+
+        stage.dispatchEvent(StageEvent.PostFrame.create());
 
         Node cursor = D2D2.getCursor();
         if (cursor != null) {
@@ -144,20 +144,6 @@ public class DesktopRenderer_old implements Renderer {
 
         GLFW.glfwGetCursorPos(CanvasHelper_old.getWindowId(), mouseX, mouseY);
         //Mouse.setXY((int) mouseX[0], (int) mouseY[0]);
-    }
-
-    private void dispatchLoopUpdate(Node o) {
-        if (!o.isVisible()) return;
-
-        if (o instanceof Group c) {
-            for (int i = 0; i < c.getNumChildren(); i++) {
-                Node child = c.getChild(i);
-                dispatchLoopUpdate(child);
-            }
-        }
-
-        o.dispatchEvent(SceneEvent.Tick.create());
-        o.tick();
     }
 
     private final double[] mouseX = new double[1];
@@ -181,9 +167,6 @@ public class DesktopRenderer_old implements Renderer {
                                          float toAlpha) {
 
         if (!node.isVisible()) return;
-
-        node.preFrame();
-        node.dispatchEvent(SceneEvent.PreFrame.create());
 
         zOrderCounter++;
         node.setGlobalZOrderIndex(zOrderCounter);
@@ -244,8 +227,6 @@ public class DesktopRenderer_old implements Renderer {
 
         glPopMatrix();
 
-        node.postFrame();
-        node.dispatchEvent(SceneEvent.PostFrame.create());
     }
 
     private void renderShape(Shape s, float alpha) {

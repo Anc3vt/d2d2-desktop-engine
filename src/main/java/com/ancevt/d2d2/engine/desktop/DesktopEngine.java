@@ -55,17 +55,17 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void setFrameRate(int value) {
-
+        renderer.setFrameRate(value);
     }
 
     @Override
     public int getFrameRate() {
-        return 0;
+        return renderer.getFrameRate();
     }
 
     @Override
     public int getActualFps() {
-        return 0;
+        return renderer.getActualFps();
     }
 
     @Override

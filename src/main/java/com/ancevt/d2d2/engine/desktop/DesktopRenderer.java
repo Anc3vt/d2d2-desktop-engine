@@ -1,6 +1,7 @@
 package com.ancevt.d2d2.engine.desktop;
 
-import com.ancevt.d2d2.event.SceneEvent;
+import com.ancevt.d2d2.event.NodeEvent;
+import com.ancevt.d2d2.event.StageEvent;
 import com.ancevt.d2d2.scene.*;
 import com.ancevt.d2d2.scene.shape.LineBatch;
 import com.ancevt.d2d2.scene.shape.RectangleShape;
@@ -10,7 +11,9 @@ import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.scene.texture.Texture;
 import com.ancevt.d2d2.scene.texture.TextureRegion;
 import com.ancevt.d2d2.time.Timer;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.*;
@@ -53,6 +56,13 @@ public class DesktopRenderer implements Renderer {
 
     private final FloatBuffer vertexBuffer = BufferUtils.createFloatBuffer(batchSize * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX);
     private final float[] projectionMatrix = new float[16];
+
+    @Getter
+    private int actualFps;
+
+    @Getter
+    @Setter
+    private int frameRate = 60;
 
     @Override
     public void init(long windowId) {
@@ -149,7 +159,6 @@ public class DesktopRenderer implements Renderer {
         whiteTexture = createWhiteTexture();
 
 
-
         lineVaoId = GL30.glGenVertexArrays();
         GL30.glBindVertexArray(lineVaoId);
 
@@ -169,7 +178,6 @@ public class DesktopRenderer implements Renderer {
 
         GL30.glBindVertexArray(0);
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
-
 
 
     }
@@ -207,6 +215,12 @@ public class DesktopRenderer implements Renderer {
         setProjection(engine.getCanvasWidth(), engine.getCanvasHeight());
     }
 
+    public static void setNearestFilter(int textureId) {
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+    }
+
     @Override
     public void renderFrame() {
         List<ShapeDrawInfo> shapesToDraw = new ArrayList<>();
@@ -224,6 +238,7 @@ public class DesktopRenderer implements Renderer {
 
         List<SpriteDrawInfo> spritesToDraw = new ArrayList<>();
         List<BitmapTextDrawInfo> bitmapTextsToDraw = new ArrayList<>();
+
         collectNodes(stage, 1f, 0f, 0f, 0f, 1f, 0f, spritesToDraw, bitmapTextsToDraw, shapesToDraw, linesToDraw);
 
         spritesToDraw.sort(Comparator.comparingInt(info -> info.zOrder));
@@ -240,17 +255,12 @@ public class DesktopRenderer implements Renderer {
 
         // ==== SPRITES ====
         for (SpriteDrawInfo info : spritesToDraw) {
-
-            Node node = info.node;
-            node.preFrame();
-            node.dispatchEvent(SceneEvent.PreFrame.create());
-
             int texId = info.textureId;
             if (currentTextureId == -1 || texId != currentTextureId || spritesInBatch >= batchSize) {
                 if (spritesInBatch > 0) flushBatch(spritesInBatch);
                 spritesInBatch = 0;
                 currentTextureId = texId;
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTextureId);
+                setNearestFilter(currentTextureId);
             }
 
             float r = 1f, g = 1f, b = 1f, alpha = info.node != null ? info.node.getAlpha() : 1f;
@@ -314,9 +324,6 @@ public class DesktopRenderer implements Renderer {
             vertexBuffer.position(baseIndex);
             vertexBuffer.put(data);
 
-            node.postFrame();
-            node.dispatchEvent(SceneEvent.PostFrame.create());
-
             spritesInBatch++;
         }
 
@@ -333,7 +340,7 @@ public class DesktopRenderer implements Renderer {
                 if (spritesInBatch > 0) flushBatch(spritesInBatch);
                 spritesInBatch = 0;
                 currentTextureId = texId;
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTextureId);
+                setNearestFilter(currentTextureId);
             }
 
             float texW = texture.getWidth();
@@ -423,7 +430,7 @@ public class DesktopRenderer implements Renderer {
                 if (spritesInBatch > 0) flushBatch(spritesInBatch);
                 spritesInBatch = 0;
                 currentTextureId = whiteTexture.getId();
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTextureId);
+                setNearestFilter(currentTextureId);
             }
 
             float w = shape.getWidth();
@@ -503,8 +510,6 @@ public class DesktopRenderer implements Renderer {
         }
 
 
-
-
         ////-----
 
         if (spritesInBatch > 0) flushBatch(spritesInBatch);
@@ -523,6 +528,7 @@ public class DesktopRenderer implements Renderer {
                                      List<BitmapTextDrawInfo> outTexts,
                                      List<ShapeDrawInfo> outShapes,
                                      List<LineDrawInfo> outLines) {
+
         float x = node.getX(), y = node.getY();
         float scaleX = node.getScaleX(), scaleY = node.getScaleY();
         float rad = (float) Math.toRadians(node.getRotation());
@@ -628,7 +634,6 @@ public class DesktopRenderer implements Renderer {
         vertexBuffer.clear();
     }
 
-
     private static int getSpriteTextureId(Sprite sprite) {
         if (sprite != null && sprite.getTextureRegion() != null) {
             return sprite.getTextureRegion().getTexture().getId();
@@ -639,17 +644,62 @@ public class DesktopRenderer implements Renderer {
     public void startRenderLoop() {
         long windowId = CanvasControl.getWindowId();
 
+        Stage stage = engine.getStage();
+
+        long lastTime = System.nanoTime();
+        long accumulator = 0L;
+        long lastRenderTime = System.nanoTime();
+
+        int frames = 0;
+        long fpsTimer = System.currentTimeMillis();
+
         while (!GLFW.glfwWindowShouldClose(windowId) && running) {
+            final long tickInterval = 1_000_000_000L / frameRate;
+            final long frameInterval = 1_000_000_000L / frameRate;
+
+            long now = System.nanoTime();
+            long delta = now - lastTime;
+            lastTime = now;
+            accumulator += delta;
+
+            // ✅ Tick логики
+            while (accumulator >= tickInterval) {
+                Timer.processTimers();
+                stage.dispatchEvent(StageEvent.Tick.create());
+                accumulator -= tickInterval;
+            }
+
+            // ✅ Ограничим рендер частотой frameRate
+            if (now - lastRenderTime >= frameInterval) {
+                stage.dispatchEvent(StageEvent.PreFrame.create());
+                renderFrame();
+                stage.dispatchEvent(StageEvent.PostFrame.create());
+                GLFW.glfwSwapBuffers(windowId);
+                lastRenderTime = now;
+                frames++;
+            }
+
+            // ✅ Обрабатываем события независимо
             GLFW.glfwPollEvents();
-            renderFrame();
-            GLFW.glfwSwapBuffers(windowId);
-            Timer.processTimers();
+
+            if (System.currentTimeMillis() - fpsTimer >= 1000) {
+                actualFps = frames;
+                frames = 0;
+                fpsTimer += 1000;
+            }
+
+            // 💡 Чтобы не сжигать CPU — делаем sleep на пару миллисекунд
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
 
         GLFW.glfwTerminate();
     }
 
-    private Texture createWhiteTexture() {
+    private static Texture createWhiteTexture() {
         int texId = GL11.glGenTextures();
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, texId);
         ByteBuffer buffer = BufferUtils.createByteBuffer(4);
