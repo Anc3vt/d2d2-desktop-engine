@@ -244,7 +244,7 @@ public class DesktopRenderer implements Renderer {
         List<SpriteDrawInfo> spritesToDraw = new ArrayList<>();
         List<BitmapTextDrawInfo> bitmapTextsToDraw = new ArrayList<>();
 
-        collectNodes(stage, 1f, 0f, 0f, 0f, 1f, 0f, spritesToDraw, bitmapTextsToDraw, shapesToDraw, linesToDraw);
+        collectNodes(stage, 1f, 0f, 0f, 0f, 1f, 0f, 1f, spritesToDraw, bitmapTextsToDraw, shapesToDraw, linesToDraw);
 
         spritesToDraw.sort(Comparator.comparingInt(info -> info.zOrder));
 
@@ -268,7 +268,7 @@ public class DesktopRenderer implements Renderer {
                 setNearestFilter(currentTextureId);
             }
 
-            float r = 1f, g = 1f, b = 1f, alpha = info.node != null ? info.node.getAlpha() : 1f;
+            float r = 1f, g = 1f, b = 1f, alpha = info.alpha;
             if (info.node instanceof Colored colored) {
                 Color c = colored.getColor();
                 r = c.getR() / 255f;
@@ -387,7 +387,7 @@ public class DesktopRenderer implements Renderer {
                 float vw = charW * scaleX;
                 float vh = charH * scaleY;
 
-                float r = 1f, g = 1f, b = 1f, a = text.getAlpha();
+                float r = 1f, g = 1f, b = 1f, a = info.alpha;
                 if (text.isMulticolor()) {
                     Color color = text.getColorTextData().getColoredLetter(i).getColor();
                     r = color.getR() / 255f;
@@ -423,7 +423,7 @@ public class DesktopRenderer implements Renderer {
         for (ShapeDrawInfo info : shapesToDraw) {
             RectangleShape shape = info.shape;
 
-            float r = 1f, g = 1f, b = 1f, a = shape.getAlpha();
+            float r = 1f, g = 1f, b = 1f, a = info.alpha;
             Color color = shape.getColor();
             if (color != null) {
                 r = color.getR() / 255f;
@@ -479,7 +479,7 @@ public class DesktopRenderer implements Renderer {
             LineBatch lineBatch = info.lineBatch;
             if (lineBatch.getLines().isEmpty()) continue;
 
-            float r = 1f, g = 1f, b = 1f, a = lineBatch.getAlpha();
+            float r = 1f, g = 1f, b = 1f, a = info.alpha;
             Color color = lineBatch.getColor();
             if (color != null) {
                 r = color.getR() / 255f;
@@ -529,6 +529,7 @@ public class DesktopRenderer implements Renderer {
     private static void collectNodes(Node node,
                                      float parentA, float parentB, float parentC,
                                      float parentD, float parentE, float parentF,
+                                     float parentAlpha,
                                      List<SpriteDrawInfo> outSprites,
                                      List<BitmapTextDrawInfo> outTexts,
                                      List<ShapeDrawInfo> outShapes,
@@ -549,6 +550,8 @@ public class DesktopRenderer implements Renderer {
         float e = parentD * b2 + parentE * e2;
         float f = parentD * c2 + parentE * f2 + parentF;
 
+        float effectiveAlpha = parentAlpha * node.getAlpha();
+
         if (node instanceof Sprite sprite) {
             SpriteDrawInfo info = new SpriteDrawInfo();
             info.a = a;
@@ -564,11 +567,12 @@ public class DesktopRenderer implements Renderer {
             info.textureId = getSpriteTextureId(sprite);
             info.zOrder = sprite.getGlobalZOrderIndex();
             info.node = sprite;
+            info.alpha = effectiveAlpha;
             outSprites.add(info);
 
         } else if (node instanceof BitmapText btx) {
             if (btx.isCacheAsSprite()) {
-                collectNodes(btx.cachedSprite(), a, b, c, d, e, f, outSprites, outTexts, outShapes, outLines);
+                collectNodes(btx.cachedSprite(), a, b, c, d, e, f, effectiveAlpha, outSprites, outTexts, outShapes, outLines);
             } else {
                 BitmapTextDrawInfo info = new BitmapTextDrawInfo();
                 info.bitmapText = btx;
@@ -580,6 +584,7 @@ public class DesktopRenderer implements Renderer {
                 info.f = f;
                 info.x = c;
                 info.y = f;
+                info.alpha = effectiveAlpha;
                 outTexts.add(info);
             }
         } else if (node instanceof RectangleShape rect) {
@@ -593,6 +598,7 @@ public class DesktopRenderer implements Renderer {
             info.f = f;
             info.x = c;
             info.y = f;
+            info.alpha = effectiveAlpha;
             outShapes.add(info);
         } else if (node instanceof LineBatch lineBatch) {
             LineDrawInfo info = new LineDrawInfo();
@@ -605,13 +611,14 @@ public class DesktopRenderer implements Renderer {
             info.f = f;
             info.x = c;
             info.y = f;
+            info.alpha = effectiveAlpha;
             outLines.add(info);
         }
 
 
         if (node instanceof Group group) {
             for (Node child : group.children().toList()) {
-                collectNodes(child, a, b, c, d, e, f, outSprites, outTexts, outShapes, outLines);
+                collectNodes(child, a, b, c, d, e, f, effectiveAlpha, outSprites, outTexts, outShapes, outLines);
             }
         }
     }
@@ -659,8 +666,8 @@ public class DesktopRenderer implements Renderer {
         long fpsTimer = System.currentTimeMillis();
 
         while (!GLFW.glfwWindowShouldClose(windowId) && running) {
-            final long tickInterval = 1_000_000_000L / frameRate;
-            final long frameInterval = 1_000_000_000L / frameRate;
+            final long tickInterval = 1_000_000_000L / (frameRate + 10);
+            final long frameInterval = 1_000_000_000L / (frameRate + 10);
 
             long now = System.nanoTime();
             long delta = now - lastTime;
@@ -725,24 +732,28 @@ public class DesktopRenderer implements Renderer {
         int textureId;
         int zOrder;
         Node node;
+        float alpha;
     }
 
     private static class BitmapTextDrawInfo {
         BitmapText bitmapText;
         float x, y;
         float a, b, c, d, e, f;
+        float alpha;
     }
 
     private static class ShapeDrawInfo {
         RectangleShape shape;
         float a, b, c, d, e, f;
         float x, y;
+        float alpha;
     }
 
     private static class LineDrawInfo {
         LineBatch lineBatch;
         float a, b, c, d, e, f;
         float x, y;
+        float alpha;
     }
 
 
