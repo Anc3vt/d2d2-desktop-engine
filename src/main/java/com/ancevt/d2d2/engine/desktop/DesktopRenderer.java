@@ -244,7 +244,6 @@ public class DesktopRenderer implements Renderer {
                 float uLeft = regionX / texW;
                 float uRight = (regionX + regionW) / texW;
 
-                // 🧠 Переворот по вертикали: берём сверху, как просили
                 float vTop = (texH - regionY - regionH) / texH;
                 float vBottom = (texH - regionY) / texH;
 
