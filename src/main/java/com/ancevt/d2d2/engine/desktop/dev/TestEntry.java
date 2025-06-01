@@ -51,6 +51,11 @@ public class TestEntry implements D2D2Application {
 //        }).start();
 
 
+        Sprite sprite2 = Assets.loadTexture("test2.png").createTextureRegion(0, 0, 128, 128).createSprite();
+
+
+        stage.addChild(sprite2);
+
         System.out.println("done");
     }
 }

@@ -1,8 +1,9 @@
 package com.ancevt.d2d2.engine.desktop;
 
-import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.event.SceneEvent;
 import com.ancevt.d2d2.scene.*;
+import com.ancevt.d2d2.scene.texture.Texture;
+import com.ancevt.d2d2.scene.texture.TextureRegion;
 import com.ancevt.d2d2.time.Timer;
 import lombok.RequiredArgsConstructor;
 import org.lwjgl.BufferUtils;
@@ -228,6 +229,31 @@ public class DesktopRenderer implements Renderer {
             float u2 = 1f, v2 = 0f;
             float u3 = 0f, v3 = 0f;
 
+            if (info.node instanceof Sprite sprite && sprite.getTextureRegion() != null) {
+                TextureRegion region = sprite.getTextureRegion();
+                Texture texture = region.getTexture();
+
+                float texW = texture.getWidth();
+                float texH = texture.getHeight();
+
+                float regionX = region.getX();
+                float regionY = region.getY();
+                float regionW = region.getWidth();
+                float regionH = region.getHeight();
+
+                float uLeft = regionX / texW;
+                float uRight = (regionX + regionW) / texW;
+
+                // 🧠 Переворот по вертикали: берём сверху, как просили
+                float vTop = (texH - regionY - regionH) / texH;
+                float vBottom = (texH - regionY) / texH;
+
+                u0 = uLeft;  v0 = vBottom;
+                u1 = uRight; v1 = vBottom;
+                u2 = uRight; v2 = vTop;
+                u3 = uLeft;  v3 = vTop;
+            }
+
             int baseIndex = spritesInBatch * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX;
 
             float[] data = {
@@ -251,6 +277,8 @@ public class DesktopRenderer implements Renderer {
         GL30.glBindVertexArray(0);
         GL20.glUseProgram(0);
     }
+
+
 
     private void flushBatch(int spriteCount) {
         if (spriteCount == 0) return;
@@ -312,7 +340,7 @@ public class DesktopRenderer implements Renderer {
     }
 
     public void startRenderLoop() {
-        long windowId = com.ancevt.d2d2.engine.desktop.lwjgl.CanvasControl.getWindowId();
+        long windowId = CanvasControl.getWindowId();
 
         while (!GLFW.glfwWindowShouldClose(windowId) && running) {
             GLFW.glfwPollEvents();

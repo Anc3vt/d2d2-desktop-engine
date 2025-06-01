@@ -1,10 +1,7 @@
-package com.ancevt.d2d2.engine.desktop.lwjgl;
+package com.ancevt.d2d2.engine.desktop;
 
-import com.ancevt.d2d2.engine.desktop.DesktopEngine;
-import com.ancevt.d2d2.engine.desktop.DesktopRenderer;
 import com.ancevt.d2d2.event.InputEvent;
 import com.ancevt.d2d2.input.Mouse;
-import com.ancevt.d2d2.scene.Renderer;
 import com.ancevt.d2d2.scene.Stage;
 import com.ancevt.d2d2.scene.interactive.InteractiveManager;
 import lombok.Getter;
