@@ -14,6 +14,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.*;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -40,6 +41,8 @@ public class DesktopRenderer implements Renderer {
 
     private int uProjectionLocation;
     private int uTextureLocation;
+
+    private Texture whiteTexture;
 
     private final FloatBuffer vertexBuffer = BufferUtils.createFloatBuffer(batchSize * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX);
     private final float[] projectionMatrix = new float[16];
@@ -135,6 +138,8 @@ public class DesktopRenderer implements Renderer {
         GL20.glUseProgram(shaderProgram);
         GL20.glUniform1i(uTextureLocation, 0);
         GL20.glUseProgram(0);
+
+        whiteTexture = createWhiteTexture();
     }
 
     public void setProjection(int width, int height) {
@@ -369,6 +374,7 @@ public class DesktopRenderer implements Renderer {
             }
         }
 
+        // ==== RECTANGLES ====
         for (ShapeDrawInfo info : shapesToDraw) {
             RectangleShape shape = info.shape;
 
@@ -378,6 +384,13 @@ public class DesktopRenderer implements Renderer {
                 r = color.getR() / 255f;
                 g = color.getG() / 255f;
                 b = color.getB() / 255f;
+            }
+
+            if (currentTextureId != whiteTexture.getId()) {
+                if (spritesInBatch > 0) flushBatch(spritesInBatch);
+                spritesInBatch = 0;
+                currentTextureId = whiteTexture.getId();
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTextureId);
             }
 
             float w = shape.getWidth();
@@ -393,13 +406,6 @@ public class DesktopRenderer implements Renderer {
             float x1 = a_ * w + x, y1 = d_ * w + y;
             float x2 = a_ * w + b_ * h + x, y2 = d_ * w + e_ * h + y;
             float x3 = b_ * h + x, y3 = e_ * h + y;
-
-            if (currentTextureId != -2) {
-                if (spritesInBatch > 0) flushBatch(spritesInBatch);
-                spritesInBatch = 0;
-                currentTextureId = -2;
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0); // Unbind texture
-            }
 
             int baseIndex = spritesInBatch * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX;
             float u0 = 0f, v0 = 0f, u1 = 1f, v1 = 1f;
@@ -526,6 +532,20 @@ public class DesktopRenderer implements Renderer {
         }
 
         GLFW.glfwTerminate();
+    }
+
+    private Texture createWhiteTexture() {
+        int texId = GL11.glGenTextures();
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texId);
+        ByteBuffer buffer = BufferUtils.createByteBuffer(4);
+        buffer.put((byte) 255).put((byte) 255).put((byte) 255).put((byte) 255).flip(); // RGBA white
+
+        GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, 1, 1, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
+
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+
+        return new Texture(texId, 1, 1);
     }
 
     private static class SpriteDrawInfo {
