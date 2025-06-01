@@ -8,6 +8,7 @@ import com.ancevt.d2d2.lifecycle.D2D2Application;
 import com.ancevt.d2d2.scene.Color;
 import com.ancevt.d2d2.scene.Sprite;
 import com.ancevt.d2d2.scene.Stage;
+import com.ancevt.d2d2.scene.shape.RectangleShape;
 import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.time.Timer;
 
@@ -25,6 +26,8 @@ public class TestEntry implements D2D2Application {
 
     @Override
     public void start(Stage stage) {
+        stage.setBackgroundColor(Color.DARK_GRAY);
+
         Sprite sprite = Assets.loadTexture("test2.png").createSprite();
         stage.addChild(sprite, 100, 100);
 
@@ -46,8 +49,13 @@ public class TestEntry implements D2D2Application {
 
         BitmapText bitmapText = new BitmapText();
         bitmapText.setText("Hello world");
+        bitmapText.setColor(Color.YELLOW);
         stage.addChild(bitmapText, 10, 10);
 
         System.out.println("done");
+
+
+        RectangleShape rectangleShape = new RectangleShape(50, 50, Color.YELLOW);
+        stage.addChild(rectangleShape, 300, 300);
     }
 }

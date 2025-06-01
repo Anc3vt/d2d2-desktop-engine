@@ -2,6 +2,7 @@ package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.event.SceneEvent;
 import com.ancevt.d2d2.scene.*;
+import com.ancevt.d2d2.scene.shape.RectangleShape;
 import com.ancevt.d2d2.scene.text.BitmapCharInfo;
 import com.ancevt.d2d2.scene.text.BitmapFont;
 import com.ancevt.d2d2.scene.text.BitmapText;
@@ -171,6 +172,8 @@ public class DesktopRenderer implements Renderer {
 
     @Override
     public void renderFrame() {
+        List<ShapeDrawInfo> shapesToDraw = new ArrayList<>();
+
         Stage stage = engine.getStage();
 
         Color backgroundColor = stage.getBackgroundColor();
@@ -183,7 +186,7 @@ public class DesktopRenderer implements Renderer {
 
         List<SpriteDrawInfo> spritesToDraw = new ArrayList<>();
         List<BitmapTextDrawInfo> bitmapTextsToDraw = new ArrayList<>();
-        collectNodes(stage, 1f, 0f, 0f, 0f, 1f, 0f, spritesToDraw, bitmapTextsToDraw);
+        collectNodes(stage, 1f, 0f, 0f, 0f, 1f, 0f, spritesToDraw, bitmapTextsToDraw, shapesToDraw);
 
         spritesToDraw.sort(Comparator.comparingInt(info -> info.zOrder));
 
@@ -252,10 +255,14 @@ public class DesktopRenderer implements Renderer {
                 float vTop = (texH - regionY - regionH) / texH;
                 float vBottom = (texH - regionY) / texH;
 
-                u0 = uLeft;  v0 = vBottom;
-                u1 = uRight; v1 = vBottom;
-                u2 = uRight; v2 = vTop;
-                u3 = uLeft;  v3 = vTop;
+                u0 = uLeft;
+                v0 = vBottom;
+                u1 = uRight;
+                v1 = vBottom;
+                u2 = uRight;
+                v2 = vTop;
+                u3 = uLeft;
+                v3 = vTop;
             }
 
             int baseIndex = spritesInBatch * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX;
@@ -362,6 +369,52 @@ public class DesktopRenderer implements Renderer {
             }
         }
 
+        for (ShapeDrawInfo info : shapesToDraw) {
+            RectangleShape shape = info.shape;
+
+            float r = 1f, g = 1f, b = 1f, a = shape.getAlpha();
+            Color color = shape.getColor();
+            if (color != null) {
+                r = color.getR() / 255f;
+                g = color.getG() / 255f;
+                b = color.getB() / 255f;
+            }
+
+            float w = shape.getWidth();
+            float h = shape.getHeight();
+            float x = info.x;
+            float y = info.y;
+            float a_ = info.a;
+            float b_ = info.b;
+            float d_ = info.d;
+            float e_ = info.e;
+
+            float x0 = x, y0 = y;
+            float x1 = a_ * w + x, y1 = d_ * w + y;
+            float x2 = a_ * w + b_ * h + x, y2 = d_ * w + e_ * h + y;
+            float x3 = b_ * h + x, y3 = e_ * h + y;
+
+            if (currentTextureId != -2) {
+                if (spritesInBatch > 0) flushBatch(spritesInBatch);
+                spritesInBatch = 0;
+                currentTextureId = -2;
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0); // Unbind texture
+            }
+
+            int baseIndex = spritesInBatch * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX;
+            float u0 = 0f, v0 = 0f, u1 = 1f, v1 = 1f;
+
+            vertexBuffer.position(baseIndex);
+            vertexBuffer.put(new float[]{
+                    x0, y0, u0, v0, r, g, b, a,
+                    x1, y1, u1, v0, r, g, b, a,
+                    x2, y2, u1, v1, r, g, b, a,
+                    x3, y3, u0, v1, r, g, b, a
+            });
+
+            spritesInBatch++;
+        }
+
         if (spritesInBatch > 0) flushBatch(spritesInBatch);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
@@ -373,7 +426,8 @@ public class DesktopRenderer implements Renderer {
                                      float parentA, float parentB, float parentC,
                                      float parentD, float parentE, float parentF,
                                      List<SpriteDrawInfo> outSprites,
-                                     List<BitmapTextDrawInfo> outTexts) {
+                                     List<BitmapTextDrawInfo> outTexts,
+                                     List<ShapeDrawInfo> outShapes) {
         float x = node.getX(), y = node.getY();
         float scaleX = node.getScaleX(), scaleY = node.getScaleY();
         float rad = (float) Math.toRadians(node.getRotation());
@@ -408,7 +462,7 @@ public class DesktopRenderer implements Renderer {
 
         } else if (node instanceof BitmapText btx) {
             if (btx.isCacheAsSprite()) {
-                collectNodes(btx.cachedSprite(), a, b, c, d, e, f, outSprites, outTexts);
+                collectNodes(btx.cachedSprite(), a, b, c, d, e, f, outSprites, outTexts, outShapes);
             } else {
                 BitmapTextDrawInfo info = new BitmapTextDrawInfo();
                 info.bitmapText = btx;
@@ -422,11 +476,24 @@ public class DesktopRenderer implements Renderer {
                 info.y = f;
                 outTexts.add(info);
             }
+        } else if (node instanceof RectangleShape rect) {
+            ShapeDrawInfo info = new ShapeDrawInfo();
+            info.shape = rect;
+            info.a = a;
+            info.b = b;
+            info.c = c;
+            info.d = d;
+            info.e = e;
+            info.f = f;
+            info.x = c;
+            info.y = f;
+            outShapes.add(info);
         }
+
 
         if (node instanceof Group group) {
             for (Node child : group.children().toList()) {
-                collectNodes(child, a, b, c, d, e, f, outSprites, outTexts);
+                collectNodes(child, a, b, c, d, e, f, outSprites, outTexts, outShapes);
             }
         }
     }
@@ -475,4 +542,11 @@ public class DesktopRenderer implements Renderer {
         float x, y;
         float a, b, c, d, e, f;
     }
+
+    private static class ShapeDrawInfo {
+        RectangleShape shape;
+        float a, b, c, d, e, f;
+        float x, y;
+    }
+
 }
