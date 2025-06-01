@@ -46,7 +46,7 @@ public class DesktopRenderer implements Renderer {
     private int uProjectionLocation;
     private int uTextureLocation;
 
-    private Texture whiteTexture;
+    private static Texture whiteTexture;
 
     private int lineVaoId;
     private int lineVboId;
@@ -228,8 +228,7 @@ public class DesktopRenderer implements Renderer {
 
     @Override
     public void renderFrame() {
-        List<ShapeDrawInfo> shapesToDraw = new ArrayList<>();
-        List<LineDrawInfo> linesToDraw = new ArrayList<>();
+        List<DrawInfo> drawQueue = new ArrayList<>();
 
         Stage stage = engine.getStage();
 
@@ -241,12 +240,8 @@ public class DesktopRenderer implements Renderer {
                 1f);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
-        List<SpriteDrawInfo> spritesToDraw = new ArrayList<>();
-        List<BitmapTextDrawInfo> bitmapTextsToDraw = new ArrayList<>();
 
-        collectNodes(stage, 1f, 0f, 0f, 0f, 1f, 0f, 1f, spritesToDraw, bitmapTextsToDraw, shapesToDraw, linesToDraw);
-
-        spritesToDraw.sort(Comparator.comparingInt(info -> info.zOrder));
+        collectNodes(stage, 1f, 0f, 0f, 0f, 1f, 0f, 1f, drawQueue);
 
         GL20.glUseProgram(shaderProgram);
         GL20.glUniformMatrix4fv(uProjectionLocation, false, projectionMatrix);
@@ -254,265 +249,25 @@ public class DesktopRenderer implements Renderer {
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
         vertexBuffer.clear();
-
         int spritesInBatch = 0;
         int currentTextureId = -1;
 
-        // ==== SPRITES ====
-        for (SpriteDrawInfo info : spritesToDraw) {
-            int texId = info.textureId;
-            if (currentTextureId == -1 || texId != currentTextureId || spritesInBatch >= batchSize) {
+        for (DrawInfo info : drawQueue) {
+            int texId = info.getTextureId();
+
+            if (currentTextureId != texId || spritesInBatch >= batchSize) {
                 if (spritesInBatch > 0) flushBatch(spritesInBatch);
-                spritesInBatch = 0;
                 currentTextureId = texId;
-                setNearestFilter(currentTextureId);
-            }
-
-            float r = 1f, g = 1f, b = 1f, alpha = info.alpha;
-            if (info.node instanceof Colored colored) {
-                Color c = colored.getColor();
-                r = c.getR() / 255f;
-                g = c.getG() / 255f;
-                b = c.getB() / 255f;
-            }
-
-            float x = info.x, y = info.y;
-            float a = info.a, bb = info.b, d = info.d, e = info.e;
-            float w = info.width, h = info.height;
-
-            float x0 = x, y0 = y;
-            float x1 = a * w + x, y1 = d * w + y;
-            float x2 = a * w + bb * h + x, y2 = d * w + e * h + y;
-            float x3 = bb * h + x, y3 = e * h + y;
-
-            float u0 = 0f, v0 = 1f;
-            float u1 = 1f, v1 = 1f;
-            float u2 = 1f, v2 = 0f;
-            float u3 = 0f, v3 = 0f;
-
-            if (info.node instanceof Sprite sprite && sprite.getTextureRegion() != null) {
-                TextureRegion region = sprite.getTextureRegion();
-                Texture texture = region.getTexture();
-
-                float texW = texture.getWidth();
-                float texH = texture.getHeight();
-
-                float regionX = region.getX();
-                float regionY = region.getY();
-                float regionW = region.getWidth();
-                float regionH = region.getHeight();
-
-                float uLeft = regionX / texW;
-                float uRight = (regionX + regionW) / texW;
-
-                float vTop = (texH - regionY - regionH) / texH;
-                float vBottom = (texH - regionY) / texH;
-
-                u0 = uLeft;
-                v0 = vBottom;
-                u1 = uRight;
-                v1 = vBottom;
-                u2 = uRight;
-                v2 = vTop;
-                u3 = uLeft;
-                v3 = vTop;
-            }
-
-            int baseIndex = spritesInBatch * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX;
-
-            float[] data = {
-                    x0, y0, u0, v0, r, g, b, alpha,
-                    x1, y1, u1, v1, r, g, b, alpha,
-                    x2, y2, u2, v2, r, g, b, alpha,
-                    x3, y3, u3, v3, r, g, b, alpha
-            };
-            vertexBuffer.position(baseIndex);
-            vertexBuffer.put(data);
-
-            spritesInBatch++;
-        }
-
-        // ==== BITMAP TEXT ====
-        for (BitmapTextDrawInfo info : bitmapTextsToDraw) {
-            BitmapText text = info.bitmapText;
-            if (text.isEmpty()) continue;
-
-            BitmapFont font = text.getBitmapFont();
-            Texture texture = font.getTexture();
-            int texId = texture.getId();
-
-            if (currentTextureId != texId) {
-                if (spritesInBatch > 0) flushBatch(spritesInBatch);
+                setNearestFilter(texId);
                 spritesInBatch = 0;
-                currentTextureId = texId;
-                setNearestFilter(currentTextureId);
+                vertexBuffer.clear();
             }
 
-            float texW = texture.getWidth();
-            float texH = texture.getHeight();
-            double tf = text.getTextureBleedingFix();
-            double vf = text.getVertexBleedingFix();
-
-            String content = text.getPlainText();
-            float cursorX = 0f;
-            float cursorY = 0f;
-
-            float spacing = text.getSpacing();
-            float lineSpacing = text.getLineSpacing();
-            float scaleX = text.getScaleX();
-            float scaleY = text.getScaleY();
-
-            for (int i = 0; i < content.length(); i++) {
-                char c = content.charAt(i);
-
-                if (c == '\n') {
-                    cursorX = 0;
-                    cursorY += font.getZeroCharHeight() + lineSpacing;
-                    continue;
-                }
-
-                BitmapCharInfo charInfo = font.getCharInfo(c);
-                if (charInfo == null) continue;
-
-                float charW = charInfo.width();
-                float charH = charInfo.height();
-
-                float u0 = charInfo.x() / texW;
-                float v0 = (texH - charInfo.y()) / texH;
-                float u1 = (charInfo.x() + charW) / texW;
-                float v1 = (texH - (charInfo.y() + charH)) / texH;
-
-                float vx = info.x + cursorX * scaleX;
-                float vy = info.y + cursorY * scaleY;
-                float vw = charW * scaleX;
-                float vh = charH * scaleY;
-
-                float r = 1f, g = 1f, b = 1f, a = info.alpha;
-                if (text.isMulticolor()) {
-                    Color color = text.getColorTextData().getColoredLetter(i).getColor();
-                    r = color.getR() / 255f;
-                    g = color.getG() / 255f;
-                    b = color.getB() / 255f;
-                } else {
-                    Color color = text.getColor();
-                    r = color.getR() / 255f;
-                    g = color.getG() / 255f;
-                    b = color.getB() / 255f;
-                }
-
-                if (spritesInBatch >= batchSize) {
-                    flushBatch(spritesInBatch);
-                    spritesInBatch = 0;
-                }
-
-                int base = spritesInBatch * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX;
-                vertexBuffer.position(base);
-                vertexBuffer.put(new float[]{
-                        vx - (float) vf, vy - (float) vf, u0 + (float) tf, v0 - (float) tf, r, g, b, a,
-                        vx + vw + (float) vf, vy - (float) vf, u1 - (float) tf, v0 - (float) tf, r, g, b, a,
-                        vx + vw + (float) vf, vy + vh + (float) vf, u1 - (float) tf, v1 + (float) tf, r, g, b, a,
-                        vx - (float) vf, vy + vh + (float) vf, u0 + (float) tf, v1 + (float) tf, r, g, b, a
-                });
-
-                spritesInBatch++;
-                cursorX += charW + spacing;
-            }
+            int addedSprites = info.render(vertexBuffer, this);
+            spritesInBatch += addedSprites;
         }
 
-        // ==== RECTANGLES ====
-        for (ShapeDrawInfo info : shapesToDraw) {
-            RectangleShape shape = info.shape;
-
-            float r = 1f, g = 1f, b = 1f, a = info.alpha;
-            Color color = shape.getColor();
-            if (color != null) {
-                r = color.getR() / 255f;
-                g = color.getG() / 255f;
-                b = color.getB() / 255f;
-            }
-
-            if (currentTextureId != whiteTexture.getId()) {
-                if (spritesInBatch > 0) flushBatch(spritesInBatch);
-                spritesInBatch = 0;
-                currentTextureId = whiteTexture.getId();
-                setNearestFilter(currentTextureId);
-            }
-
-            float w = shape.getWidth();
-            float h = shape.getHeight();
-            float x = info.x;
-            float y = info.y;
-            float a_ = info.a;
-            float b_ = info.b;
-            float d_ = info.d;
-            float e_ = info.e;
-
-            float x0 = x, y0 = y;
-            float x1 = a_ * w + x, y1 = d_ * w + y;
-            float x2 = a_ * w + b_ * h + x, y2 = d_ * w + e_ * h + y;
-            float x3 = b_ * h + x, y3 = e_ * h + y;
-
-            int baseIndex = spritesInBatch * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX;
-            float u0 = 0f, v0 = 0f, u1 = 1f, v1 = 1f;
-
-            vertexBuffer.position(baseIndex);
-            vertexBuffer.put(new float[]{
-                    x0, y0, u0, v0, r, g, b, a,
-                    x1, y1, u1, v0, r, g, b, a,
-                    x2, y2, u1, v1, r, g, b, a,
-                    x3, y3, u0, v1, r, g, b, a
-            });
-
-            spritesInBatch++;
-        }
-
-        // === LINE BATCH ===
-        GL20.glUseProgram(shaderProgram);
-        GL20.glUniformMatrix4fv(uProjectionLocation, false, projectionMatrix);
-        GL30.glBindVertexArray(lineVaoId);
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, lineVboId);
-        lineBuffer.clear();
-
-        int totalLineVertices = 0;
-
-        for (LineDrawInfo info : linesToDraw) {
-            LineBatch lineBatch = info.lineBatch;
-            if (lineBatch.getLines().isEmpty()) continue;
-
-            float r = 1f, g = 1f, b = 1f, a = info.alpha;
-            Color color = lineBatch.getColor();
-            if (color != null) {
-                r = color.getR() / 255f;
-                g = color.getG() / 255f;
-                b = color.getB() / 255f;
-            }
-
-            for (LineBatch.Line line : lineBatch.getLines()) {
-                float x1 = line.vertexA.x;
-                float y1 = line.vertexA.y;
-                float x2 = line.vertexB.x;
-                float y2 = line.vertexB.y;
-
-                float a_ = info.a, b_ = info.b, c_ = info.c;
-                float d_ = info.d, e_ = info.e, f_ = info.f;
-
-                float x1t = a_ * x1 + b_ * y1 + c_;
-                float y1t = d_ * x1 + e_ * y1 + f_;
-                float x2t = a_ * x2 + b_ * y2 + c_;
-                float y2t = d_ * x2 + e_ * y2 + f_;
-
-                lineBuffer.put(new float[]{x1t, y1t, 0f, 0f, r, g, b, a});
-                lineBuffer.put(new float[]{x2t, y2t, 0f, 0f, r, g, b, a});
-                totalLineVertices += 2;
-            }
-        }
-
-        if (totalLineVertices > 0) {
-            lineBuffer.flip();
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, whiteTexture.getId());
-            GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, lineBuffer);
-            GL11.glDrawArrays(GL11.GL_LINES, 0, totalLineVertices);
-        }
+        if (spritesInBatch > 0) flushBatch(spritesInBatch);
 
 
         ////-----
@@ -526,15 +281,7 @@ public class DesktopRenderer implements Renderer {
 
     }
 
-    private static void collectNodes(Node node,
-                                     float parentA, float parentB, float parentC,
-                                     float parentD, float parentE, float parentF,
-                                     float parentAlpha,
-                                     List<SpriteDrawInfo> outSprites,
-                                     List<BitmapTextDrawInfo> outTexts,
-                                     List<ShapeDrawInfo> outShapes,
-                                     List<LineDrawInfo> outLines) {
-
+    private static void collectNodes(Node node, float a, float b, float c, float d, float e, float f, float alpha, List<DrawInfo> drawQueue) {
         float x = node.getX(), y = node.getY();
         float scaleX = node.getScaleX(), scaleY = node.getScaleY();
         float rad = (float) Math.toRadians(node.getRotation());
@@ -543,82 +290,32 @@ public class DesktopRenderer implements Renderer {
         float a2 = cos * scaleX, b2 = -sin * scaleY, d2 = sin * scaleX, e2 = cos * scaleY;
         float c2 = x, f2 = y;
 
-        float a = parentA * a2 + parentB * d2;
-        float b = parentA * b2 + parentB * e2;
-        float c = parentA * c2 + parentB * f2 + parentC;
-        float d = parentD * a2 + parentE * d2;
-        float e = parentD * b2 + parentE * e2;
-        float f = parentD * c2 + parentE * f2 + parentF;
+        float na = a * a2 + b * d2;
+        float nb = a * b2 + b * e2;
+        float nc = a * c2 + b * f2 + c;
+        float nd = d * a2 + e * d2;
+        float ne = d * b2 + e * e2;
+        float nf = d * c2 + e * f2 + f;
 
-        float effectiveAlpha = parentAlpha * node.getAlpha();
+        float newAlpha = alpha * node.getAlpha();
 
         if (node instanceof Sprite sprite) {
-            SpriteDrawInfo info = new SpriteDrawInfo();
-            info.a = a;
-            info.b = b;
-            info.c = c;
-            info.d = d;
-            info.e = e;
-            info.f = f;
-            info.x = c;
-            info.y = f;
-            info.width = sprite.getWidth();
-            info.height = sprite.getHeight();
-            info.textureId = getSpriteTextureId(sprite);
-            info.zOrder = sprite.getGlobalZOrderIndex();
-            info.node = sprite;
-            info.alpha = effectiveAlpha;
-            outSprites.add(info);
-
+            drawQueue.add(new SpriteDrawInfo(sprite, na, nb, nc, nd, ne, nf, newAlpha));
         } else if (node instanceof BitmapText btx) {
             if (btx.isCacheAsSprite()) {
-                collectNodes(btx.cachedSprite(), a, b, c, d, e, f, effectiveAlpha, outSprites, outTexts, outShapes, outLines);
+                collectNodes(btx.cachedSprite(), na, nb, nc, nd, ne, nf, newAlpha, drawQueue);
             } else {
-                BitmapTextDrawInfo info = new BitmapTextDrawInfo();
-                info.bitmapText = btx;
-                info.a = a;
-                info.b = b;
-                info.c = c;
-                info.d = d;
-                info.e = e;
-                info.f = f;
-                info.x = c;
-                info.y = f;
-                info.alpha = effectiveAlpha;
-                outTexts.add(info);
+                drawQueue.add(new BitmapTextDrawInfo(btx, na, nb, nc, nd, ne, nf, newAlpha));
             }
         } else if (node instanceof RectangleShape rect) {
-            ShapeDrawInfo info = new ShapeDrawInfo();
-            info.shape = rect;
-            info.a = a;
-            info.b = b;
-            info.c = c;
-            info.d = d;
-            info.e = e;
-            info.f = f;
-            info.x = c;
-            info.y = f;
-            info.alpha = effectiveAlpha;
-            outShapes.add(info);
-        } else if (node instanceof LineBatch lineBatch) {
-            LineDrawInfo info = new LineDrawInfo();
-            info.lineBatch = lineBatch;
-            info.a = a;
-            info.b = b;
-            info.c = c;
-            info.d = d;
-            info.e = e;
-            info.f = f;
-            info.x = c;
-            info.y = f;
-            info.alpha = effectiveAlpha;
-            outLines.add(info);
+            drawQueue.add(new ShapeDrawInfo(rect, na, nb, nc, nd, ne, nf, newAlpha));
+        } else if (node instanceof LineBatch lb) {
+            drawQueue.add(new LineDrawInfo(lb, na, nb, nc, nd, ne, nf, newAlpha));
         }
-
 
         if (node instanceof Group group) {
             for (Node child : group.children().toList()) {
-                collectNodes(child, a, b, c, d, e, f, effectiveAlpha, outSprites, outTexts, outShapes, outLines);
+                collectNodes(child, na, nb, nc, nd, ne, nf, newAlpha, drawQueue);
             }
         }
     }
@@ -725,41 +422,313 @@ public class DesktopRenderer implements Renderer {
         return new Texture(texId, 1, 1);
     }
 
+    private void flushLineBuffer(FloatBuffer buffer) {
+        if (buffer.position() == 0) return;
+
+        buffer.flip();
+
+        GL20.glUseProgram(shaderProgram);
+        GL20.glUniformMatrix4fv(uProjectionLocation, false, projectionMatrix);
+        GL30.glBindVertexArray(lineVaoId);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, lineVboId);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, whiteTexture.getId());
+
+        GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, buffer);
+        GL11.glDrawArrays(GL11.GL_LINES, 0, buffer.limit() / FLOATS_PER_LINE_VERTEX);
+
+        buffer.clear();
+
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+        GL30.glBindVertexArray(0);
+        GL20.glUseProgram(0);
+    }
+
+    ////---------------------------------------------
+
     private interface DrawInfo {
-        void render();
+        int render(FloatBuffer vertexBuffer, DesktopRenderer renderer);
+
         int getTextureId();
     }
 
+    private static class SpriteDrawInfo implements DrawInfo {
+        private final Sprite sprite;
+        private final float a, b, c, d, e, f;
+        private final float alpha;
 
-    private static class SpriteDrawInfo {
-        float a, b, c, d, e, f;
-        float x, y;
-        float width, height;
-        int textureId;
-        int zOrder;
-        Node node;
-        float alpha;
+        public SpriteDrawInfo(Sprite sprite, float a, float b, float c, float d, float e, float f, float alpha) {
+            this.sprite = sprite;
+            this.a = a;
+            this.b = b;
+            this.c = c;
+            this.d = d;
+            this.e = e;
+            this.f = f;
+            this.alpha = alpha;
+        }
+
+        @Override
+        public int getTextureId() {
+            return sprite.getTextureRegion() != null ? sprite.getTextureRegion().getTexture().getId() : -1;
+        }
+
+        @Override
+        public int render(FloatBuffer buffer, DesktopRenderer r) {
+            TextureRegion region = sprite.getTextureRegion();
+            float u0 = 0f, v0 = 1f, u1 = 1f, v1 = 0f;
+
+            float w = sprite.getWidth();
+            float h = sprite.getHeight();
+
+            if (region != null) {
+                Texture tex = region.getTexture();
+                float texW = tex.getWidth();
+                float texH = tex.getHeight();
+                float rx = region.getX(), ry = region.getY();
+                float rw = region.getWidth(), rh = region.getHeight();
+
+                u0 = rx / texW;
+                u1 = (rx + rw) / texW;
+                v1 = (texH - ry - rh) / texH;
+                v0 = (texH - ry) / texH;
+            }
+
+            float x0 = c, y0 = f;
+            float x1 = a * w + c, y1 = d * w + f;
+            float x2 = a * w + b * h + c, y2 = d * w + e * h + f;
+            float x3 = b * h + c, y3 = e * h + f;
+
+            float rColor = 1f, g = 1f, bColor = 1f;
+            Color color = sprite.getColor();
+            rColor = color.getR() / 255f;
+            g = color.getG() / 255f;
+            bColor = color.getB() / 255f;
+
+            buffer.put(new float[]{
+                    x0, y0, u0, v0, rColor, g, bColor, alpha,
+                    x1, y1, u1, v0, rColor, g, bColor, alpha,
+                    x2, y2, u1, v1, rColor, g, bColor, alpha,
+                    x3, y3, u0, v1, rColor, g, bColor, alpha
+            });
+
+            return 1;
+        }
     }
 
-    private static class BitmapTextDrawInfo {
-        BitmapText bitmapText;
-        float x, y;
-        float a, b, c, d, e, f;
-        float alpha;
+    private static class BitmapTextDrawInfo implements DrawInfo {
+        private final BitmapText text;
+        private final float a, b, c, d, e, f;
+        private final float alpha;
+
+        public BitmapTextDrawInfo(BitmapText text, float a, float b, float c, float d, float e, float f, float alpha) {
+            this.text = text;
+            this.a = a;
+            this.b = b;
+            this.c = c;
+            this.d = d;
+            this.e = e;
+            this.f = f;
+            this.alpha = alpha;
+        }
+
+        @Override
+        public int getTextureId() {
+            return text.getBitmapFont().getTexture().getId();
+        }
+
+        @Override
+        public int render(FloatBuffer buffer, DesktopRenderer renderer) {
+            if (text.isEmpty()) return 0;
+
+            int glyphCount = 0;
+
+            BitmapFont font = text.getBitmapFont();
+            Texture texture = font.getTexture();
+
+            float texW = texture.getWidth();
+            float texH = texture.getHeight();
+
+            double tf = text.getTextureBleedingFix();
+            double vf = text.getVertexBleedingFix();
+
+            float cursorX = 0f;
+            float cursorY = 0f;
+
+            float spacing = text.getSpacing();
+            float lineSpacing = text.getLineSpacing();
+            float scaleX = text.getScaleX();
+            float scaleY = text.getScaleY();
+
+            String content = text.getPlainText();
+
+            for (int i = 0; i < content.length(); i++) {
+                char ch = content.charAt(i);
+
+                if (ch == '\n') {
+                    cursorX = 0f;
+                    cursorY += font.getZeroCharHeight() + lineSpacing;
+                    continue;
+                }
+
+                BitmapCharInfo charInfo = font.getCharInfo(ch);
+                if (charInfo == null) continue;
+
+                float charW = charInfo.width();
+                float charH = charInfo.height();
+
+                float u0 = charInfo.x() / texW;
+                float v0 = (texH - charInfo.y()) / texH;
+                float u1 = (charInfo.x() + charW) / texW;
+                float v1 = (texH - (charInfo.y() + charH)) / texH;
+
+                float x = cursorX;
+                float y = cursorY;
+                float w = charW;
+                float h = charH;
+
+                float px = a * x + b * y + c;
+                float py = d * x + e * y + f;
+                float px1 = a * (x + w) + b * y + c;
+                float py1 = d * (x + w) + e * y + f;
+                float px2 = a * (x + w) + b * (y + h) + c;
+                float py2 = d * (x + w) + e * (y + h) + f;
+                float px3 = a * x + b * (y + h) + c;
+                float py3 = d * x + e * (y + h) + f;
+
+                float r = 1f, g = 1f, b = 1f;
+                if (text.isMulticolor()) {
+                    Color color = text.getColorTextData().getColoredLetter(i).getColor();
+                    r = color.getR() / 255f;
+                    g = color.getG() / 255f;
+                    b = color.getB() / 255f;
+                } else {
+                    Color color = text.getColor();
+                    r = color.getR() / 255f;
+                    g = color.getG() / 255f;
+                    b = color.getB() / 255f;
+                }
+
+                buffer.put(new float[]{
+                        px - (float) vf, py - (float) vf, u0 + (float) tf, v0 - (float) tf, r, g, b, alpha,
+                        px1 + (float) vf, py1 - (float) vf, u1 - (float) tf, v0 - (float) tf, r, g, b, alpha,
+                        px2 + (float) vf, py2 + (float) vf, u1 - (float) tf, v1 + (float) tf, r, g, b, alpha,
+                        px3 - (float) vf, py3 + (float) vf, u0 + (float) tf, v1 + (float) tf, r, g, b, alpha
+                });
+
+                glyphCount++;
+
+                cursorX += charW + spacing;
+            }
+
+            return glyphCount;
+        }
+
+
     }
 
-    private static class ShapeDrawInfo {
-        RectangleShape shape;
-        float a, b, c, d, e, f;
-        float x, y;
-        float alpha;
+    private static class ShapeDrawInfo implements DrawInfo {
+        private final RectangleShape shape;
+        private final float a, b, c, d, e, f;
+        private final float alpha;
+
+        public ShapeDrawInfo(RectangleShape shape, float a, float b, float c, float d, float e, float f, float alpha) {
+            this.shape = shape;
+            this.a = a;
+            this.b = b;
+            this.c = c;
+            this.d = d;
+            this.e = e;
+            this.f = f;
+            this.alpha = alpha;
+        }
+
+        @Override
+        public int getTextureId() {
+            return DesktopRenderer.whiteTexture.getId();
+        }
+
+        @Override
+        public int render(FloatBuffer buffer, DesktopRenderer renderer) {
+            float w = shape.getWidth();
+            float h = shape.getHeight();
+
+            float x0 = c, y0 = f;
+            float x1 = a * w + c, y1 = d * w + f;
+            float x2 = a * w + b * h + c, y2 = d * w + e * h + f;
+            float x3 = b * h + c, y3 = e * h + f;
+
+            float r = 1f, g = 1f, bColor = 1f;
+            if (shape.getColor() != null) {
+                Color col = shape.getColor();
+                r = col.getR() / 255f;
+                g = col.getG() / 255f;
+                bColor = col.getB() / 255f;
+            }
+
+            buffer.put(new float[]{
+                    x0, y0, 0f, 0f, r, g, bColor, alpha,
+                    x1, y1, 1f, 0f, r, g, bColor, alpha,
+                    x2, y2, 1f, 1f, r, g, bColor, alpha,
+                    x3, y3, 0f, 1f, r, g, bColor, alpha
+            });
+
+            return 1;
+        }
     }
 
-    private static class LineDrawInfo {
-        LineBatch lineBatch;
-        float a, b, c, d, e, f;
-        float x, y;
-        float alpha;
+
+    private static class LineDrawInfo implements DrawInfo {
+        private final LineBatch lineBatch;
+        private final float a, b, c, d, e, f;
+        private final float alpha;
+
+        public LineDrawInfo(LineBatch lineBatch, float a, float b, float c, float d, float e, float f, float alpha) {
+            this.lineBatch = lineBatch;
+            this.a = a;
+            this.b = b;
+            this.c = c;
+            this.d = d;
+            this.e = e;
+            this.f = f;
+            this.alpha = alpha;
+        }
+
+        @Override
+        public int getTextureId() {
+            return DesktopRenderer.whiteTexture.getId();
+        }
+
+        @Override
+        public int render(FloatBuffer buffer, DesktopRenderer renderer) {
+            if (lineBatch.getLines().isEmpty()) return 0;
+
+            float r = 1f, g = 1f, b = 1f;
+            Color color = lineBatch.getColor();
+            if (color != null) {
+                r = color.getR() / 255f;
+                g = color.getG() / 255f;
+                b = color.getB() / 255f;
+            }
+
+            for (LineBatch.Line line : lineBatch.getLines()) {
+                float x1 = line.vertexA.x;
+                float y1 = line.vertexA.y;
+                float x2 = line.vertexB.x;
+                float y2 = line.vertexB.y;
+
+                float x1t = a * x1 + b * y1 + c;
+                float y1t = d * x1 + e * y1 + f;
+                float x2t = a * x2 + b * y2 + c;
+                float y2t = d * x2 + e * y2 + f;
+
+                buffer.put(new float[]{x1t, y1t, 0f, 0f, r, g, b, alpha});
+                buffer.put(new float[]{x2t, y2t, 0f, 0f, r, g, b, alpha});
+            }
+
+            renderer.flushLineBuffer(buffer);
+
+            return 1;
+        }
     }
 
 
