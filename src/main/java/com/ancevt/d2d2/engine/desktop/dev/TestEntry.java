@@ -61,5 +61,9 @@ public class TestEntry implements D2D2Application {
         });
 
         stage.addChild(new FpsMeter());
+
+        stage.onResize(e -> {
+            System.out.println("Stage resized: " + e.getWidth() + "x" + e.getHeight());
+        });
     }
 }

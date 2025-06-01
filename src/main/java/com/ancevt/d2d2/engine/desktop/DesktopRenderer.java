@@ -1,6 +1,6 @@
 package com.ancevt.d2d2.engine.desktop;
 
-import com.ancevt.d2d2.event.NodeEvent;
+import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.StageEvent;
 import com.ancevt.d2d2.scene.*;
 import com.ancevt.d2d2.scene.shape.LineBatch;
@@ -213,6 +213,11 @@ public class DesktopRenderer implements Renderer {
     public void reshape() {
         GL11.glViewport(0, 0, engine.getCanvasWidth(), engine.getCanvasHeight());
         setProjection(engine.getCanvasWidth(), engine.getCanvasHeight());
+
+        var s = engine.getStage();
+        s.dispatchEvent(CommonEvent.Resize.create(engine.getCanvasWidth(), engine.getCanvasHeight()));
+        s.setSize(engine.getCanvasWidth(), engine.getCanvasHeight());
+
     }
 
     public static void setNearestFilter(int textureId) {
