@@ -3,8 +3,8 @@ package com.ancevt.d2d2.engine.desktop_old.awt;
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.lifecycle.D2D2PropertyConstants;
 import com.ancevt.d2d2.scene.text.BitmapFont;
-import com.ancevt.d2d2.scene.text.FractionalMetrics;
 import com.ancevt.d2d2.scene.text.FontBuilder;
+import com.ancevt.d2d2.scene.text.FractionalMetrics;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -25,11 +25,10 @@ import java.util.List;
 
 import static com.ancevt.d2d2.D2D2.log;
 
-public class BitmapTextAwtHelper {
-
+public class AwtBitmapFontGenerator {
 
     @SneakyThrows
-    public static BitmapFont generateBitmapFont(FontBuilder builder) {
+    public static BitmapFont generate(FontBuilder builder) {
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 
         InputStream inputStream = builder.getInputStream() != null ?
@@ -156,7 +155,7 @@ public class BitmapTextAwtHelper {
 
             Files.write(destinationPath.resolve(fileName + ".png"), pngDataBytes);
             Files.writeString(destinationPath.resolve(fileName + ".bmf"), stringBuilder.toString());
-            log.info(BitmapTextAwtHelper.class, "BMF written %s/%s".formatted(destinationPath, fileName));
+            log.info(AwtBitmapFontGenerator.class, "BMF written %s/%s".formatted(destinationPath, fileName));
         }
 
         return D2D2.bitmapFontManager().loadBitmapFont(

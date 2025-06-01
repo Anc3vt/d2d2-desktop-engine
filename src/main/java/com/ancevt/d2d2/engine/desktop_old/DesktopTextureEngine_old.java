@@ -326,7 +326,7 @@ public class DesktopTextureEngine_old implements TextureEngine {
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
 
-        BitmapTextDrawHelper.draw(
+        BitmapTextDrawHelper_old.draw(
                 bitmapText,
             bitmapText.getAlpha(),
             bitmapText.getScaleX(),

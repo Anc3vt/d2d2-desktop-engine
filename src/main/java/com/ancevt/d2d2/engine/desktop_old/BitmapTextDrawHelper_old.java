@@ -25,7 +25,7 @@ import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.scene.texture.Texture;
 
 
-class BitmapTextDrawHelper {
+class BitmapTextDrawHelper_old {
 
     static void draw(BitmapText bitmapText,
                      float alpha,

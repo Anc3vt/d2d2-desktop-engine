@@ -126,7 +126,7 @@ public class DesktopRenderer_old implements Renderer {
         clear();
         glLoadIdentity();
 
-        renderDisplayObject(stage,
+        renderNode(stage,
                 0,
                 stage.getX(),
                 stage.getY(),
@@ -137,7 +137,7 @@ public class DesktopRenderer_old implements Renderer {
 
         Node cursor = D2D2.getCursor();
         if (cursor != null) {
-            renderDisplayObject(cursor, 0, 0, 0, 1, 1, 1);
+            renderNode(cursor, 0, 0, 0, 1, 1, 1);
         }
 
         textureEngine.unloadTexture();
@@ -172,13 +172,13 @@ public class DesktopRenderer_old implements Renderer {
         glClear(GL11.GL_COLOR_BUFFER_BIT);
     }
 
-    private synchronized void renderDisplayObject(Node node,
-                                                  int level,
-                                                  float toX,
-                                                  float toY,
-                                                  float toScaleX,
-                                                  float toScaleY,
-                                                  float toAlpha) {
+    private synchronized void renderNode(Node node,
+                                         int level,
+                                         float toX,
+                                         float toY,
+                                         float toScaleX,
+                                         float toScaleY,
+                                         float toAlpha) {
 
         if (!node.isVisible()) return;
 
@@ -223,7 +223,7 @@ public class DesktopRenderer_old implements Renderer {
 
         if (node instanceof Group group) {
             for (int i = 0; i < group.getNumChildren(); i++) {
-                renderDisplayObject(group.getChild(i), level + 1, x + toX, y + toY, toScaleX, toScaleY, a);
+                renderNode(group.getChild(i), level + 1, x + toX, y + toY, toScaleX, toScaleY, a);
             }
 
         } else if (node instanceof Sprite s) {
@@ -346,6 +346,14 @@ public class DesktopRenderer_old implements Renderer {
         D2D2.textureManager().getTextureEngine().disable(texture);
     }
 
+    private static float nextHalf(float v) {
+        return (float) (Math.ceil(v * 2) / 2);
+    }
+
+    public void setDesktopTextureEngine(DesktopTextureEngine_old textureEngine) {
+        this.textureEngine = textureEngine;
+    }
+
     private void renderBitmapText(BitmapText bitmapText, float alpha) {
         if (bitmapText.isEmpty()) return;
 
@@ -363,7 +371,7 @@ public class DesktopRenderer_old implements Renderer {
 
         glBegin(GL11.GL_QUADS);
 
-        BitmapTextDrawHelper.draw(bitmapText,
+        BitmapTextDrawHelper_old.draw(bitmapText,
                 alpha,
                 1,
                 1,
@@ -379,10 +387,6 @@ public class DesktopRenderer_old implements Renderer {
 
     private static void applyColor(float r, float g, float b, float a) {
         glColor4f(r, g, b, a);
-    }
-
-    private static float nextHalf(float v) {
-        return (float) (Math.ceil(v * 2) / 2);
     }
 
     private static void drawChar(
@@ -427,10 +431,6 @@ public class DesktopRenderer_old implements Renderer {
 
         glTexCoord2d(cx - tf, -cy + ch - tf);
         glVertex2d(x - vf, charHeight * -scY + y - vf);
-    }
-
-    public void setDesktopTextureEngine(DesktopTextureEngine_old textureEngine) {
-        this.textureEngine = textureEngine;
     }
 
 }
