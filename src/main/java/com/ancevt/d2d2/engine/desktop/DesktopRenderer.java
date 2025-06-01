@@ -2,6 +2,9 @@ package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.event.SceneEvent;
 import com.ancevt.d2d2.scene.*;
+import com.ancevt.d2d2.scene.text.BitmapCharInfo;
+import com.ancevt.d2d2.scene.text.BitmapFont;
+import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.scene.texture.Texture;
 import com.ancevt.d2d2.scene.texture.TextureRegion;
 import com.ancevt.d2d2.time.Timer;
@@ -179,7 +182,8 @@ public class DesktopRenderer implements Renderer {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
         List<SpriteDrawInfo> spritesToDraw = new ArrayList<>();
-        collectNodes(stage, 1f, 0f, 0f, 0f, 1f, 0f, spritesToDraw);
+        List<BitmapTextDrawInfo> bitmapTextsToDraw = new ArrayList<>();
+        collectNodes(stage, 1f, 0f, 0f, 0f, 1f, 0f, spritesToDraw, bitmapTextsToDraw);
 
         spritesToDraw.sort(Comparator.comparingInt(info -> info.zOrder));
 
@@ -193,6 +197,7 @@ public class DesktopRenderer implements Renderer {
         int spritesInBatch = 0;
         int currentTextureId = -1;
 
+        // ==== SPRITES ====
         for (SpriteDrawInfo info : spritesToDraw) {
 
             Node node = info.node;
@@ -270,6 +275,93 @@ public class DesktopRenderer implements Renderer {
             spritesInBatch++;
         }
 
+        // ==== BITMAP TEXT ====
+        for (BitmapTextDrawInfo info : bitmapTextsToDraw) {
+            BitmapText text = info.bitmapText;
+            if (text.isEmpty()) continue;
+
+            BitmapFont font = text.getBitmapFont();
+            Texture texture = font.getTexture();
+            int texId = texture.getId();
+
+            if (currentTextureId != texId) {
+                if (spritesInBatch > 0) flushBatch(spritesInBatch);
+                spritesInBatch = 0;
+                currentTextureId = texId;
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTextureId);
+            }
+
+            float texW = texture.getWidth();
+            float texH = texture.getHeight();
+            double tf = text.getTextureBleedingFix();
+            double vf = text.getVertexBleedingFix();
+
+            String content = text.getPlainText();
+            float cursorX = 0f;
+            float cursorY = 0f;
+
+            float spacing = text.getSpacing();
+            float lineSpacing = text.getLineSpacing();
+            float scaleX = text.getScaleX();
+            float scaleY = text.getScaleY();
+
+            for (int i = 0; i < content.length(); i++) {
+                char c = content.charAt(i);
+
+                if (c == '\n') {
+                    cursorX = 0;
+                    cursorY += font.getZeroCharHeight() + lineSpacing;
+                    continue;
+                }
+
+                BitmapCharInfo charInfo = font.getCharInfo(c);
+                if (charInfo == null) continue;
+
+                float charW = charInfo.width();
+                float charH = charInfo.height();
+
+                float u0 = charInfo.x() / texW;
+                float v0 = (texH - charInfo.y()) / texH;
+                float u1 = (charInfo.x() + charW) / texW;
+                float v1 = (texH - (charInfo.y() + charH)) / texH;
+
+                float vx = info.x + cursorX * scaleX;
+                float vy = info.y + cursorY * scaleY;
+                float vw = charW * scaleX;
+                float vh = charH * scaleY;
+
+                float r = 1f, g = 1f, b = 1f, a = text.getAlpha();
+                if (text.isMulticolor()) {
+                    Color color = text.getColorTextData().getColoredLetter(i).getColor();
+                    r = color.getR() / 255f;
+                    g = color.getG() / 255f;
+                    b = color.getB() / 255f;
+                } else {
+                    Color color = text.getColor();
+                    r = color.getR() / 255f;
+                    g = color.getG() / 255f;
+                    b = color.getB() / 255f;
+                }
+
+                if (spritesInBatch >= batchSize) {
+                    flushBatch(spritesInBatch);
+                    spritesInBatch = 0;
+                }
+
+                int base = spritesInBatch * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX;
+                vertexBuffer.position(base);
+                vertexBuffer.put(new float[]{
+                        vx - (float) vf, vy - (float) vf, u0 + (float) tf, v0 - (float) tf, r, g, b, a,
+                        vx + vw + (float) vf, vy - (float) vf, u1 - (float) tf, v0 - (float) tf, r, g, b, a,
+                        vx + vw + (float) vf, vy + vh + (float) vf, u1 - (float) tf, v1 + (float) tf, r, g, b, a,
+                        vx - (float) vf, vy + vh + (float) vf, u0 + (float) tf, v1 + (float) tf, r, g, b, a
+                });
+
+                spritesInBatch++;
+                cursorX += charW + spacing;
+            }
+        }
+
         if (spritesInBatch > 0) flushBatch(spritesInBatch);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
@@ -277,21 +369,11 @@ public class DesktopRenderer implements Renderer {
         GL20.glUseProgram(0);
     }
 
-
-
-    private void flushBatch(int spriteCount) {
-        if (spriteCount == 0) return;
-        vertexBuffer.limit(spriteCount * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX);
-        vertexBuffer.position(0);
-        GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, vertexBuffer);
-        GL11.glDrawElements(GL11.GL_TRIANGLES, spriteCount * INDICES_PER_SPRITE, GL11.GL_UNSIGNED_INT, 0);
-        vertexBuffer.clear();
-    }
-
     private static void collectNodes(Node node,
                                      float parentA, float parentB, float parentC,
                                      float parentD, float parentE, float parentF,
-                                     List<SpriteDrawInfo> outList) {
+                                     List<SpriteDrawInfo> outSprites,
+                                     List<BitmapTextDrawInfo> outTexts) {
         float x = node.getX(), y = node.getY();
         float scaleX = node.getScaleX(), scaleY = node.getScaleY();
         float rad = (float) Math.toRadians(node.getRotation());
@@ -322,13 +404,41 @@ public class DesktopRenderer implements Renderer {
             info.textureId = getSpriteTextureId(sprite);
             info.zOrder = sprite.getGlobalZOrderIndex();
             info.node = sprite;
-            outList.add(info);
-        }
-        if (node instanceof Group group) {
-            for (Node child : group.children().toList()) {
-                collectNodes(child, a, b, c, d, e, f, outList);
+            outSprites.add(info);
+
+        } else if (node instanceof BitmapText btx) {
+            if (btx.isCacheAsSprite()) {
+                collectNodes(btx.cachedSprite(), a, b, c, d, e, f, outSprites, outTexts);
+            } else {
+                BitmapTextDrawInfo info = new BitmapTextDrawInfo();
+                info.bitmapText = btx;
+                info.a = a;
+                info.b = b;
+                info.c = c;
+                info.d = d;
+                info.e = e;
+                info.f = f;
+                info.x = c;
+                info.y = f;
+                outTexts.add(info);
             }
         }
+
+        if (node instanceof Group group) {
+            for (Node child : group.children().toList()) {
+                collectNodes(child, a, b, c, d, e, f, outSprites, outTexts);
+            }
+        }
+    }
+
+
+    private void flushBatch(int spriteCount) {
+        if (spriteCount == 0) return;
+        vertexBuffer.limit(spriteCount * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX);
+        vertexBuffer.position(0);
+        GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, vertexBuffer);
+        GL11.glDrawElements(GL11.GL_TRIANGLES, spriteCount * INDICES_PER_SPRITE, GL11.GL_UNSIGNED_INT, 0);
+        vertexBuffer.clear();
     }
 
     private static int getSpriteTextureId(Sprite sprite) {
@@ -358,5 +468,11 @@ public class DesktopRenderer implements Renderer {
         int textureId;
         int zOrder;
         Node node;
+    }
+
+    private static class BitmapTextDrawInfo {
+        BitmapText bitmapText;
+        float x, y;
+        float a, b, c, d, e, f;
     }
 }
