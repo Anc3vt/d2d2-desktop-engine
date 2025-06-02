@@ -5,6 +5,8 @@ import com.ancevt.d2d2.engine.desktop.DesktopEngine;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.StageEvent;
 import com.ancevt.d2d2.scene.*;
+import com.ancevt.d2d2.scene.shape.FreeShape;
+import com.ancevt.d2d2.scene.shape.LineBatch;
 import com.ancevt.d2d2.scene.shape.RectangleShape;
 import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.time.Timer;
@@ -122,6 +124,10 @@ public class DesktopRenderer implements Renderer {
             }
         } else if (node instanceof RectangleShape rect) {
             drawQueue.add(new ShapeDrawInfo(rect, na, nb, nc, nd, ne, nf, newAlpha));
+        } else if (node instanceof FreeShape freeShape) {
+            drawQueue.add(new FreeShapeDrawInfo(freeShape, na, nb, nc, nd, ne, nf, newAlpha));
+        } else if (node instanceof LineBatch lineBatch) {
+            drawQueue.add(new LineBatchDrawInfo(lineBatch, na, nb, nc, nd, ne, nf, newAlpha));
         }
 
         if (node instanceof Group group) {

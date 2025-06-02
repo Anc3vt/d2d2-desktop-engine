@@ -25,7 +25,7 @@ import java.util.List;
 
 import static com.ancevt.d2d2.D2D2.log;
 
-public class AwtBitmapFontGenerator {
+public class AwtBitmapFontGenerator_old {
 
     @SneakyThrows
     public static BitmapFont generate(FontBuilder builder) {
@@ -155,7 +155,7 @@ public class AwtBitmapFontGenerator {
 
             Files.write(destinationPath.resolve(fileName + ".png"), pngDataBytes);
             Files.writeString(destinationPath.resolve(fileName + ".bmf"), stringBuilder.toString());
-            log.info(AwtBitmapFontGenerator.class, "BMF written %s/%s".formatted(destinationPath, fileName));
+            log.info(AwtBitmapFontGenerator_old.class, "BMF written %s/%s".formatted(destinationPath, fileName));
         }
 
         return D2D2.bitmapFontManager().loadBitmapFont(

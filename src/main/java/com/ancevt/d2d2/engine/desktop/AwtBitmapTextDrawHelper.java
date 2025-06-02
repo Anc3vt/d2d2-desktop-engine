@@ -2,13 +2,13 @@
  * Copyright (C) 2025 the original author or authors.
  * See the notice.md file distributed with this work for additional
  * information regarding copyright ownership.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,14 +18,24 @@
 
 package com.ancevt.d2d2.engine.desktop;
 
+import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.scene.Color;
 import com.ancevt.d2d2.scene.text.BitmapCharInfo;
 import com.ancevt.d2d2.scene.text.BitmapFont;
 import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.scene.texture.Texture;
+import com.ancevt.d2d2.scene.texture.TextureRegion;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.Map;
 
 
-class BitmapTextDrawHelper {
+class AwtBitmapTextDrawHelper {
 
     static void draw(BitmapText bitmapText,
                      float alpha,
@@ -71,10 +81,10 @@ class BitmapTextDrawHelper {
 
                 if (applyColorFunction != null) {
                     applyColorFunction.applyColor(
-                        letterColor.getR() / 255f,
-                        letterColor.getG() / 255f,
-                        letterColor.getB() / 255f,
-                        alpha
+                            letterColor.getR() / 255f,
+                            letterColor.getG() / 255f,
+                            letterColor.getB() / 255f,
+                            alpha
                     );
                 }
             }
@@ -117,22 +127,24 @@ class BitmapTextDrawHelper {
             }
 
             drawCharFunction.drawChar(
-                texture,
-                c,
-                letter, // null if not multicolor
-                drawX,
-                (drawY + scaleY * charHeight),
-                textureWidth,
-                textureHeight,
-                charInfo,
-                scaleX,
-                scaleY,
-                textureBleedingFix,
-                vertexBleedingFix
+                    texture,
+                    c,
+                    letter, // null if not multicolor
+                    drawX,
+                    (drawY + scaleY * charHeight),
+                    textureWidth,
+                    textureHeight,
+                    charInfo,
+                    scaleX,
+                    scaleY,
+                    textureBleedingFix,
+                    vertexBleedingFix
             );
 
             drawX += (charWidth + (c != '\n' ? spacing : 0)) * scaleX;
         }
+
+
     }
 
     private static float getNextWordWidth(BitmapText bitmapText, int charIndex, float scaleX) {
@@ -172,8 +184,8 @@ class BitmapTextDrawHelper {
     // Метод для проверки символа на принадлежность к допустимым символам слова
     private static boolean isWordCharacter(char ch) {
         return Character.isLetterOrDigit(ch) ||
-            ch == '!' || ch == '_' || ch == '.' ||
-            ch == ':' || ch == ';' || ch == ',';
+                ch == '!' || ch == '_' || ch == '.' ||
+                ch == ':' || ch == ';' || ch == ',';
     }
 
     private static float meterStringWidth(BitmapText bitmapText, String string) {
@@ -193,22 +205,130 @@ class BitmapTextDrawHelper {
         return !Character.isLetterOrDigit(ch) && ch != '_';
     }
 
+
+    public static Texture bitmapTextToTexture(BitmapText bitmapText) {
+        int width = (int) bitmapText.getWidth();
+        int height = (int) bitmapText.getHeight();
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = image.createGraphics();
+
+        AwtBitmapTextDrawHelper.draw(
+                bitmapText,
+                bitmapText.getAlpha(),
+                bitmapText.getScaleX(),
+                bitmapText.getScaleY(),
+                (texture, c, letter, drawX, drawY, textureAtlasWidth, textureAtlasHeight, charInfo, scX, scY, textureBleedingFix, vertexBleedingFix) -> {
+
+                    if (c != '\n') {
+                        int charX = charInfo.x();
+                        int charY = charInfo.y();
+
+                        int offsetX = 0;
+                        int offsetY = 0;
+
+                        if (charX < 0) {
+                            offsetX = -charX;
+                            charX = 0;
+                        }
+                        if (charY < 0) {
+                            offsetY = -charY;
+                            charY = 0;
+                        }
+
+                        BufferedImage charImage = textureRegionToImage(
+                                texture, charX, charY, charInfo.width(), charInfo.height()
+                        );
+
+                        charImage = copyImage(charImage);
+
+                        com.ancevt.d2d2.scene.Color letterColor = letter == null ? bitmapText.getColor() : letter.getColor();
+
+                        applyColorFilter(
+                                charImage,
+                                letterColor.getR(),
+                                letterColor.getG(),
+                                letterColor.getB()
+                        );
+
+                        g.drawImage(charImage, (int) drawX + offsetX, (int) drawY - charInfo.height() + offsetY, null);
+                    }
+
+                },
+                null
+        );
+
+
+        final Texture texture = createTextureFromBufferedImage(image);
+        D2D2.textureManager().addTextureRegion("_texture_text_" + texture.getId(), texture.createTextureRegion());
+        return texture;
+    }
+
+    private static void applyColorFilter(BufferedImage image, int redPercent, int greenPercent, int bluePercent) {
+        for (int y = 0; y < image.getHeight(); y++) {
+            for (int x = 0; x < image.getWidth(); x++) {
+                int pixel = image.getRGB(x, y);
+
+                int alpha = (pixel >> 24) & 0xff;
+                int red = (pixel >> 16) & 0xff;
+                int green = (pixel >> 8) & 0xff;
+                int blue = pixel & 0xff;
+
+                pixel = (alpha << 24) | (redPercent * red / 255 << 16) | (greenPercent * green / 255 << 8) | (bluePercent * blue / 255);
+
+                image.setRGB(x, y, pixel);
+            }
+        }
+    }
+
+    public static BufferedImage copyImage(BufferedImage source) {
+        BufferedImage b = new BufferedImage(source.getWidth(), source.getHeight(), source.getType());
+        Graphics g = b.getGraphics();
+        g.drawImage(source, 0, 0, null);
+        g.dispose();
+        return b;
+    }
+
+    public static Texture createTextureFromBufferedImage(BufferedImage image) {
+        try {
+            InputStream inputStream = bufferedImageToPngInputStream(image);
+            return D2D2.textureManager().loadTexture(inputStream);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static InputStream bufferedImageToPngInputStream(BufferedImage image) throws Exception {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", baos);  // Запись в PNG
+        baos.flush();
+        return new ByteArrayInputStream(baos.toByteArray()); // Обратный поток
+    }
+
+
+    private static BufferedImage textureRegionToImage(Texture texture, int x, int y, int width, int height) {
+        Map<Integer, BufferedImage> map = ((DesktopTextureEngine) D2D2.textureManager().getTextureEngine()).getBufferedImageMap();
+        BufferedImage bufferedImage = map.computeIfAbsent(texture.getId(), id -> {
+            throw new IllegalStateException("texture not found: " + id);
+        });
+        return bufferedImage.getSubimage(x, y, width, height);
+    }
+
     @FunctionalInterface
     interface DrawCharFunction {
 
         void drawChar(
-            Texture atlas,
-            char c,
-            BitmapText.ColorTextData.Letter letter,
-            float x,
-            float y,
-            int textureWidth,
-            int textureHeight,
-            BitmapCharInfo charInfo,
-            float scX,
-            float scY,
-            double textureBleedingFix,
-            double vertexBleedingFix);
+                Texture texture,
+                char c,
+                BitmapText.ColorTextData.Letter letter,
+                float x,
+                float y,
+                int textureWidth,
+                int textureHeight,
+                BitmapCharInfo charInfo,
+                float scX,
+                float scY,
+                double textureBleedingFix,
+                double vertexBleedingFix);
     }
 
     @FunctionalInterface

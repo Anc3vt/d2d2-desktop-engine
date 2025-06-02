@@ -6,6 +6,9 @@ import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.scene.texture.Texture;
 import com.ancevt.d2d2.scene.texture.TextureEngine;
 import com.ancevt.d2d2.scene.texture.TextureRegionCombinerCell;
+import com.ancevt.d2d2.util.InputStreamFork;
+import lombok.Getter;
+import lombok.SneakyThrows;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -13,12 +16,20 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DesktopTextureEngine implements TextureEngine {
+
+    @Getter
+    private final Map<Integer, BufferedImage> bufferedImageMap = new HashMap<>();
+
     @Override
     public boolean bind(Texture texture) {
         return false;
@@ -56,10 +67,17 @@ public class DesktopTextureEngine implements TextureEngine {
 
     @Override
     public Texture bitmapTextToTexture(BitmapText bitmapText) {
-        return null;
+        return AwtBitmapTextDrawHelper.bitmapTextToTexture(bitmapText);
     }
 
-    private static Texture loadTextureFromInputStream(InputStream inputStream) {
+    @SneakyThrows
+    private Texture loadTextureFromInputStream(InputStream pngInputStream) {
+
+        InputStreamFork fork = InputStreamFork.fork(pngInputStream);
+        InputStream inputStream = fork.left();
+
+        BufferedImage bufferedImage = ImageIO.read(fork.right());
+
         try (MemoryStack stack = MemoryStack.stackPush()) {
             byte[] imageBytes = inputStream.readAllBytes();
 
@@ -98,7 +116,7 @@ public class DesktopTextureEngine implements TextureEngine {
             GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D);
 
             STBImage.stbi_image_free(image);
-
+            bufferedImageMap.put(textureId, bufferedImage);
             return new Texture(textureId, w.get(0), h.get(0));
 
         } catch (IOException e) {
@@ -106,45 +124,10 @@ public class DesktopTextureEngine implements TextureEngine {
         }
     }
 
-    public static Texture loadTextureFromResource(String resourcePath) {
+    public Texture loadTextureFromResource(String resourcePath) {
         Asset asset = Assets.getAsset(resourcePath);
         return loadTextureFromInputStream(asset.getInputStream());
     }
 
 
-    public static Texture loadTexture(String filePath) {
-        // Используем MemoryStack для временных буферов под размеры
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            IntBuffer w = stack.mallocInt(1);
-            IntBuffer h = stack.mallocInt(1);
-            IntBuffer channels = stack.mallocInt(1);
-
-            // Загружаем изображение в ByteBuffer (RGBA)
-            STBImage.stbi_set_flip_vertically_on_load(true); // переворачиваем по вертикали для правильной ориентации
-            ByteBuffer image = STBImage.stbi_load(filePath, w, h, channels, 4);
-            if (image == null) {
-                throw new RuntimeException("Could not load texture: " + STBImage.stbi_failure_reason());
-            }
-
-            int textureId = GL11.glGenTextures();
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
-            // Параметры фильтрации и повторения (Clamp to Edge, чтобы избежать артефактов на границах прозрачности)
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL13.GL_CLAMP_TO_EDGE);
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL13.GL_CLAMP_TO_EDGE);
-
-            // Загрузка пикселей в GPU память
-            GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, w.get(0), h.get(0), 0,
-                    GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, image);
-            // Создаём mipmaps (необязательно, но на будущее для масштабирования)
-            GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D);
-
-            // Освобождаем память, занятую изображением в RAM
-            STBImage.stbi_image_free(image);
-
-            // Возвращаем объект текстуры с параметрами
-            return new Texture(textureId, w.get(0), h.get(0));
-        }
-    }
 }
