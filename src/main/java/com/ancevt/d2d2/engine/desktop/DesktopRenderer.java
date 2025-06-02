@@ -3,7 +3,6 @@ package com.ancevt.d2d2.engine.desktop;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.StageEvent;
 import com.ancevt.d2d2.scene.*;
-import com.ancevt.d2d2.scene.shape.LineBatch;
 import com.ancevt.d2d2.scene.shape.RectangleShape;
 import com.ancevt.d2d2.scene.text.BitmapCharInfo;
 import com.ancevt.d2d2.scene.text.BitmapFont;
@@ -22,7 +21,6 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -309,8 +307,6 @@ public class DesktopRenderer implements Renderer {
             }
         } else if (node instanceof RectangleShape rect) {
             drawQueue.add(new ShapeDrawInfo(rect, na, nb, nc, nd, ne, nf, newAlpha));
-        } else if (node instanceof LineBatch lb) {
-            drawQueue.add(new LineDrawInfo(lb, na, nb, nc, nd, ne, nf, newAlpha));
         }
 
         if (node instanceof Group group) {
@@ -675,61 +671,5 @@ public class DesktopRenderer implements Renderer {
             return 1;
         }
     }
-
-
-    private static class LineDrawInfo implements DrawInfo {
-        private final LineBatch lineBatch;
-        private final float a, b, c, d, e, f;
-        private final float alpha;
-
-        public LineDrawInfo(LineBatch lineBatch, float a, float b, float c, float d, float e, float f, float alpha) {
-            this.lineBatch = lineBatch;
-            this.a = a;
-            this.b = b;
-            this.c = c;
-            this.d = d;
-            this.e = e;
-            this.f = f;
-            this.alpha = alpha;
-        }
-
-        @Override
-        public int getTextureId() {
-            return DesktopRenderer.whiteTexture.getId();
-        }
-
-        @Override
-        public int render(FloatBuffer buffer, DesktopRenderer renderer) {
-            if (lineBatch.getLines().isEmpty()) return 0;
-
-            float r = 1f, g = 1f, b = 1f;
-            Color color = lineBatch.getColor();
-            if (color != null) {
-                r = color.getR() / 255f;
-                g = color.getG() / 255f;
-                b = color.getB() / 255f;
-            }
-
-            for (LineBatch.Line line : lineBatch.getLines()) {
-                float x1 = line.vertexA.x;
-                float y1 = line.vertexA.y;
-                float x2 = line.vertexB.x;
-                float y2 = line.vertexB.y;
-
-                float x1t = a * x1 + b * y1 + c;
-                float y1t = d * x1 + e * y1 + f;
-                float x2t = a * x2 + b * y2 + c;
-                float y2t = d * x2 + e * y2 + f;
-
-                buffer.put(new float[]{x1t, y1t, 0f, 0f, r, g, b, alpha});
-                buffer.put(new float[]{x2t, y2t, 0f, 0f, r, g, b, alpha});
-            }
-
-            renderer.flushLineBuffer(buffer);
-
-            return 1;
-        }
-    }
-
 
 }
