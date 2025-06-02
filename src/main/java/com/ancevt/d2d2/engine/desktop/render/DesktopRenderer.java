@@ -118,8 +118,8 @@ public class DesktopRenderer implements Renderer {
             drawQueue.add(new SpriteDrawInfo(sprite, na, nb, nc, nd, ne, nf, newAlpha));
         } else if (node instanceof BitmapText btx) {
             if (btx.isCacheAsSprite()) {
-                throw new IllegalStateException("cache as sprite not supported. "+ btx.toString());
-                //drawQueue.add(new SpriteDrawInfo(btx.cachedSprite(), na, nb, nc, nd, ne, nf, newAlpha));
+                //throw new IllegalStateException("cache as sprite not supported. "+ btx.toString());
+                drawQueue.add(new SpriteDrawInfo(btx.cachedSprite(), na, nb, nc, nd, ne, nf, newAlpha));
             } else {
                 drawQueue.add(new BitmapTextDrawInfo(btx, na, nb, nc, nd, ne, nf, newAlpha));
             }

@@ -24,7 +24,6 @@ import com.ancevt.d2d2.scene.text.BitmapCharInfo;
 import com.ancevt.d2d2.scene.text.BitmapFont;
 import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.scene.texture.Texture;
-import com.ancevt.d2d2.scene.texture.TextureRegion;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -35,7 +34,7 @@ import java.io.InputStream;
 import java.util.Map;
 
 
-class AwtBitmapTextDrawHelper {
+public class AwtBitmapTextDrawHelper {
 
     static void draw(BitmapText bitmapText,
                      float alpha,
@@ -102,7 +101,12 @@ class AwtBitmapTextDrawHelper {
             if (charInfo == null) continue;
 
             if (charInfo.character() == ' ') {
-                drawX += bitmapFont.getZeroCharWidth();
+                if(bitmapFont.isMonospaced()) {
+                    drawX += bitmapFont.getZeroCharWidth();
+                } else {
+                    drawX += meterStringWidth(bitmapText, " ");
+                }
+
                 continue;
             }
 
@@ -188,7 +192,7 @@ class AwtBitmapTextDrawHelper {
                 ch == ':' || ch == ';' || ch == ',';
     }
 
-    private static float meterStringWidth(BitmapText bitmapText, String string) {
+    public static float meterStringWidth(BitmapText bitmapText, String string) {
         float result = 0f;
 
         BitmapFont bitmapFont = bitmapText.getBitmapFont();
