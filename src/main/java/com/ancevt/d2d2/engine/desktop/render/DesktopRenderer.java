@@ -30,7 +30,7 @@ public class DesktopRenderer implements Renderer {
     @Setter
     private boolean running = true;
 
-    public static final int BATCH_SIZE = 20000;
+    public static final int BATCH_SIZE = 80000;
 
     private static final int FLOATS_PER_VERTEX = 8; // x, y, u, v, r, g, b, a
     private static final int VERTICES_PER_SPRITE = 4;
@@ -118,7 +118,8 @@ public class DesktopRenderer implements Renderer {
             drawQueue.add(new SpriteDrawInfo(sprite, na, nb, nc, nd, ne, nf, newAlpha));
         } else if (node instanceof BitmapText btx) {
             if (btx.isCacheAsSprite()) {
-                collectNodes(btx.cachedSprite(), na, nb, nc, nd, ne, nf, newAlpha, drawQueue);
+                throw new IllegalStateException("cache as sprite not supported. "+ btx.toString());
+                //drawQueue.add(new SpriteDrawInfo(btx.cachedSprite(), na, nb, nc, nd, ne, nf, newAlpha));
             } else {
                 drawQueue.add(new BitmapTextDrawInfo(btx, na, nb, nc, nd, ne, nf, newAlpha));
             }
