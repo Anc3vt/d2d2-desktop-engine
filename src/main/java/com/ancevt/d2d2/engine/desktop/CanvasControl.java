@@ -1,5 +1,6 @@
 package com.ancevt.d2d2.engine.desktop;
 
+import com.ancevt.d2d2.engine.desktop.render.DesktopRenderer;
 import com.ancevt.d2d2.event.InputEvent;
 import com.ancevt.d2d2.input.Mouse;
 import com.ancevt.d2d2.scene.Stage;

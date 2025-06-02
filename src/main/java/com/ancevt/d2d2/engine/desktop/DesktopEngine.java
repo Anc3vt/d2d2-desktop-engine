@@ -4,6 +4,7 @@ import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.engine.SoundManager;
+import com.ancevt.d2d2.engine.desktop.render.DesktopRenderer;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.core.EventDispatcherImpl;
 import com.ancevt.d2d2.log.Logger;
@@ -70,7 +71,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void start() {
-        renderer.running = true;
+        renderer.setRunning(true);
         stage.dispatchEvent(CommonEvent.Start.create());
         renderer.startRenderLoop();
         stage.dispatchEvent(CommonEvent.Stop.create());
@@ -83,7 +84,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public void stop() {
-        renderer.running = false;
+        renderer.setRunning(false);
     }
 
     @Override

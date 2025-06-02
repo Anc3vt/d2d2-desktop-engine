@@ -1,5 +1,7 @@
-package com.ancevt.d2d2.engine.desktop;
+package com.ancevt.d2d2.engine.desktop.render;
 
+import com.ancevt.d2d2.engine.desktop.CanvasControl;
+import com.ancevt.d2d2.engine.desktop.DesktopEngine;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.StageEvent;
 import com.ancevt.d2d2.scene.*;
@@ -28,7 +30,9 @@ public class DesktopRenderer implements Renderer {
 
     private final DesktopEngine engine;
 
-    boolean running = true;
+    @Getter
+    @Setter
+    private boolean running = true;
 
     public static int batchSize = 20000;
 
@@ -64,33 +68,8 @@ public class DesktopRenderer implements Renderer {
 
     @Override
     public void init(long windowId) {
-        String vertexShaderSrc =
-                "#version 330 core\n" +
-                        "layout(location = 0) in vec2 aPos;\n" +
-                        "layout(location = 1) in vec2 aTexCoord;\n" +
-                        "layout(location = 2) in vec4 aColor;\n" +
-                        "uniform mat4 uProjection;\n" +
-                        "out vec2 vTexCoord;\n" +
-                        "out vec4 vColor;\n" +
-                        "void main() {\n" +
-                        "    vTexCoord = aTexCoord;\n" +
-                        "    vColor = aColor;\n" +
-                        "    gl_Position = uProjection * vec4(aPos, 0.0, 1.0);\n" +
-                        "}\n";
-
-        String fragmentShaderSrc =
-                "#version 330 core\n" +
-                        "in vec2 vTexCoord;\n" +
-                        "in vec4 vColor;\n" +
-                        "out vec4 FragColor;\n" +
-                        "uniform sampler2D uTexture;\n" +
-                        "void main() {\n" +
-                        "    vec4 texColor = texture(uTexture, vTexCoord);\n" +
-                        "    FragColor = texColor * vColor;\n" +
-                        "}\n";
-
-        int vertexShader = compileShader(GL20.GL_VERTEX_SHADER, vertexShaderSrc);
-        int fragmentShader = compileShader(GL20.GL_FRAGMENT_SHADER, fragmentShaderSrc);
+        int vertexShader = compileShader(GL20.GL_VERTEX_SHADER, ShaderSources.VERTEX_SHADER);
+        int fragmentShader = compileShader(GL20.GL_FRAGMENT_SHADER, ShaderSources.FRAGMENT_SHADER);
 
         shaderProgram = GL20.glCreateProgram();
         GL20.glAttachShader(shaderProgram, vertexShader);
