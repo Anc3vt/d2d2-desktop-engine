@@ -5,6 +5,7 @@ import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.engine.SoundManager;
 import com.ancevt.d2d2.engine.desktop.render.DesktopRenderer;
+import com.ancevt.d2d2.engine.desktop_old.DesktopDisplayManager_old;
 import com.ancevt.d2d2.engine.desktop_old.awt.AwtBitmapFontGenerator_old;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.core.EventDispatcherImpl;
@@ -24,6 +25,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     private Stage stage;
     private DesktopRenderer renderer;
+    private DesktopDisplayManager displayManager;
 
     public DesktopEngine(int initialWidth, int initialHeight, String initialTitle) {
         this.initialWidth = initialWidth;
@@ -37,6 +39,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
         stage = new Stage();
         stage.setSize(initialWidth, initialHeight);
         renderer = new DesktopRenderer(this);
+        displayManager = new DesktopDisplayManager();
         CanvasControl.createAndSetupGlfwWindow(this);
     }
 
@@ -115,7 +118,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
 
     @Override
     public DisplayManager displayManager() {
-        return null;
+        return displayManager;
     }
 
     @Override

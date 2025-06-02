@@ -213,6 +213,16 @@ public class AwtBitmapTextDrawHelper {
     public static Texture bitmapTextToTexture(BitmapText bitmapText) {
         int width = (int) bitmapText.getWidth();
         int height = (int) bitmapText.getHeight();
+
+        if(width == 0) {
+            System.err.println("possible not optimal text \"cache as sprite\" call");
+            width = 10;
+        }
+        if(height == 0) {
+            System.err.println("possible not optimal text \"cache as sprite\" call");
+            height = 10;
+        }
+
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
 
