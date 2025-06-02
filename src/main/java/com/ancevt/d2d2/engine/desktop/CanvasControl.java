@@ -222,7 +222,7 @@ public class CanvasControl {
         });
 
         renderer.init(windowId);
-        renderer.setProjection(engine.getCanvasWidth(), engine.getCanvasHeight());
+
     }
 
     public static void setSize(int width, int height) {
