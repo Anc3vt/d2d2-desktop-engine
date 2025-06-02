@@ -32,7 +32,8 @@ public class DesktopTextureEngine implements TextureEngine {
 
     @Override
     public boolean bind(Texture texture) {
-        return false;
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getId());
+        return true;
     }
 
     @Override
@@ -43,6 +44,36 @@ public class DesktopTextureEngine implements TextureEngine {
     @Override
     public void disable(Texture texture) {
 
+    }
+
+    public static void bindTexture(Texture texture) {
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getId());
+    }
+
+    public static Texture createTexture(int width, int height) {
+        int textureId = GL11.glGenTextures();
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
+
+        // Настройки фильтрации и обёртки
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_CLAMP);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_CLAMP);
+
+        // Резервируем память без данных (null)
+        GL11.glTexImage2D(
+                GL11.GL_TEXTURE_2D,
+                0,
+                GL11.GL_RGBA8,
+                width,
+                height,
+                0,
+                GL11.GL_RGBA,
+                GL11.GL_UNSIGNED_BYTE,
+                (java.nio.ByteBuffer) null
+        );
+
+        return new Texture(textureId, width, height);
     }
 
     @Override

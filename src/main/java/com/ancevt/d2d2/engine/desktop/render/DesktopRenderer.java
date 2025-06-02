@@ -2,6 +2,7 @@ package com.ancevt.d2d2.engine.desktop.render;
 
 import com.ancevt.d2d2.engine.desktop.CanvasControl;
 import com.ancevt.d2d2.engine.desktop.DesktopEngine;
+import com.ancevt.d2d2.engine.desktop.node.BitmapCanvasGpu;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.StageEvent;
 import com.ancevt.d2d2.scene.*;
@@ -129,8 +130,8 @@ public class DesktopRenderer implements Renderer {
             drawQueue.add(new FreeShapeDrawInfo(freeShape, na, nb, nc, nd, ne, nf, newAlpha));
         } else if (node instanceof LineBatch lineBatch) {
             drawQueue.add(new LineBatchDrawInfo(lineBatch, na, nb, nc, nd, ne, nf, newAlpha));
-        } else if (node instanceof BitmapCanvas bitmapCanvas) {
-            drawQueue.add(new BitmapCanvasDrawInfo(bitmapCanvas, na, nb, nc, nd, ne, nf, newAlpha));
+        } else if (node instanceof BitmapCanvasGpu canvasGPU) {
+            drawQueue.add(new BitmapCanvasGpuDrawInfo(canvasGPU, na, nb, nc, nd, ne, nf, newAlpha));
         }
 
 

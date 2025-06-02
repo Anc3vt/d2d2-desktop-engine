@@ -21,11 +21,13 @@ package com.ancevt.d2d2.engine.desktop_old;
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.engine.DisplayManager;
 import com.ancevt.d2d2.engine.Engine;
+import com.ancevt.d2d2.engine.NodeFactory;
 import com.ancevt.d2d2.engine.SoundManager;
 import com.ancevt.d2d2.engine.desktop_old.awt.AwtBitmapFontGenerator_old;
 import com.ancevt.d2d2.engine.desktop_old.lwjgl.CanvasHelper_old;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.core.EventDispatcherImpl;
+import com.ancevt.d2d2.exception.NotImplementedException;
 import com.ancevt.d2d2.log.Logger;
 import com.ancevt.d2d2.scene.Renderer;
 import com.ancevt.d2d2.scene.Stage;
@@ -189,5 +191,10 @@ public class DesktopEngine_old extends EventDispatcherImpl implements Engine {
     @Override
     public BitmapFont generateBitmapFont(FontBuilder builder) {
         return AwtBitmapFontGenerator_old.generate(builder);
+    }
+
+    @Override
+    public NodeFactory nodeFactory() {
+        throw new NotImplementedException();
     }
 }
