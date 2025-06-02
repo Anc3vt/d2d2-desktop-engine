@@ -129,7 +129,10 @@ public class DesktopRenderer implements Renderer {
             drawQueue.add(new FreeShapeDrawInfo(freeShape, na, nb, nc, nd, ne, nf, newAlpha));
         } else if (node instanceof LineBatch lineBatch) {
             drawQueue.add(new LineBatchDrawInfo(lineBatch, na, nb, nc, nd, ne, nf, newAlpha));
+        } else if (node instanceof BitmapCanvas bitmapCanvas) {
+            drawQueue.add(new BitmapCanvasDrawInfo(bitmapCanvas, na, nb, nc, nd, ne, nf, newAlpha));
         }
+
 
         if (node instanceof Group group) {
             for (Node child : group.children().toList()) {
