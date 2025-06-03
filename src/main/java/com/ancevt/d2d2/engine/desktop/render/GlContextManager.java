@@ -36,6 +36,12 @@ public class GlContextManager {
         this.vertexBuffer = vertexBuffer;
     }
 
+    public void setTextureWrap(int textureId, int wrapMode) {
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, wrapMode);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, wrapMode);
+    }
+
     public void init() {
         int vertexShader = compileShader(GL20.GL_VERTEX_SHADER, ShaderSources.VERTEX_SHADER);
         int fragmentShader = compileShader(GL20.GL_FRAGMENT_SHADER, ShaderSources.FRAGMENT_SHADER);

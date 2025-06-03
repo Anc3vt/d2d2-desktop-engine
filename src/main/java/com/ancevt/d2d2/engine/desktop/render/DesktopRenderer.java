@@ -44,6 +44,8 @@ public class DesktopRenderer implements Renderer {
     @Getter
     @Setter
     private int frameRate = 60;
+
+    @Getter
     private GlContextManager glContextManager;
 
     @Override
@@ -125,7 +127,7 @@ public class DesktopRenderer implements Renderer {
                 drawQueue.add(new BitmapTextDrawInfo(btx, na, nb, nc, nd, ne, nf, newAlpha));
             }
         } else if (node instanceof RectangleShape rect) {
-            drawQueue.add(new ShapeDrawInfo(rect, na, nb, nc, nd, ne, nf, newAlpha));
+            drawQueue.add(new RectangleShapeDrawInfo(rect, na, nb, nc, nd, ne, nf, newAlpha));
         } else if (node instanceof FreeShape freeShape) {
             drawQueue.add(new FreeShapeDrawInfo(freeShape, na, nb, nc, nd, ne, nf, newAlpha));
         } else if (node instanceof LineBatch lineBatch) {
