@@ -140,7 +140,7 @@ public class DesktopRenderer_old implements Renderer {
             renderNode(cursor, 0, 0, 0, 1, 1, 1);
         }
 
-        textureEngine.unloadTexture();
+        textureEngine.unloadTextures();
 
         GLFW.glfwGetCursorPos(CanvasHelper_old.getWindowId(), mouseX, mouseY);
         //Mouse.setXY((int) mouseX[0], (int) mouseY[0]);

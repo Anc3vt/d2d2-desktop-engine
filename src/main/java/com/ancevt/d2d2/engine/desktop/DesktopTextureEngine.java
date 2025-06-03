@@ -25,6 +25,8 @@ import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.lwjgl.opengl.GL11.glDeleteTextures;
+
 public class DesktopTextureEngine implements TextureEngine {
 
     @Getter
@@ -93,7 +95,7 @@ public class DesktopTextureEngine implements TextureEngine {
 
     @Override
     public void unloadTexture(Texture texture) {
-
+        glDeleteTextures(texture.getId());
     }
 
     @Override

@@ -310,7 +310,7 @@ public class DesktopTextureEngine_old implements TextureEngine {
         unloadQueue.add(texture);
     }
 
-    public void unloadTexture() {
+    public void unloadTextures() {
         while (!unloadQueue.isEmpty()) {
             Texture texture = unloadQueue.poll();
             glDeleteTextures(mapping.ids().get(texture.getId()));
