@@ -3,7 +3,7 @@ package com.ancevt.d2d2.engine.desktop_old.lwjgl;
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.engine.desktop_old.DesktopEngine_old;
-import com.ancevt.d2d2.engine.desktop_old.WindowIconLoader;
+import com.ancevt.d2d2.engine.desktop_old.WindowIconLoader_old;
 import com.ancevt.d2d2.event.InputEvent;
 import com.ancevt.d2d2.input.Mouse;
 import com.ancevt.d2d2.lifecycle.D2D2PropertyConstants;
@@ -90,7 +90,7 @@ public class CanvasHelper_old {
         if (windowId == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
 
-        WindowIconLoader.loadIcons(windowId);
+        WindowIconLoader_old.loadIcons(windowId);
 
         Stage stage = engine.getStage();
         Renderer renderer = engine.getRenderer();

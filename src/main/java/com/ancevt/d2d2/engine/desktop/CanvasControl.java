@@ -12,7 +12,6 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryUtil;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 
 public class CanvasControl {
 
@@ -61,6 +60,8 @@ public class CanvasControl {
         if (windowId == MemoryUtil.NULL) {
             throw new RuntimeException("Unable to create window");
         }
+
+        WindowIconLoader.loadIcons(windowId);
 
         GLFW.glfwMakeContextCurrent(windowId);
         GLFW.glfwSwapInterval(1);
