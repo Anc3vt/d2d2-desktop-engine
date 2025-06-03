@@ -31,7 +31,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class WindowIconLoader {
+class WindowIconLoader {
 
     private static final String ASSET_ICON_DIR = "assets/icon";
     private static final String DEFAULT_ASSET_ICON_DIR = "assets/defaultd2d2windowicon";

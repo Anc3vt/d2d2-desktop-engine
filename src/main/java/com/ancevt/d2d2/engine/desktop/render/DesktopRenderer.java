@@ -64,6 +64,35 @@ public class DesktopRenderer implements Renderer {
         s.setSize(engine.getCanvasWidth(), engine.getCanvasHeight());
     }
 
+    public void renderGroupToCurrentFramebuffer(Group group, int width, int height) {
+        List<DrawInfo> drawQueue = new ArrayList<>();
+        collectNodes(group, 1f, 0f, 0f, 0f, 1f, 0f, 1f, drawQueue);
+
+        glContextManager.setProjection(width, height);
+        glContextManager.prepareRenderFrame(Color.NO_COLOR);
+
+        int currentTex = -1;
+        int batch = 0;
+        vertexBuffer.clear();
+
+        for (DrawInfo info : drawQueue) {
+            int texId = info.getTextureId();
+
+            if (batch >= BATCH_SIZE || texId != currentTex) {
+                if (batch > 0) glContextManager.flushBatch(batch);
+                batch = 0;
+                currentTex = texId;
+                glContextManager.setTextureFilter(texId, GL11.GL_NEAREST);
+                vertexBuffer.clear();
+            }
+
+            batch += info.render(vertexBuffer, this);
+        }
+
+        if (batch > 0) glContextManager.flushBatch(batch);
+
+        glContextManager.setProjection(engine.getCanvasWidth(), engine.getCanvasHeight()); // Восстанови
+    }
 
     @Override
     public void renderFrame() {

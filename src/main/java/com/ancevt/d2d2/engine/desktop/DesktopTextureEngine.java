@@ -2,6 +2,7 @@ package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.asset.Asset;
 import com.ancevt.d2d2.asset.Assets;
+import com.ancevt.d2d2.scene.Group;
 import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.scene.texture.Texture;
 import com.ancevt.d2d2.scene.texture.TextureEngine;
@@ -101,6 +102,11 @@ public class DesktopTextureEngine implements TextureEngine {
     @Override
     public Texture bitmapTextToTexture(BitmapText bitmapText) {
         return AwtBitmapTextDrawHelper.bitmapTextToTexture(bitmapText);
+    }
+
+    @Override
+    public Texture renderGroupToTexture(Group group, int width, int height) {
+        return RenderTargetTexture.renderGroupToTexture(group, width, height);
     }
 
     @SneakyThrows

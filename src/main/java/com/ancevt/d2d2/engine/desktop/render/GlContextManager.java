@@ -145,11 +145,15 @@ public class GlContextManager {
     }
 
     public void prepareRenderFrame(Color backgroundColor) {
-        GL11.glClearColor(
-                backgroundColor.getR() / 255f,
-                backgroundColor.getG() / 255f,
-                backgroundColor.getB() / 255f,
-                1f);
+        if(backgroundColor == null) {
+            GL11.glClearColor(0f, 0f, 0f, 0f);
+        } else {
+            GL11.glClearColor(
+                    backgroundColor.getR() / 255f,
+                    backgroundColor.getG() / 255f,
+                    backgroundColor.getB() / 255f,
+                    1f);
+        }
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
         GL20.glUseProgram(shaderProgram);
         GL20.glUniformMatrix4fv(uProjectionLocation, false, projectionMatrix);

@@ -20,7 +20,9 @@ package com.ancevt.d2d2.engine.desktop_old;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.asset.Assets;
+import com.ancevt.d2d2.exception.NotImplementedException;
 import com.ancevt.d2d2.scene.Color;
+import com.ancevt.d2d2.scene.Group;
 import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.scene.texture.TextureEngine;
 import com.ancevt.d2d2.scene.texture.Texture;
@@ -415,5 +417,10 @@ public class DesktopTextureEngine_old implements TextureEngine {
             textureRegion.getWidth(),
             textureRegion.getHeight()
         );
+    }
+
+    @Override
+    public Texture renderGroupToTexture(Group group, int width, int height) {
+        throw new NotImplementedException();
     }
 }
