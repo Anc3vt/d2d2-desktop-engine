@@ -31,42 +31,77 @@ class SpriteDrawInfo implements DrawInfo {
     @Override
     public int render(FloatBuffer buffer, DesktopRenderer r) {
         TextureRegion region = sprite.getTextureRegion();
-        float u0 = 0f, v0 = 1f, u1 = 1f, v1 = 0f;
+        if (region == null) return 0;
 
-        float w = sprite.getWidth();
-        float h = sprite.getHeight();
+        Texture texture = region.getTexture();
+        if (texture == null) return 0;
 
-        if (region != null) {
-            Texture tex = region.getTexture();
-            float texW = tex.getWidth();
-            float texH = tex.getHeight();
-            float rx = region.getX(), ry = region.getY();
-            float rw = region.getWidth(), rh = region.getHeight();
+        float texW = texture.getWidth();
+        float texH = texture.getHeight();
 
-            u0 = rx / texW;
-            u1 = (rx + rw) / texW;
-            v1 = (texH - ry - rh) / texH;
-            v0 = (texH - ry) / texH;
+        float rx = region.getX();
+        float ry = region.getY();
+        float rw = region.getWidth();
+        float rh = region.getHeight();
+
+        float u0 = rx / texW;
+        float u1 = (rx + rw) / texW;
+        float v1 = (texH - ry - rh) / texH;
+        float v0 = (texH - ry) / texH;
+
+        Color color = sprite.getColor();
+        float rColor = color.getR() / 255f;
+        float g = color.getG() / 255f;
+        float bColor = color.getB() / 255f;
+
+        float repeatX = Math.max(0.01f, sprite.getRepeatX());
+        float repeatY = Math.max(0.01f, sprite.getRepeatY());
+
+        float tileW = rw;
+        float tileH = rh;
+
+        int triangleCount = 0;
+
+        for (float ix = 0; ix < repeatX; ix += 1f) {
+            for (float iy = 0; iy < repeatY; iy += 1f) {
+                float dx = ix * tileW;
+                float dy = iy * tileH;
+
+                // Доля плитки, если не до конца
+                float xRatio = Math.min(1f, repeatX - ix);
+                float yRatio = Math.min(1f, repeatY - iy);
+
+                float localW = tileW * xRatio;
+                float localH = tileH * yRatio;
+
+                // UV для частичной плитки
+                float u0x = u0;
+                float u1x = u0 + (u1 - u0) * xRatio;
+                float v0y = v0;
+                float v1y = v0 - (v0 - v1) * yRatio;
+
+                float x0 = a * dx + b * dy + c;
+                float y0 = d * dx + e * dy + f;
+                float x1 = a * (dx + localW) + b * dy + c;
+                float y1 = d * (dx + localW) + e * dy + f;
+                float x2 = a * (dx + localW) + b * (dy + localH) + c;
+                float y2 = d * (dx + localW) + e * (dy + localH) + f;
+                float x3 = a * dx + b * (dy + localH) + c;
+                float y3 = d * dx + e * (dy + localH) + f;
+
+                buffer.put(new float[]{
+                        x0, y0, u0x, v0y, rColor, g, bColor, alpha,
+                        x1, y1, u1x, v0y, rColor, g, bColor, alpha,
+                        x2, y2, u1x, v1y, rColor, g, bColor, alpha,
+                        x3, y3, u0x, v1y, rColor, g, bColor, alpha
+                });
+
+                triangleCount++;
+            }
         }
 
-        float x0 = c, y0 = f;
-        float x1 = a * w + c, y1 = d * w + f;
-        float x2 = a * w + b * h + c, y2 = d * w + e * h + f;
-        float x3 = b * h + c, y3 = e * h + f;
-
-        float rColor = 1f, g = 1f, bColor = 1f;
-        Color color = sprite.getColor();
-        rColor = color.getR() / 255f;
-        g = color.getG() / 255f;
-        bColor = color.getB() / 255f;
-
-        buffer.put(new float[]{
-                x0, y0, u0, v0, rColor, g, bColor, alpha,
-                x1, y1, u1, v0, rColor, g, bColor, alpha,
-                x2, y2, u1, v1, rColor, g, bColor, alpha,
-                x3, y3, u0, v1, rColor, g, bColor, alpha
-        });
-
-        return 1;
+        return triangleCount;
     }
+
+
 }
