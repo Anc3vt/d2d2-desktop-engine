@@ -35,7 +35,7 @@ public class DesktopNodeFactory implements NodeFactory {
     @Override
     public Sprite createSprite(String assetFilename) {
         return createSprite(
-                D2D2.textureManager()
+                D2D2.getTextureManager()
                         .loadTexture(assetFilename)
                         .createTextureRegion()
         );
@@ -44,7 +44,7 @@ public class DesktopNodeFactory implements NodeFactory {
     @Override
     public Sprite createSprite(String asset, int regionX, int regionY, int regionWidth, int regionHeight) {
         return createSprite(
-                D2D2.textureManager()
+                D2D2.getTextureManager()
                         .loadTexture(asset)
                         .createTextureRegion(regionX, regionY, regionWidth, regionHeight)
         );

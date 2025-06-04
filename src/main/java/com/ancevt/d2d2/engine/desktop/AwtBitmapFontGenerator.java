@@ -158,7 +158,7 @@ public class AwtBitmapFontGenerator {
             log.info(AwtBitmapFontGenerator.class, "BMF written %s/%s".formatted(destinationPath, fileName));
         }
 
-        return D2D2.bitmapFontManager().loadBitmapFont(
+        return D2D2.getBitmapFontManager().loadBitmapFont(
                 new ByteArrayInputStream(charsDataBytes),
                 new ByteArrayInputStream(pngDataBytes),
                 builder.getName()

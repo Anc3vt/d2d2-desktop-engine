@@ -75,7 +75,8 @@ class BitmapTextDrawInfo implements DrawInfo {
 
             // Word wrap
             if (text.isWordWrap() && boundWidth > 0) {
-                String nextWord = AwtBitmapTextDrawHelper.getNextWord(content, i);
+                String nextWord =
+                        AwtBitmapTextDrawHelper.getNextWord(content, i);
                 float nextWordWidth = AwtBitmapTextDrawHelper.meterStringWidth(text, nextWord) * scaleX;
                 if (cursorX + nextWordWidth >= boundWidth) {
                     cursorX = 0f;

@@ -19,6 +19,7 @@
 package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.D2D2;
+import com.ancevt.d2d2.exception.NotImplementedException;
 import com.ancevt.d2d2.scene.Color;
 import com.ancevt.d2d2.scene.text.BitmapCharInfo;
 import com.ancevt.d2d2.scene.text.BitmapFont;
@@ -273,7 +274,7 @@ public class AwtBitmapTextDrawHelper {
 
 
         final Texture texture = createTextureFromBufferedImage(image);
-        D2D2.textureManager().addTextureRegion("_texture_text_" + texture.getId(), texture.createTextureRegion());
+        //D2D2.textureManager().addTextureRegion("_texture_text_" + texture.getId(), texture.createTextureRegion());
         return texture;
     }
 
@@ -305,7 +306,7 @@ public class AwtBitmapTextDrawHelper {
     public static Texture createTextureFromBufferedImage(BufferedImage image) {
         try {
             InputStream inputStream = bufferedImageToPngInputStream(image);
-            return D2D2.textureManager().loadTexture(inputStream);
+            return D2D2.getTextureManager().loadTexture(inputStream);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -320,7 +321,7 @@ public class AwtBitmapTextDrawHelper {
 
 
     private static BufferedImage textureRegionToImage(Texture texture, int x, int y, int width, int height) {
-        Map<Integer, BufferedImage> map = ((DesktopTextureEngine) D2D2.textureManager().getTextureEngine()).getBufferedImageMap();
+        Map<Integer, BufferedImage> map = ((DesktopTextureManager) D2D2.getTextureManager()).getBufferedImageMap();
         BufferedImage bufferedImage = map.computeIfAbsent(texture.getId(), id -> {
             throw new IllegalStateException("texture not found: " + id);
         });

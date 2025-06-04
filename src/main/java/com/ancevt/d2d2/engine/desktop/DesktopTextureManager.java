@@ -1,26 +1,28 @@
 package com.ancevt.d2d2.engine.desktop;
 
+import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.asset.Asset;
 import com.ancevt.d2d2.asset.Assets;
 import com.ancevt.d2d2.scene.Group;
 import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.scene.texture.Texture;
-import com.ancevt.d2d2.scene.texture.TextureEngine;
-import com.ancevt.d2d2.scene.texture.TextureRegionCombinerCell;
+import com.ancevt.d2d2.scene.texture.TextureManager;
+import com.ancevt.d2d2.scene.texture.TextureRegion;
 import com.ancevt.d2d2.util.InputStreamFork;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.HashMap;
@@ -28,42 +30,26 @@ import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.glDeleteTextures;
 
-public class DesktopTextureEngine implements TextureEngine {
+public class DesktopTextureManager implements TextureManager {
 
     @Getter
     private final Map<Integer, BufferedImage> bufferedImageMap = new HashMap<>();
 
-    @Override
-    public boolean bind(Texture texture) {
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getId());
-        return true;
-    }
-
-    @Override
-    public void enable(Texture texture) {
-
-    }
-
-    @Override
-    public void disable(Texture texture) {
-
-    }
+    private final Map<String, Texture> loadedTextures = new HashMap<>();
 
     public static void bindTexture(Texture texture) {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getId());
     }
 
-    public static Texture createTexture(int width, int height) {
+    public static Texture loadTextureInternal(int width, int height) {
         int textureId = GL11.glGenTextures();
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
 
-        // Настройки фильтрации и обёртки
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_CLAMP);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_CLAMP);
 
-        // Резервируем память без данных (null)
         GL11.glTexImage2D(
                 GL11.GL_TEXTURE_2D,
                 0,
@@ -80,18 +66,13 @@ public class DesktopTextureEngine implements TextureEngine {
     }
 
     @Override
-    public Texture createTexture(InputStream pngInputStream) {
+    public Texture loadTexture(InputStream pngInputStream) {
         return loadTextureFromInputStream(pngInputStream);
     }
 
     @Override
-    public Texture createTexture(String assetPath) {
+    public Texture loadTexture(String assetPath) {
         return loadTextureFromResource(assetPath);
-    }
-
-    @Override
-    public Texture createTexture(int width, int height, TextureRegionCombinerCell[] cells) {
-        return null;
     }
 
     @Override
@@ -109,9 +90,13 @@ public class DesktopTextureEngine implements TextureEngine {
         return RenderTargetTexture.renderGroupToTexture(group, width, height);
     }
 
+    @Override
+    public boolean isTextureActive(Texture texture) {
+        return loadedTextures.containsValue(texture);
+    }
+
     @SneakyThrows
     private Texture loadTextureFromInputStream(InputStream pngInputStream) {
-
         InputStreamFork fork = InputStreamFork.fork(pngInputStream);
         InputStream inputStream = fork.left();
 
@@ -170,5 +155,68 @@ public class DesktopTextureEngine implements TextureEngine {
         return loadTextureFromInputStream(asset.getInputStream());
     }
 
+    @Override
+    public void addTextureRegion(String key, TextureRegion textureRegion) {
+        TextureDataInfoReadHelper.regionMap.put(key, textureRegion);
+    }
 
+    @Override
+    public TextureRegion getTextureRegion(String key) {
+        return TextureDataInfoReadHelper.regionMap.get(key);
+    }
+
+    @Override
+    public void loadTextureDataInfo(String assetInfFile) {
+        try {
+            TextureDataInfoReadHelper.readTextureDataInfoFile(assetInfFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static class TextureDataInfoReadHelper {
+
+        private TextureDataInfoReadHelper() {
+        }
+
+        private static Texture currentTexture;
+
+        public static void readTextureDataInfoFile(String assetPath) throws IOException {
+            final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(Assets.getAsset(assetPath).getInputStream()));
+
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                parseLine(line);
+            }
+        }
+
+        private static void parseLine(String line) {
+            line = line.trim();
+            line = line.replaceAll("\\s+", " ");
+
+            if (line.length() == 0) return;
+
+            char firstChar = line.charAt(0);
+            if (firstChar == ':') {
+                String tileSetName = line.substring(1);
+                currentTexture = D2D2.getEngine().getTextureManager().loadTexture(tileSetName);
+                return;
+            }
+
+            String[] splitted = line.split(" ");
+
+            String textureKey = splitted[0];
+            int x = Integer.parseInt(splitted[1]);
+            int y = Integer.parseInt(splitted[2]);
+            int w = Integer.parseInt(splitted[3]);
+            int h = Integer.parseInt(splitted[4]);
+
+            TextureRegion textureRegion = currentTexture.createTextureRegion(x, y, w, h);
+
+            regionMap.put(textureKey, textureRegion);
+        }
+
+        static final Map<String, TextureRegion> regionMap = new HashMap<>();
+
+    }
 }

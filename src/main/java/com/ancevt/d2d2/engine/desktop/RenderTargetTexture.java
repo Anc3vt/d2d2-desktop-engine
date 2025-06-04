@@ -85,14 +85,14 @@ public class RenderTargetTexture {
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        DesktopRenderer renderer = (DesktopRenderer) D2D2.engine().getRenderer();
+        DesktopRenderer renderer = (DesktopRenderer) D2D2.getEngine().getRenderer();
 
-        renderer.renderGroupToCurrentFramebuffer(group, width, height); // ⬅️ тебе надо этот метод добавить
+        renderer.renderGroupToCurrentFrameBuffer(group, width, height); // ⬅️ тебе надо этот метод добавить
 
         // восстановим дефолтный FBO
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        Texture texture = new Texture(tex, width, height); // может, у тебя конструктор другой
+        Texture texture = new Texture(tex, width, height);
         return texture;
     }
 }

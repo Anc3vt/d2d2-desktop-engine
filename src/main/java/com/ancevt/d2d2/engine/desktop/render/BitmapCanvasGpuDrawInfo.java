@@ -1,6 +1,6 @@
 package com.ancevt.d2d2.engine.desktop.render;
 
-import com.ancevt.d2d2.engine.desktop.DesktopTextureEngine;
+import com.ancevt.d2d2.engine.desktop.DesktopTextureManager;
 import com.ancevt.d2d2.engine.desktop.node.BitmapCanvasGpu;
 import com.ancevt.d2d2.scene.texture.Texture;
 import org.lwjgl.opengl.GL11;
@@ -28,9 +28,9 @@ public class BitmapCanvasGpuDrawInfo implements DrawInfo {
         this.f = f;
         this.alpha = alpha;
 
-        this.texture = DesktopTextureEngine.createTexture(
+        this.texture = DesktopTextureManager.loadTextureInternal(
                 canvas.getWidthInt(), canvas.getHeightInt());
-        DesktopTextureEngine.bindTexture(texture);
+        DesktopTextureManager.bindTexture(texture);
 
         GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8,
                 canvas.getWidthInt(), canvas.getHeightInt(),
@@ -44,7 +44,7 @@ public class BitmapCanvasGpuDrawInfo implements DrawInfo {
 
     private void updateTexture() {
         if (canvas.isDirty()) {
-            DesktopTextureEngine.bindTexture(texture);
+            DesktopTextureManager.bindTexture(texture);
             GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 0, 0,
                     canvas.getWidthInt(), canvas.getHeightInt(),
                     GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE,

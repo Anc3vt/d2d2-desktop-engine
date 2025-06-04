@@ -126,22 +126,17 @@ public class GlContextManager {
     public void flushBatch(int spriteCount) {
         if (spriteCount <= 0) return;
 
-        // 💡 Убедимся, что привязаны все буферы
         GL30.glBindVertexArray(vaoId);
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, eboId);
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
 
-        // 🧠 Установка лимита и позиции перед заливкой данных
         vertexBuffer.limit(spriteCount * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX);
         vertexBuffer.position(0);
 
-        // 🚀 Отправка данных в VBO
         GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, vertexBuffer);
 
-        // ✅ Отрисовка индексов
         GL11.glDrawElements(GL11.GL_TRIANGLES, spriteCount * INDICES_PER_SPRITE, GL11.GL_UNSIGNED_INT, 0);
 
-        // 🧹 Очистка буфера для следующего кадра
         vertexBuffer.clear();
     }
 

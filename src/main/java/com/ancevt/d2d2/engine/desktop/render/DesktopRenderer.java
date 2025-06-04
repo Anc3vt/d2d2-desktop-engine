@@ -71,7 +71,7 @@ public class DesktopRenderer implements Renderer {
         s.setSize(engine.getCanvasWidth(), engine.getCanvasHeight());
     }
 
-    public void renderGroupToCurrentFramebuffer(Group group, int width, int height) {
+    public void renderGroupToCurrentFrameBuffer(Group group, int width, int height) {
         List<DrawInfo> drawQueue = new ArrayList<>();
         collectNodes(group, 1f, 0f, 0f, 0f, 1f, 0f, 1f, drawQueue);
 
