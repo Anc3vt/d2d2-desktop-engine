@@ -107,7 +107,7 @@ public class DesktopEngine_old extends EventDispatcherImpl implements Engine {
     }
 
     @Override
-    public void create() {
+    public void init() {
         stage = new Stage();
         renderer = new DesktopRenderer_old(stage, this);
         renderer.setDesktopTextureEngine((DesktopTextureEngine_old) D2D2.textureManager().getTextureEngine());

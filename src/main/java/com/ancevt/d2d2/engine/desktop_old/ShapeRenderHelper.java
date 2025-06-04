@@ -64,12 +64,12 @@ class ShapeRenderHelper {
     }
 
     private static void drawFreeShape(FreeShape s) {
-        for (Triangle triangle : s.getTriangles()) {
+        for (TriangleInfo triangleInfo : s.getTriangleInfos()) {
             glBegin(GL11.GL_TRIANGLES);
 
-            glVertex2f(triangle.getX1(), triangle.getY1());
-            glVertex2f(triangle.getX2(), triangle.getY2());
-            glVertex2f(triangle.getX3(), triangle.getY3());
+            glVertex2f(triangleInfo.getX1(), triangleInfo.getY1());
+            glVertex2f(triangleInfo.getX2(), triangleInfo.getY2());
+            glVertex2f(triangleInfo.getX3(), triangleInfo.getY3());
 
             glEnd();
 

@@ -2,7 +2,7 @@ package com.ancevt.d2d2.engine.desktop.render;
 
 import com.ancevt.d2d2.scene.Color;
 import com.ancevt.d2d2.scene.shape.FreeShape;
-import com.ancevt.d2d2.scene.shape.Triangle;
+import com.ancevt.d2d2.scene.shape.TriangleInfo;
 import com.ancevt.d2d2.scene.texture.Texture;
 import com.ancevt.d2d2.scene.texture.TextureRegion;
 
@@ -101,7 +101,7 @@ class FreeShapeDrawInfo implements DrawInfo {
             v0 = (texH - region.getY()) / texH;
         }
 
-        for (Triangle t : shape.getTriangles()) {
+        for (TriangleInfo t : shape.getTriangleInfos()) {
             float[] transformed = transformTriangle(t);
 
             float x1 = t.getX1(), y1 = t.getY1();
@@ -126,7 +126,7 @@ class FreeShapeDrawInfo implements DrawInfo {
     }
 
 
-    private float[] transformTriangle(Triangle t) {
+    private float[] transformTriangle(TriangleInfo t) {
         float x1 = t.getX1(), y1 = t.getY1();
         float x2 = t.getX2(), y2 = t.getY2();
         float x3 = t.getX3(), y3 = t.getY3();

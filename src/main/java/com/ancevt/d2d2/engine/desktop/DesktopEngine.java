@@ -40,7 +40,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
     }
 
     @Override
-    public void create() {
+    public void init() {
         stage = new Stage();
         stage.setSize(initialWidth, initialHeight);
         renderer = new DesktopRenderer(this);
