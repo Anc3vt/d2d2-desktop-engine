@@ -3,6 +3,8 @@ package com.ancevt.d2d2.engine.desktop.node;
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.engine.NodeFactory;
 import com.ancevt.d2d2.scene.*;
+import com.ancevt.d2d2.scene.interactive.InteractiveGroup;
+import com.ancevt.d2d2.scene.interactive.InteractiveSprite;
 import com.ancevt.d2d2.scene.shape.*;
 import com.ancevt.d2d2.scene.texture.Texture;
 import com.ancevt.d2d2.scene.texture.TextureRegion;
@@ -48,6 +50,47 @@ public class DesktopNodeFactory implements NodeFactory {
                         .loadTexture(asset)
                         .createTextureRegion(regionX, regionY, regionWidth, regionHeight)
         );
+    }
+
+    @Override
+    public InteractiveSprite createInteractiveSprite() {
+        return new InteractiveSprite();
+    }
+
+    @Override
+    public InteractiveSprite createInteractiveSprite(TextureRegion textureRegion) {
+        InteractiveSprite interactiveSprite = new InteractiveSprite();
+        interactiveSprite.setTextureRegion(textureRegion);
+        return interactiveSprite;
+    }
+
+    @Override
+    public InteractiveSprite createInteractiveSprite(Texture texture) {
+        InteractiveSprite interactiveSprite = new InteractiveSprite();
+        interactiveSprite.setTextureRegion(texture.createTextureRegion());
+        return interactiveSprite;
+    }
+
+    @Override
+    public InteractiveSprite createInteractiveSprite(String assetFilename) {
+        return createInteractiveSprite(
+                D2D2.getTextureManager()
+                        .loadTexture(assetFilename)
+                        .createTextureRegion()
+        );
+    }
+
+    @Override
+    public InteractiveSprite createInteractiveSprite(String assetFilename, int regionX, int regionY, int regionWidth, int regionHeight) {
+        return createInteractiveSprite(D2D2.getTextureManager()
+                .loadTexture(assetFilename)
+                .createTextureRegion(regionX, regionY, regionWidth, regionHeight)
+        );
+    }
+
+    @Override
+    public InteractiveGroup createInteractiveGroup(int width, int height) {
+        return new InteractiveGroup(width, height);
     }
 
     @Override
