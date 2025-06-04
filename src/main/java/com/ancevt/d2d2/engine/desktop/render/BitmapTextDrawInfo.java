@@ -88,8 +88,8 @@ class BitmapTextDrawInfo implements DrawInfo {
             BitmapCharInfo charInfo = font.getCharInfo(ch);
             if (charInfo == null) continue;
 
-            float charW = charInfo.width() * scaleX;
-            float charH = charInfo.height() * scaleY;
+            float charW = charInfo.width();
+            float charH = charInfo.height();
 
             if (cursorX + charW > boundWidth && !text.isWordWrap()) continue;
 
@@ -132,7 +132,7 @@ class BitmapTextDrawInfo implements DrawInfo {
 
             glyphCount++;
 
-            cursorX += (charInfo.width() + spacing) * scaleX;
+            cursorX += (charInfo.width() + spacing);
 
             if (boundHeight > 0 && cursorY > boundHeight - charH) break;
         }
