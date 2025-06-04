@@ -135,4 +135,9 @@ public class DesktopNodeFactory implements NodeFactory {
         circleShape.setColor(color);
         return circleShape;
     }
+
+    @Override
+    public RoundedCornerShape createRoundCornerShape(float width, float height, float radius, int segments) {
+        return new RoundedCornerShape(width, height, radius, segments);
+    }
 }
