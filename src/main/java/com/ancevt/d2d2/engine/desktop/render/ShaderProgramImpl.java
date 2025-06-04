@@ -1,6 +1,7 @@
 package com.ancevt.d2d2.engine.desktop.render;
 
 import com.ancevt.d2d2.scene.shader.ShaderProgram;
+import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +13,14 @@ public class ShaderProgramImpl implements ShaderProgram {
     private final int programId;
     private final Map<String, Integer> uniformLocations = new HashMap<>();
 
+    @Getter
+    private final String vertexSource;
+    @Getter
+    private final String fragmentSource;
+
     public ShaderProgramImpl(String vertexSource, String fragmentSource) {
+        this.vertexSource = vertexSource;
+        this.fragmentSource = fragmentSource;
         int vertexShader = compileShader(vertexSource, GL_VERTEX_SHADER);
         int fragmentShader = compileShader(fragmentSource, GL_FRAGMENT_SHADER);
 
@@ -95,5 +103,10 @@ public class ShaderProgramImpl implements ShaderProgram {
     @Override
     public void destroy() {
         glDeleteProgram(programId);
+    }
+
+    @Override
+    public ShaderProgram copy() {
+        return new ShaderProgramImpl(getVertexSource(), getFragmentSource());
     }
 }
