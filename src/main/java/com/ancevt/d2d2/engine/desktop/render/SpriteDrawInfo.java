@@ -24,6 +24,11 @@ class SpriteDrawInfo implements DrawInfo {
     }
 
     @Override
+    public ShaderProgramImpl getCustomShader() {
+        return (ShaderProgramImpl) sprite.getShaderProgram();
+    }
+
+    @Override
     public int getTextureId() {
         return sprite.getTextureRegion() != null ? sprite.getTextureRegion().getTexture().getId() : -1;
     }

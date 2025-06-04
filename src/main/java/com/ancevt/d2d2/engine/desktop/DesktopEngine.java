@@ -7,12 +7,14 @@ import com.ancevt.d2d2.engine.NodeFactory;
 import com.ancevt.d2d2.engine.SoundManager;
 import com.ancevt.d2d2.engine.desktop.node.DesktopNodeFactory;
 import com.ancevt.d2d2.engine.desktop.render.DesktopRenderer;
+import com.ancevt.d2d2.engine.desktop.render.ShaderProgramImpl;
 import com.ancevt.d2d2.engine.desktop_old.awt.AwtBitmapFontGenerator_old;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.core.EventDispatcherImpl;
 import com.ancevt.d2d2.log.Logger;
 import com.ancevt.d2d2.scene.Renderer;
 import com.ancevt.d2d2.scene.Stage;
+import com.ancevt.d2d2.scene.shader.ShaderProgram;
 import com.ancevt.d2d2.scene.text.BitmapFont;
 import com.ancevt.d2d2.scene.text.FontBuilder;
 import lombok.Getter;
@@ -160,5 +162,10 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
     @Override
     public NodeFactory nodeFactory() {
         return nodeFactory;
+    }
+
+    @Override
+    public ShaderProgram createShaderProgram(String vertexShaderSource, String fragmentShaderSource) {
+        return new ShaderProgramImpl(vertexShaderSource, fragmentShaderSource);
     }
 }

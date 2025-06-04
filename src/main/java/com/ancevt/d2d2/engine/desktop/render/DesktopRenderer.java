@@ -6,6 +6,7 @@ import com.ancevt.d2d2.engine.desktop.node.BitmapCanvasGpu;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.StageEvent;
 import com.ancevt.d2d2.scene.*;
+import com.ancevt.d2d2.scene.shader.ShaderProgram;
 import com.ancevt.d2d2.scene.shape.FreeShape;
 import com.ancevt.d2d2.scene.shape.LineBatch;
 import com.ancevt.d2d2.scene.shape.RectangleShape;
@@ -17,10 +18,13 @@ import lombok.Setter;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.lwjgl.opengl.GL20.glUseProgram;
 
 @RequiredArgsConstructor
 public class DesktopRenderer implements Renderer {
@@ -48,11 +52,14 @@ public class DesktopRenderer implements Renderer {
     @Getter
     private GlContextManager glContextManager;
 
+
+
     @Override
     public void init(long windowId) {
         glContextManager = new GlContextManager(BATCH_SIZE, vertexBuffer);
         glContextManager.init();
         glContextManager.setProjection(engine.getCanvasWidth(), engine.getCanvasHeight());
+
     }
 
     @Override
@@ -94,39 +101,85 @@ public class DesktopRenderer implements Renderer {
         glContextManager.setProjection(engine.getCanvasWidth(), engine.getCanvasHeight()); // Восстанови
     }
 
+
     @Override
     public void renderFrame() {
         List<DrawInfo> drawQueue = new ArrayList<>();
-
         Stage stage = engine.getStage();
 
         collectNodes(stage, 1f, 0f, 0f, 0f, 1f, 0f, 1f, drawQueue);
 
         glContextManager.prepareRenderFrame(stage.getBackgroundColor());
 
-        int spritesInBatch = 0;
         int currentTextureId = -1;
+        ShaderProgram currentShader = null;
+        int batchSize = 0;
+
+        vertexBuffer.clear();
 
         for (DrawInfo info : drawQueue) {
-            int texId = info.getTextureId();
+            int textureId = info.getTextureId();
+            ShaderProgram shader = info.getCustomShader();
 
-            if (currentTextureId != texId || spritesInBatch >= BATCH_SIZE) {
-                if (spritesInBatch > 0) glContextManager.flushBatch(spritesInBatch);
-                currentTextureId = texId;
-                glContextManager.setTextureFilter(texId, GL11.GL_NEAREST);
-                spritesInBatch = 0;
+            boolean flushNeeded =
+                    (textureId != currentTextureId) ||
+                            (shader != currentShader) ||
+                            (batchSize >= BATCH_SIZE);
+
+            if (flushNeeded) {
+                if (batchSize > 0) {
+                    glContextManager.flushBatch(batchSize);
+                }
+
+                currentTextureId = textureId;
+                currentShader = shader;
+
+                // 🔄 Активируем текущий шейдер
+                int shaderId = (shader == null)
+                        ? glContextManager.shaderProgram
+                        : shader.getId();
+
+                glUseProgram(shaderId);
+                glContextManager.setTextureFilter(textureId, GL11.GL_NEAREST);
                 vertexBuffer.clear();
+                batchSize = 0;
+
+                // 💉 Передаём uniform'ы (если ShaderProgramImpl)
+                if (shader instanceof ShaderProgramImpl impl) {
+                    float time = System.nanoTime() / 1_000_000_000.0f;
+
+                    impl.setUniform("uTime", time);
+
+                    int uProj = impl.getUniformLocation("uProjection");
+                    if (uProj != -1) {
+                        GL20.glUniformMatrix4fv(uProj, false, glContextManager.getProjectionMatrix());
+                    }
+
+                    int uTex = impl.getUniformLocation("uTexture");
+                    if (uTex != -1) {
+                        impl.setUniform("uTexture", 0); // GL_TEXTURE0
+                    }
+                } else {
+                    // 🔁 Если шейдер null — ставим uProjection для дефолтного
+                    GL20.glUniformMatrix4fv(
+                            glContextManager.uProjectionLocation,
+                            false,
+                            glContextManager.getProjectionMatrix()
+                    );
+                }
             }
 
-            int addedSprites = info.render(vertexBuffer, this);
-            spritesInBatch += addedSprites;
+            batchSize += info.render(vertexBuffer, this);
         }
 
-        if (spritesInBatch > 0) glContextManager.flushBatch(spritesInBatch);
-
+        if (batchSize > 0) {
+            glContextManager.flushBatch(batchSize);
+        }
 
         glContextManager.postRenderFrame();
     }
+
+
 
     private static void collectNodes(Node node, float a, float b, float c, float d, float e, float f, float alpha, List<DrawInfo> drawQueue) {
         float x = node.getX(), y = node.getY();

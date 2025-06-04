@@ -257,8 +257,6 @@ public class CanvasHelper_old {
         glfwSwapInterval(1); // enable vsync
         GL.createCapabilities();
 
-        // TODO: remove loading demo texture data info from here
-        D2D2.textureManager().loadTextureDataInfo(DEMO_TEXTURE_DATA_INF_FILE);
         glfwWindowHint(GLFW.GLFW_SAMPLES, 4);
         glEnable(GL_MULTISAMPLE);
 

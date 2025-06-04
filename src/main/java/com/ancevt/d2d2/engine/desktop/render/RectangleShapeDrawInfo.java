@@ -24,6 +24,11 @@ class RectangleShapeDrawInfo implements DrawInfo {
     }
 
     @Override
+    public ShaderProgramImpl getCustomShader() {
+        return (ShaderProgramImpl) shape.getShaderProgram();
+    }
+
+    @Override
     public int getTextureId() {
         Texture texture = shape.getTextureRegion() != null ? shape.getTextureRegion().getTexture() : null;
         return texture != null ? texture.getId() : GlContextManager.getWhiteTexture().getId();

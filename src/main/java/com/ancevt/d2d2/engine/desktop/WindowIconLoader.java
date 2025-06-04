@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 class WindowIconLoader {
 
     private static final String ASSET_ICON_DIR = "assets/icon";
-    private static final String DEFAULT_ASSET_ICON_DIR = "assets/defaultd2d2windowicon";
+    private static final String DEFAULT_ASSET_ICON_DIR = "assets/defaultwindowicon";
     private static final int[] SIZES = {16, 32, 64, 128};
 
     public static void loadIcons(long windowId) {

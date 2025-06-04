@@ -25,6 +25,11 @@ class LineBatchDrawInfo implements DrawInfo {
     }
 
     @Override
+    public ShaderProgramImpl getCustomShader() {
+        return (ShaderProgramImpl) batch.getShaderProgram();
+    }
+
+    @Override
     public int getTextureId() {
         return GlContextManager.getWhiteTexture().getId();
     }

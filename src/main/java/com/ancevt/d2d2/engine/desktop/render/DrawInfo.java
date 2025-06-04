@@ -6,4 +6,6 @@ interface DrawInfo {
     int render(FloatBuffer vertexBuffer, DesktopRenderer renderer);
 
     int getTextureId();
+
+    ShaderProgramImpl getCustomShader();
 }

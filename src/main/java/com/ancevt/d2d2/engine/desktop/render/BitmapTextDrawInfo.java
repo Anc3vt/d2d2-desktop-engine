@@ -26,6 +26,11 @@ class BitmapTextDrawInfo implements DrawInfo {
     }
 
     @Override
+    public ShaderProgramImpl getCustomShader() {
+        return (ShaderProgramImpl) text.getShaderProgram();
+    }
+
+    @Override
     public int getTextureId() {
         return text.getBitmapFont().getTexture().getId();
     }

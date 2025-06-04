@@ -37,6 +37,11 @@ public class BitmapCanvasGpuDrawInfo implements DrawInfo {
                 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, canvas.getBuffer());
     }
 
+    @Override
+    public ShaderProgramImpl getCustomShader() {
+        return (ShaderProgramImpl) canvas.getShaderProgram();
+    }
+
     private void updateTexture() {
         if (canvas.isDirty()) {
             DesktopTextureEngine.bindTexture(texture);

@@ -31,6 +31,7 @@ import com.ancevt.d2d2.exception.NotImplementedException;
 import com.ancevt.d2d2.log.Logger;
 import com.ancevt.d2d2.scene.Renderer;
 import com.ancevt.d2d2.scene.Stage;
+import com.ancevt.d2d2.scene.shader.ShaderProgram;
 import com.ancevt.d2d2.scene.text.BitmapFont;
 import com.ancevt.d2d2.scene.text.FontBuilder;
 import lombok.Getter;
@@ -196,5 +197,50 @@ public class DesktopEngine_old extends EventDispatcherImpl implements Engine {
     @Override
     public NodeFactory nodeFactory() {
         throw new NotImplementedException();
+    }
+
+    @Override
+    public ShaderProgram createShaderProgram(String vertexShaderSource, String fragmentShaderSource) {
+        return new ShaderProgram() {
+            @Override
+            public int getId() {
+                return 0;
+            }
+
+            @Override
+            public int getUniformLocation(String name) {
+                return 0;
+            }
+
+            @Override
+            public void setUniform(String name, float value) {
+
+            }
+
+            @Override
+            public void setUniform(String name, int value) {
+
+            }
+
+            @Override
+            public void setUniform(String name, float x, float y) {
+
+            }
+
+            @Override
+            public void setUniform(String name, float x, float y, float z) {
+
+            }
+
+            @Override
+            public void setUniform(String name, float x, float y, float z, float w) {
+
+            }
+
+            @Override
+            public void destroy() {
+
+            }
+        };
     }
 }

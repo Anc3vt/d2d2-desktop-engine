@@ -26,6 +26,11 @@ class FreeShapeDrawInfo implements DrawInfo {
     }
 
     @Override
+    public ShaderProgramImpl getCustomShader() {
+        return (ShaderProgramImpl) shape.getShaderProgram();
+    }
+
+    @Override
     public int getTextureId() {
         Texture texture = shape.getTextureRegion() != null ? shape.getTextureRegion().getTexture() : null;
         return texture != null ? texture.getId() : GlContextManager.getWhiteTexture().getId();
@@ -60,8 +65,8 @@ class FreeShapeDrawInfo implements DrawInfo {
         float cy = (y - centerY) * scaleY;
 
         // 3. Вращаем
-        float cos = (float)Math.cos(angle);
-        float sin = (float)Math.sin(angle);
+        float cos = (float) Math.cos(angle);
+        float sin = (float) Math.sin(angle);
 
         float tx = cx * cos - cy * sin;
         float ty = cx * sin + cy * cos;
@@ -77,9 +82,9 @@ class FreeShapeDrawInfo implements DrawInfo {
     @Override
     public int render(FloatBuffer buffer, DesktopRenderer renderer) {
         Color color = shape.getColor();
-        float red   = color.getR() / 255f;
+        float red = color.getR() / 255f;
         float green = color.getG() / 255f;
-        float blue  = color.getB() / 255f;
+        float blue = color.getB() / 255f;
 
         int triangleCount = 0;
 
@@ -119,7 +124,6 @@ class FreeShapeDrawInfo implements DrawInfo {
 
         return triangleCount;
     }
-
 
 
     private float[] transformTriangle(Triangle t) {

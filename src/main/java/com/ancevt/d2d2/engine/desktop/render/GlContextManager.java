@@ -29,6 +29,7 @@ public class GlContextManager {
     @Getter
     private static Texture whiteTexture;
 
+    @Getter
     private final float[] projectionMatrix = new float[16];
 
     public GlContextManager(int batchSize, FloatBuffer vertexBuffer) {
@@ -145,7 +146,7 @@ public class GlContextManager {
     }
 
     public void prepareRenderFrame(Color backgroundColor) {
-        if(backgroundColor == null) {
+        if (backgroundColor == null) {
             GL11.glClearColor(0f, 0f, 0f, 0f);
         } else {
             GL11.glClearColor(
@@ -206,4 +207,5 @@ public class GlContextManager {
 
         return new Texture(texId, 1, 1);
     }
+
 }
