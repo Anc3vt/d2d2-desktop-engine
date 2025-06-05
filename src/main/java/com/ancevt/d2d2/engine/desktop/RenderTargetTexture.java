@@ -66,15 +66,15 @@ public class RenderTargetTexture {
         }
 
         int fbo = glGenFramebuffers();
-        int tex = glGenTextures();
+        int texId = glGenTextures();
 
-        glBindTexture(GL_TEXTURE_2D, tex);
+        glBindTexture(GL_TEXTURE_2D, texId);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texId, 0);
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             throw new RuntimeException("Framebuffer is not complete");
@@ -92,8 +92,14 @@ public class RenderTargetTexture {
         // восстановим дефолтный FBO
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        Texture texture = new Texture(tex, width, height);
-        return texture;
+        Texture result = new Texture(texId, width, height);
+
+        DesktopTextureManager desktopTextureManager = (DesktopTextureManager) D2D2.getTextureManager();
+
+        // do not use getter getLoadedTexture, it will return the copy of map
+        desktopTextureManager.loadedTextures.put(texId, result);
+
+        return result;
     }
 }
 

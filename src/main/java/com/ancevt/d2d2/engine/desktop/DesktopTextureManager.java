@@ -1,7 +1,6 @@
 package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.D2D2;
-import com.ancevt.d2d2.asset.Asset;
 import com.ancevt.d2d2.asset.Assets;
 import com.ancevt.d2d2.scene.Group;
 import com.ancevt.d2d2.scene.text.BitmapText;
@@ -35,7 +34,8 @@ public class DesktopTextureManager implements TextureManager {
     @Getter
     private final Map<Integer, BufferedImage> bufferedImageMap = new HashMap<>();
 
-    private final Map<String, Texture> loadedTextures = new HashMap<>();
+    final Map<Integer, Texture> loadedTextures = new HashMap<>();
+    private final Map<String, Texture> loadedTexturesByAssetPath = new HashMap<>();
 
     public static void bindTexture(Texture texture) {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getId());
@@ -66,22 +66,40 @@ public class DesktopTextureManager implements TextureManager {
     }
 
     @Override
+    public Map<Integer, Texture> getLoadedTextures() {
+        return Map.copyOf(loadedTextures);
+    }
+
+    @Override
     public Texture loadTexture(InputStream pngInputStream) {
-        return loadTextureFromInputStream(pngInputStream);
+        return actualLoadTexture(pngInputStream);
     }
 
     @Override
     public Texture loadTexture(String assetPath) {
-        return loadTextureFromResource(assetPath);
+        return loadedTexturesByAssetPath.computeIfAbsent(assetPath, path -> {
+            try (var inputStream = Assets.getAsset(path).getInputStream()) {
+                return actualLoadTexture(inputStream);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public void unloadTexture(Texture texture) {
         glDeleteTextures(texture.getId());
+        loadedTextures.remove(texture.getId());
+
+        String key = null;
+        for (var e : loadedTexturesByAssetPath.entrySet()) {
+            if (e.getValue() == texture) key = e.getKey();
+        }
+        if (key != null) loadedTexturesByAssetPath.remove(key);
     }
 
     @Override
-    public Texture bitmapTextToTexture(BitmapText bitmapText) {
+    public Texture renderBitmapTextToTexture(BitmapText bitmapText) {
         return AwtBitmapTextDrawHelper.bitmapTextToTexture(bitmapText);
     }
 
@@ -96,7 +114,7 @@ public class DesktopTextureManager implements TextureManager {
     }
 
     @SneakyThrows
-    private Texture loadTextureFromInputStream(InputStream pngInputStream) {
+    private Texture actualLoadTexture(InputStream pngInputStream) {
         InputStreamFork fork = InputStreamFork.fork(pngInputStream);
         InputStream inputStream = fork.left();
 
@@ -143,21 +161,28 @@ public class DesktopTextureManager implements TextureManager {
 
             STBImage.stbi_image_free(image);
             bufferedImageMap.put(textureId, bufferedImage);
-            return new Texture(textureId, w.get(0), h.get(0));
 
+            Texture result = new Texture(textureId, w.get(0), h.get(0));
+            loadedTextures.put(textureId, result);
+            return result;
         } catch (IOException e) {
-            throw new RuntimeException("Could not load texture resource", e);
+            throw new RuntimeException("Could not load texture", e);
         }
     }
 
-    public Texture loadTextureFromResource(String resourcePath) {
-        Asset asset = Assets.getAsset(resourcePath);
-        return loadTextureFromInputStream(asset.getInputStream());
+    @Override
+    public void registerTextureRegion(String key, TextureRegion textureRegion) {
+        TextureDataInfoReadHelper.regionMap.put(key, textureRegion);
     }
 
     @Override
-    public void addTextureRegion(String key, TextureRegion textureRegion) {
-        TextureDataInfoReadHelper.regionMap.put(key, textureRegion);
+    public void removeTextureRegion(String key) {
+        TextureDataInfoReadHelper.regionMap.remove(key);
+    }
+
+    @Override
+    public Map<String, TextureRegion> getTextureRegionMap() {
+        return Map.copyOf(TextureDataInfoReadHelper.regionMap);
     }
 
     @Override
@@ -166,9 +191,9 @@ public class DesktopTextureManager implements TextureManager {
     }
 
     @Override
-    public void loadTextureDataInfo(String assetInfFile) {
+    public void loadTextureDataInfo(String assetMetaFile) {
         try {
-            TextureDataInfoReadHelper.readTextureDataInfoFile(assetInfFile);
+            TextureDataInfoReadHelper.readTextureDataInfoFile(assetMetaFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

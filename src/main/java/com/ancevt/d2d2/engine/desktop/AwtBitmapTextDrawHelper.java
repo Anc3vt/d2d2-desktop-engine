@@ -274,7 +274,6 @@ public class AwtBitmapTextDrawHelper {
 
 
         final Texture texture = createTextureFromBufferedImage(image);
-        //D2D2.textureManager().addTextureRegion("_texture_text_" + texture.getId(), texture.createTextureRegion());
         return texture;
     }
 
