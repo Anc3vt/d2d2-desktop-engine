@@ -24,6 +24,7 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.lwjgl.opengl.GL11.glPixelZoom;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
 @RequiredArgsConstructor
@@ -73,6 +74,7 @@ public class DesktopRenderer implements Renderer {
 
     public void renderGroupToCurrentFrameBuffer(Group group, int width, int height) {
         List<DrawInfo> drawQueue = new ArrayList<>();
+        zOrderCounter = -1;
         collectNodes(group, 1f, 0f, 0f, 0f, 1f, 0f, 1f, drawQueue);
 
         glContextManager.setProjection(width, height);
@@ -107,6 +109,7 @@ public class DesktopRenderer implements Renderer {
         List<DrawInfo> drawQueue = new ArrayList<>();
         Stage stage = engine.getStage();
 
+        zOrderCounter = -1;
         collectNodes(stage, 1f, 0f, 0f, 0f, 1f, 0f, 1f, drawQueue);
 
         glContextManager.prepareRenderFrame(stage.getBackgroundColor());
@@ -179,9 +182,13 @@ public class DesktopRenderer implements Renderer {
         glContextManager.postRenderFrame();
     }
 
-
+    private static int zOrderCounter;
 
     private static void collectNodes(Node node, float a, float b, float c, float d, float e, float f, float alpha, List<DrawInfo> drawQueue) {
+
+        zOrderCounter ++;
+        node.setGlobalZOrderIndex(zOrderCounter);
+
         float x = node.getX(), y = node.getY();
         float scaleX = node.getScaleX(), scaleY = node.getScaleY();
         float rad = (float) Math.toRadians(node.getRotation());
