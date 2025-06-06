@@ -24,7 +24,6 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.lwjgl.opengl.GL11.glPixelZoom;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
 @RequiredArgsConstructor
@@ -52,7 +51,6 @@ public class DesktopRenderer implements Renderer {
 
     @Getter
     private GlContextManager glContextManager;
-
 
 
     @Override
@@ -143,6 +141,11 @@ public class DesktopRenderer implements Renderer {
                         : shader.getId();
 
                 glUseProgram(shaderId);
+
+                if (shader instanceof ShaderProgramImpl impl) {
+                    impl.uploadAllUniforms();
+                }
+
                 glContextManager.setTextureFilter(textureId, GL11.GL_NEAREST);
                 vertexBuffer.clear();
                 batchSize = 0;
@@ -186,7 +189,7 @@ public class DesktopRenderer implements Renderer {
 
     private static void collectNodes(Node node, float a, float b, float c, float d, float e, float f, float alpha, List<DrawInfo> drawQueue) {
 
-        zOrderCounter ++;
+        zOrderCounter++;
         node.setGlobalZOrderIndex(zOrderCounter);
 
         float x = node.getX(), y = node.getY();
