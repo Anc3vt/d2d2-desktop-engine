@@ -143,7 +143,7 @@ public class DesktopRenderer implements Renderer {
                 glUseProgram(shaderId);
 
                 if (shader instanceof ShaderProgramImpl impl) {
-                    impl.uploadAllUniforms();
+                    impl.uploadUniforms();
                 }
 
                 glContextManager.setTextureFilter(textureId, GL11.GL_NEAREST);

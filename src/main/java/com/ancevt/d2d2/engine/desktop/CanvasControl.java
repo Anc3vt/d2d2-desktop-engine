@@ -214,6 +214,7 @@ public class CanvasControl {
                 case GLFW_RELEASE -> {
                     stage.dispatchEvent(InputEvent.KeyUp.create(
                             key,
+                            (char) key,
                             altNow,
                             ctrlNow,
                             shiftNow

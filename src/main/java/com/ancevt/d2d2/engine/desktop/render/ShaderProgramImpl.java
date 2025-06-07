@@ -80,39 +80,35 @@ public class ShaderProgramImpl implements ShaderProgram {
     // === Uniform Setters ===
     @Override
     public void setUniform(String name, float value) {
-        values.computeIfAbsent(name, k -> new Value(value, 0f, 0f, 0f, Type.FLOAT1));
-        glUniform1f(getUniformLocation(name), value);
+        values.put(name, new Value(value, 0f, 0f, 0f, Type.FLOAT1));
     }
 
     @Override
     public void setUniform(String name, int value) {
-        values.computeIfAbsent(name, k -> new Value(value, 0f, 0f, 0f, Type.INT1));
-        glUniform1i(getUniformLocation(name), value);
+        values.put(name, new Value(value, 0f, 0f, 0f, Type.INT1));
     }
 
     @Override
     public void setUniform(String name, float x, float y) {
-        values.computeIfAbsent(name, k -> new Value(x, y, 0f, 0f, Type.FLOAT2));
-        glUniform2f(getUniformLocation(name), x, y);
+        values.put(name, new Value(x, y, 0f, 0f, Type.FLOAT2));
     }
 
     @Override
     public void setUniform(String name, float x, float y, float z) {
-        values.computeIfAbsent(name, k -> new Value(x, y, z, 0f, Type.FLOAT3));
-        glUniform3f(getUniformLocation(name), x, y, z);
+        values.put(name, new Value(x, y, z, 0f, Type.FLOAT3));
     }
 
     @Override
     public void setUniform(String name, float x, float y, float z, float w) {
-        values.computeIfAbsent(name, k -> new Value(x, y, z, w, Type.FLOAT4));
-        glUniform4f(getUniformLocation(name), x, y, z, w);
+        values.put(name, new Value(x, y, z, w, Type.FLOAT4));
     }
 
     enum Type {
         FLOAT1, INT1, FLOAT2, FLOAT3, FLOAT4
     }
 
-    public void uploadAllUniforms() {
+    @Override
+    public void uploadUniforms() {
         for (Map.Entry<String, Value> entry : values.entrySet()) {
             final String name = entry.getKey();
             final Value val = entry.getValue();
