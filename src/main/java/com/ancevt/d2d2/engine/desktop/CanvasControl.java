@@ -32,6 +32,7 @@ public class CanvasControl {
     private static boolean alt;
     private static int mouseX;
     private static int mouseY;
+    private static int mouseButton;
 
     @Getter
     private static long windowId;
@@ -100,6 +101,9 @@ public class CanvasControl {
             public void invoke(long window, int mouseButton, int action, int mods) {
                 boolean down = action == GLFW_PRESS;
 
+                if (down) CanvasControl.mouseButton = mouseButton;
+                else CanvasControl.mouseButton = -1;
+
                 stage.dispatchEvent(down
                                 ? InputEvent.MouseDown.create(
                                 Mouse.getX(), Mouse.getY(), mouseButton,
@@ -146,6 +150,10 @@ public class CanvasControl {
                 stage.dispatchEvent(InputEvent.MouseMove.create(
                         Mouse.getX(),
                         Mouse.getY(),
+                        mouseButton,
+                        mouseButton == GLFW_MOUSE_BUTTON_LEFT,
+                        mouseButton == GLFW_MOUSE_BUTTON_RIGHT,
+                        mouseButton == GLFW_MOUSE_BUTTON_MIDDLE,
                         true,
                         alt,
                         control,

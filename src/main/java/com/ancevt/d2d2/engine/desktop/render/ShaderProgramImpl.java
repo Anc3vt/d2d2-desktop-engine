@@ -113,7 +113,6 @@ public class ShaderProgramImpl implements ShaderProgram {
             final String name = entry.getKey();
             final Value val = entry.getValue();
             final int location = getUniformLocation(name);
-
             switch (val.type) {
                 case FLOAT1 -> glUniform1f(location, val.x);
                 case INT1 -> glUniform1i(location, (int) val.x);
@@ -140,6 +139,6 @@ public class ShaderProgramImpl implements ShaderProgram {
         float y;
         float z;
         float w;
-        Type type;
+        ShaderProgramImpl.Type type;
     }
 }
