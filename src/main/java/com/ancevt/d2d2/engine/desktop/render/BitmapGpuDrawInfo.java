@@ -1,24 +1,24 @@
 package com.ancevt.d2d2.engine.desktop.render;
 
 import com.ancevt.d2d2.engine.desktop.DesktopTextureManager;
-import com.ancevt.d2d2.engine.desktop.node.BitmapCanvasGpu;
+import com.ancevt.d2d2.engine.desktop.node.BitmapGpu;
 import com.ancevt.d2d2.scene.texture.Texture;
 import org.lwjgl.opengl.GL11;
 
 import java.nio.FloatBuffer;
 
-public class BitmapCanvasGpuDrawInfo implements DrawInfo {
+public class BitmapGpuDrawInfo implements DrawInfo {
 
-    private final BitmapCanvasGpu canvas;
+    private final BitmapGpu canvas;
     private final float a, b, c, d, e, f;
     private final float alpha;
 
     private Texture texture;
 
-    public BitmapCanvasGpuDrawInfo(BitmapCanvasGpu canvas,
-                                   float a, float b, float c,
-                                   float d, float e, float f,
-                                   float alpha) {
+    public BitmapGpuDrawInfo(BitmapGpu canvas,
+                             float a, float b, float c,
+                             float d, float e, float f,
+                             float alpha) {
         this.canvas = canvas;
         this.a = a;
         this.b = b;

@@ -94,8 +94,8 @@ public class DesktopNodeFactory implements NodeFactory {
     }
 
     @Override
-    public BitmapCanvas createBitmapCanvas(int width, int height) {
-        return new BitmapCanvasGpu(width, height);
+    public Bitmap createBitmapCanvas(int width, int height) {
+        return new BitmapGpu(width, height);
     }
 
     @Override

@@ -1,13 +1,12 @@
 package com.ancevt.d2d2.engine.desktop.node;
 
-import com.ancevt.d2d2.scene.AbstractNode;
-import com.ancevt.d2d2.scene.BitmapCanvas;
+import com.ancevt.d2d2.scene.Bitmap;
 import lombok.Getter;
 import org.lwjgl.BufferUtils;
 
 import java.nio.ByteBuffer;
 
-public class BitmapCanvasGpu extends AbstractNode implements BitmapCanvas {
+public class BitmapGpu extends Bitmap {
 
     private final int width, height;
     @Getter
@@ -15,7 +14,7 @@ public class BitmapCanvasGpu extends AbstractNode implements BitmapCanvas {
     @Getter
     private boolean dirty = true;
 
-    public BitmapCanvasGpu(int width, int height) {
+    public BitmapGpu(int width, int height) {
         this.width = width;
         this.height = height;
         this.buffer = BufferUtils.createByteBuffer(width * height * 4);
@@ -53,6 +52,54 @@ public class BitmapCanvasGpu extends AbstractNode implements BitmapCanvas {
         int a = buffer.get(i + 3) & 0xFF;
 
         return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    @Override
+    public byte[] getPixels(int x, int y, int w, int h) {
+        if (x < 0 || y < 0 || x + w > width || y + h > height) {
+            throw new IllegalArgumentException("Region out of bounds");
+        }
+
+        byte[] pixels = new byte[w * h * 4];
+
+        for (int row = 0; row < h; row++) {
+            for (int col = 0; col < w; col++) {
+                int srcIndex = ((y + row) * width + (x + col)) * 4;
+                int dstIndex = (row * w + col) * 4;
+
+                pixels[dstIndex] = buffer.get(srcIndex);     // R
+                pixels[dstIndex + 1] = buffer.get(srcIndex + 1); // G
+                pixels[dstIndex + 2] = buffer.get(srcIndex + 2); // B
+                pixels[dstIndex + 3] = buffer.get(srcIndex + 3); // A
+            }
+        }
+
+        return pixels;
+    }
+
+    @Override
+    public void setPixels(int x, int y, int w, int h, byte[] pixels) {
+        if (x < 0 || y < 0 || x + w > width || y + h > height) {
+            throw new IllegalArgumentException("Region out of bounds");
+        }
+
+        if (pixels.length != w * h * 4) {
+            throw new IllegalArgumentException("Pixel array size mismatch");
+        }
+
+        for (int row = 0; row < h; row++) {
+            for (int col = 0; col < w; col++) {
+                int dstIndex = ((y + row) * width + (x + col)) * 4;
+                int srcIndex = (row * w + col) * 4;
+
+                buffer.put(dstIndex, pixels[srcIndex]);     // R
+                buffer.put(dstIndex + 1, pixels[srcIndex + 1]); // G
+                buffer.put(dstIndex + 2, pixels[srcIndex + 2]); // B
+                buffer.put(dstIndex + 3, pixels[srcIndex + 3]); // A
+            }
+        }
+
+        dirty = true;
     }
 
 
