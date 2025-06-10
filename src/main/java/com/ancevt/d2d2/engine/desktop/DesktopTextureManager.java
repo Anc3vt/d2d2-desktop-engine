@@ -1,7 +1,7 @@
 package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.D2D2;
-import com.ancevt.d2d2.asset.Assets;
+import com.ancevt.d2d2.asset.Asset;
 import com.ancevt.d2d2.scene.Group;
 import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.scene.texture.Texture;
@@ -78,7 +78,7 @@ public class DesktopTextureManager implements TextureManager {
     @Override
     public Texture loadTexture(String assetPath) {
         return loadedTexturesByAssetPath.computeIfAbsent(assetPath, path -> {
-            try (var inputStream = Assets.getAsset(path).getInputStream()) {
+            try (var inputStream = Asset.getAsset(path).getInputStream()) {
                 return actualLoadTexture(inputStream);
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -207,7 +207,7 @@ public class DesktopTextureManager implements TextureManager {
         private static Texture currentTexture;
 
         public static void readTextureDataInfoFile(String assetPath) throws IOException {
-            final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(Assets.getAsset(assetPath).getInputStream()));
+            final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(Asset.getAsset(assetPath).getInputStream()));
 
             String line;
             while ((line = bufferedReader.readLine()) != null) {

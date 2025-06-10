@@ -36,17 +36,8 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class DesktopSoundManager implements SoundManager {
 
-    private static class Holder {
-        private static final DesktopSoundManager INSTANCE = new DesktopSoundManager();
-    }
-
-    public static DesktopSoundManager getInstance() {
-        return DesktopSoundManager.Holder.INSTANCE;
-    }
-
-
-    private long device;
-    private long context;
+    private final long device;
+    private final long context;
 
     public DesktopSoundManager() {
         device = alcOpenDevice((ByteBuffer) null);

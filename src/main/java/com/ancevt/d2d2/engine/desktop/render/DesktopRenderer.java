@@ -12,6 +12,7 @@ import com.ancevt.d2d2.scene.shape.LineBatch;
 import com.ancevt.d2d2.scene.shape.RectangleShape;
 import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.time.Timer;
+import com.ancevt.d2d2.util.Tickable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -228,6 +229,7 @@ public class DesktopRenderer implements Renderer {
             drawQueue.add(new BitmapGpuDrawInfo(canvasGPU, na, nb, nc, nd, ne, nf, newAlpha));
         }
 
+        if(node instanceof Tickable it) it.onTick();
 
         if (node instanceof Group group) {
             for (Node child : group.children().toList()) {

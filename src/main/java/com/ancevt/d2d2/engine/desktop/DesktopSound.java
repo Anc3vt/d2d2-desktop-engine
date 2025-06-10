@@ -18,7 +18,7 @@
 
 package com.ancevt.d2d2.engine.desktop;
 
-import com.ancevt.d2d2.asset.Assets;
+import com.ancevt.d2d2.asset.Asset;
 import com.ancevt.d2d2.sound.Sound;
 import javazoom.jl.decoder.Bitstream;
 import javazoom.jl.decoder.Decoder;
@@ -41,7 +41,7 @@ public class DesktopSound implements Sound {
     private boolean disposed = false;
 
     public DesktopSound(String assetPath) {
-        this(Assets.getAsset(assetPath).getInputStream());
+        this(Asset.getAsset(assetPath).getInputStream());
     }
 
     @SneakyThrows

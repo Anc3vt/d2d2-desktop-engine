@@ -21,6 +21,15 @@ public class BitmapGpu extends Bitmap {
     }
 
     @Override
+    public void clear() {
+        for (int i = 0; i < buffer.capacity(); i++) {
+            buffer.put(i, (byte) 0);
+        }
+        dirty = true;
+    }
+
+
+    @Override
     public void setPixel(int x, int y, int color) {
         if (x < 0 || y < 0 || x >= width || y >= height) return;
 
