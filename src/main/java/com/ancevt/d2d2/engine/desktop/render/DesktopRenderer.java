@@ -229,7 +229,7 @@ public class DesktopRenderer implements Renderer {
             drawQueue.add(new BitmapGpuDrawInfo(canvasGPU, na, nb, nc, nd, ne, nf, newAlpha));
         }
 
-        if(node instanceof Tickable it) it.onTick();
+        if (node instanceof Tickable it) it.onTick();
 
         if (node instanceof Group group) {
             for (Node child : group.children().toList()) {
