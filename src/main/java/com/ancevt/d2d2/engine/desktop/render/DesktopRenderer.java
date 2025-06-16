@@ -136,11 +136,7 @@ public class DesktopRenderer implements Renderer {
                 currentTextureId = textureId;
                 currentShader = shader;
 
-                // 🔄 Активируем текущий шейдер
-                int shaderId = (shader == null)
-                        ? glContextManager.shaderProgram
-                        : shader.getId();
-
+                int shaderId = (shader == null) ? glContextManager.shaderProgram : shader.getId();
                 glUseProgram(shaderId);
 
                 if (shader instanceof ShaderProgramImpl impl) {
@@ -150,30 +146,6 @@ public class DesktopRenderer implements Renderer {
                 glContextManager.setTextureFilter(textureId, GL11.GL_NEAREST);
                 vertexBuffer.clear();
                 batchSize = 0;
-
-                // 💉 Передаём uniform'ы (если ShaderProgramImpl)
-                if (shader instanceof ShaderProgramImpl impl) {
-                    float time = System.nanoTime() / 1_000_000_000.0f;
-
-                    impl.setUniform("uTime", time);
-
-                    int uProj = impl.getUniformLocation("uProjection");
-                    if (uProj != -1) {
-                        GL20.glUniformMatrix4fv(uProj, false, glContextManager.getProjectionMatrix());
-                    }
-
-                    int uTex = impl.getUniformLocation("uTexture");
-                    if (uTex != -1) {
-                        impl.setUniform("uTexture", 0); // GL_TEXTURE0
-                    }
-                } else {
-                    // 🔁 Если шейдер null — ставим uProjection для дефолтного
-                    GL20.glUniformMatrix4fv(
-                            glContextManager.uProjectionLocation,
-                            false,
-                            glContextManager.getProjectionMatrix()
-                    );
-                }
             }
 
             batchSize += info.render(vertexBuffer, this);

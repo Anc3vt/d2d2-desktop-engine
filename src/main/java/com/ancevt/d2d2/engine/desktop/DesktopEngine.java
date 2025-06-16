@@ -8,7 +8,7 @@ import com.ancevt.d2d2.engine.desktop.render.ShaderProgramImpl;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.core.EventDispatcherImpl;
 import com.ancevt.d2d2.exception.NotImplementedException;
-import com.ancevt.d2d2.log.Logger;
+import com.ancevt.d2d2.log.Log;
 import com.ancevt.d2d2.scene.Stage;
 import com.ancevt.d2d2.scene.shader.ShaderProgram;
 import com.ancevt.d2d2.scene.text.BitmapFont;
@@ -166,8 +166,8 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
     }
 
     @Override
-    public Logger logger() {
-        return DesktopLogger.getInstance();
+    public Log logger() {
+        return DesktopLog.getInstance();
     }
 
     @Override
