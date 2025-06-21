@@ -134,5 +134,4 @@ public class BitmapGpu extends Bitmap {
         return height;
     }
 
-
 }

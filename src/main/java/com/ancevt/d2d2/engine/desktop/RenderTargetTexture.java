@@ -91,6 +91,7 @@ public class RenderTargetTexture {
 
         // восстановим дефолтный FBO
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDeleteFramebuffers(fbo);
 
         Texture result = new Texture(texId, width, height);
 

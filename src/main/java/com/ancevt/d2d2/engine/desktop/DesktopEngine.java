@@ -13,7 +13,6 @@ import com.ancevt.d2d2.scene.Stage;
 import com.ancevt.d2d2.scene.shader.ShaderProgram;
 import com.ancevt.d2d2.scene.text.BitmapFont;
 import com.ancevt.d2d2.scene.text.FontBuilder;
-import com.ancevt.d2d2.scene.texture.TextureManager;
 import lombok.Getter;
 import org.lwjgl.glfw.GLFW;
 
@@ -40,7 +39,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
     @Getter
     private NodeFactory nodeFactory;
     @Getter
-    private TextureManager textureManager;
+    private DesktopTextureManager textureManager;
     private int timerCheckFrameFrequency;
 
     public DesktopEngine(int initialWidth, int initialHeight, String initialTitle) {
@@ -99,6 +98,7 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
         stage.dispatchEvent(CommonEvent.Start.create());
         renderer.startRenderLoop();
         stage.dispatchEvent(CommonEvent.Stop.create());
+        textureManager.shutdown();
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.ancevt.d2d2.engine.desktop;
 
 import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.asset.Asset;
+import com.ancevt.d2d2.engine.desktop.render.GlContextManager;
+import com.ancevt.d2d2.log.Log;
 import com.ancevt.d2d2.scene.Group;
 import com.ancevt.d2d2.scene.text.BitmapText;
 import com.ancevt.d2d2.scene.texture.Texture;
@@ -144,7 +146,7 @@ public class DesktopTextureManager implements TextureManager {
             //GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL13.GL_CLAMP_TO_EDGE);
             //GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL13.GL_CLAMP_TO_EDGE);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
 
             GL11.glTexImage2D(
                     GL11.GL_TEXTURE_2D,
@@ -197,6 +199,15 @@ public class DesktopTextureManager implements TextureManager {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void shutdown() {
+        loadedTextures.forEach((id, texture) -> {
+            D2D2.log.debug(getClass(), "Unload texture id " + id);
+            glDeleteTextures(id);
+        });
+
+        GlContextManager.getWhiteTexture().dispose();
     }
 
     private static class TextureDataInfoReadHelper {

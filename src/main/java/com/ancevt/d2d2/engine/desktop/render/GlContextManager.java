@@ -27,7 +27,7 @@ public class GlContextManager {
     public int uTextureLocation;
 
     @Getter
-    private static Texture whiteTexture;
+    public static Texture whiteTexture;
 
     @Getter
     private final float[] projectionMatrix = new float[16];

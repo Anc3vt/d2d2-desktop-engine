@@ -36,7 +36,7 @@ public class DesktopRenderer implements Renderer {
     @Setter
     private boolean running = true;
 
-    public static final int BATCH_SIZE = 80000;
+    public static final int BATCH_SIZE = 300000;
 
     private static final int FLOATS_PER_VERTEX = 8; // x, y, u, v, r, g, b, a
     private static final int VERTICES_PER_SPRITE = 4;
@@ -231,14 +231,12 @@ public class DesktopRenderer implements Renderer {
             lastTime = now;
             accumulator += delta;
 
-            // ✅ Tick логики
             while (accumulator >= tickInterval) {
                 Timer.processTimers();
                 stage.dispatchEvent(StageEvent.Tick.create());
                 accumulator -= tickInterval;
             }
 
-            // ✅ Ограничим рендер частотой frameRate
             if (now - lastRenderTime >= frameInterval) {
                 stage.dispatchEvent(StageEvent.PreFrame.create());
                 renderFrame();
@@ -248,7 +246,6 @@ public class DesktopRenderer implements Renderer {
                 frames++;
             }
 
-            // ✅ Обрабатываем события независимо
             GLFW.glfwPollEvents();
 
             if (System.currentTimeMillis() - fpsTimer >= 1000) {
@@ -257,7 +254,6 @@ public class DesktopRenderer implements Renderer {
                 fpsTimer += 1000;
             }
 
-            // 💡 Чтобы не сжигать CPU — делаем sleep на пару миллисекунд
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
