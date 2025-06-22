@@ -98,7 +98,6 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
         stage.dispatchEvent(CommonEvent.Start.create());
         renderer.startRenderLoop();
         stage.dispatchEvent(CommonEvent.Stop.create());
-        textureManager.shutdown();
     }
 
     @Override

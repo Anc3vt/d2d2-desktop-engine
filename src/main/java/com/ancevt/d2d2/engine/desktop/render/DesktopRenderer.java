@@ -1,7 +1,9 @@
 package com.ancevt.d2d2.engine.desktop.render;
 
+import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.engine.desktop.CanvasControl;
 import com.ancevt.d2d2.engine.desktop.DesktopEngine;
+import com.ancevt.d2d2.engine.desktop.DesktopTextureManager;
 import com.ancevt.d2d2.engine.desktop.node.BitmapGpu;
 import com.ancevt.d2d2.event.CommonEvent;
 import com.ancevt.d2d2.event.StageEvent;
@@ -19,7 +21,6 @@ import lombok.Setter;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
@@ -261,6 +262,7 @@ public class DesktopRenderer implements Renderer {
             }
         }
 
+        ((DesktopTextureManager) D2D2.getTextureManager()).shutdown();
         GLFW.glfwTerminate();
     }
 
