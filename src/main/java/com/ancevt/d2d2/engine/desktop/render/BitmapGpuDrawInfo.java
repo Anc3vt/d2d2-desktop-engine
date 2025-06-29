@@ -28,8 +28,7 @@ public class BitmapGpuDrawInfo implements DrawInfo {
         this.f = f;
         this.alpha = alpha;
 
-        this.texture = DesktopTextureManager.loadTextureInternal(
-                canvas.getWidthInt(), canvas.getHeightInt());
+        this.texture = canvas.getTexture();
         DesktopTextureManager.bindTexture(texture);
 
         GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8,

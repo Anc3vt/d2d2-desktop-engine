@@ -1,8 +1,11 @@
 package com.ancevt.d2d2.engine.desktop.node;
 
+import com.ancevt.d2d2.engine.desktop.DesktopTextureManager;
 import com.ancevt.d2d2.scene.Bitmap;
+import com.ancevt.d2d2.scene.texture.Texture;
 import lombok.Getter;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
 
 import java.nio.ByteBuffer;
 
@@ -14,10 +17,15 @@ public class BitmapGpu extends Bitmap {
     @Getter
     private boolean dirty = true;
 
+    @Getter
+    private Texture texture;
+
     public BitmapGpu(int width, int height) {
         this.width = width;
         this.height = height;
         this.buffer = BufferUtils.createByteBuffer(width * height * 4);
+
+        texture = DesktopTextureManager.loadTextureInternal(width, height);
     }
 
     @Override
@@ -134,4 +142,9 @@ public class BitmapGpu extends Bitmap {
         return height;
     }
 
+    @Override
+    public void dispose() {
+        super.dispose();
+        GL11.glDeleteTextures(texture.getId());
+    }
 }
