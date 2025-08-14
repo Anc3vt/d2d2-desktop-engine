@@ -209,6 +209,8 @@ public class DesktopRenderer implements Renderer {
                 collectNodes(child, na, nb, nc, nd, ne, nf, newAlpha, drawQueue);
             }
         }
+
+        if (node instanceof Animated animated) animated.processFrame();
     }
 
     public void startRenderLoop() {
