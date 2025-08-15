@@ -41,7 +41,7 @@ public class DesktopSound implements Sound {
     private boolean disposed = false;
 
     public DesktopSound(String assetPath) {
-        this(Asset.getAsset(assetPath).getInputStream());
+        this(Asset.loadAsset(assetPath).get().getInputStream());
     }
 
     @SneakyThrows
