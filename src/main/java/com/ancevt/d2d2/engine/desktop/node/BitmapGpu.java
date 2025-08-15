@@ -1,6 +1,7 @@
 package com.ancevt.d2d2.engine.desktop.node;
 
 import com.ancevt.d2d2.engine.desktop.DesktopTextureManager;
+import com.ancevt.d2d2.scene.AbstractNode;
 import com.ancevt.d2d2.scene.Bitmap;
 import com.ancevt.d2d2.scene.texture.Texture;
 import lombok.Getter;
@@ -9,7 +10,7 @@ import org.lwjgl.opengl.GL11;
 
 import java.nio.ByteBuffer;
 
-public class BitmapGpu extends Bitmap {
+public class BitmapGpu extends AbstractNode implements Bitmap {
 
     private final int width, height;
     @Getter

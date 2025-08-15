@@ -1,12 +1,10 @@
 package com.ancevt.d2d2.engine.desktop.node;
 
-import com.ancevt.d2d2.D2D2;
 import com.ancevt.d2d2.engine.NodeFactory;
 import com.ancevt.d2d2.scene.*;
 import com.ancevt.d2d2.scene.interactive.InteractiveGroup;
 import com.ancevt.d2d2.scene.interactive.InteractiveSprite;
 import com.ancevt.d2d2.scene.shape.*;
-import com.ancevt.d2d2.scene.texture.Texture;
 import com.ancevt.d2d2.scene.texture.TextureRegion;
 
 public class DesktopNodeFactory implements NodeFactory {
@@ -22,34 +20,7 @@ public class DesktopNodeFactory implements NodeFactory {
 
     @Override
     public Sprite createSprite(TextureRegion textureRegion) {
-        Sprite sprite = new BasicSprite();
-        sprite.setTextureRegion(textureRegion);
-        return sprite;
-    }
-
-    @Override
-    public Sprite createSprite(Texture texture) {
-        Sprite sprite = new BasicSprite();
-        sprite.setTextureRegion(texture.createTextureRegion());
-        return sprite;
-    }
-
-    @Override
-    public Sprite createSprite(String assetFilename) {
-        return createSprite(
-                D2D2.getTextureManager()
-                        .loadTexture(assetFilename)
-                        .createTextureRegion()
-        );
-    }
-
-    @Override
-    public Sprite createSprite(String asset, int regionX, int regionY, int regionWidth, int regionHeight) {
-        return createSprite(
-                D2D2.getTextureManager()
-                        .loadTexture(asset)
-                        .createTextureRegion(regionX, regionY, regionWidth, regionHeight)
-        );
+        return new BasicSprite(textureRegion);
     }
 
     @Override
@@ -65,36 +36,12 @@ public class DesktopNodeFactory implements NodeFactory {
     }
 
     @Override
-    public InteractiveSprite createInteractiveSprite(Texture texture) {
-        InteractiveSprite interactiveSprite = new InteractiveSprite();
-        interactiveSprite.setTextureRegion(texture.createTextureRegion());
-        return interactiveSprite;
-    }
-
-    @Override
-    public InteractiveSprite createInteractiveSprite(String assetFilename) {
-        return createInteractiveSprite(
-                D2D2.getTextureManager()
-                        .loadTexture(assetFilename)
-                        .createTextureRegion()
-        );
-    }
-
-    @Override
-    public InteractiveSprite createInteractiveSprite(String assetFilename, int regionX, int regionY, int regionWidth, int regionHeight) {
-        return createInteractiveSprite(D2D2.getTextureManager()
-                .loadTexture(assetFilename)
-                .createTextureRegion(regionX, regionY, regionWidth, regionHeight)
-        );
-    }
-
-    @Override
     public InteractiveGroup createInteractiveGroup(int width, int height) {
         return new InteractiveGroup(width, height);
     }
 
     @Override
-    public Bitmap createBitmapCanvas(int width, int height) {
+    public Bitmap createBitmap(int width, int height) {
         return new BitmapGpu(width, height);
     }
 
