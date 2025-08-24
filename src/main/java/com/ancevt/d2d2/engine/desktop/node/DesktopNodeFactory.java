@@ -5,9 +5,15 @@ import com.ancevt.d2d2.scene.*;
 import com.ancevt.d2d2.scene.interactive.InteractiveGroup;
 import com.ancevt.d2d2.scene.interactive.InteractiveSprite;
 import com.ancevt.d2d2.scene.shape.*;
+import com.ancevt.d2d2.scene.texture.TextureManager;
 import com.ancevt.d2d2.scene.texture.TextureRegion;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class DesktopNodeFactory implements NodeFactory {
+
+    private final TextureManager textureManager;
+
     @Override
     public Group createGroup() {
         return new BasicGroup();
@@ -21,6 +27,24 @@ public class DesktopNodeFactory implements NodeFactory {
     @Override
     public Sprite createSprite(TextureRegion textureRegion) {
         return new BasicSprite(textureRegion);
+    }
+
+    @Override
+    public Sprite createSprite(String assetFilename) {
+        return createSprite(
+                textureManager
+                        .loadTexture(assetFilename)
+                        .createTextureRegion()
+        );
+    }
+
+    @Override
+    public Sprite createSprite(String asset, int regionX, int regionY, int regionWidth, int regionHeight) {
+        return createSprite(
+                textureManager
+                        .loadTexture(asset)
+                        .createTextureRegion(regionX, regionY, regionWidth, regionHeight)
+        );
     }
 
     @Override

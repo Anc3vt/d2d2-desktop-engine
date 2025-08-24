@@ -1,6 +1,6 @@
 package com.ancevt.d2d2.engine.desktop;
 
-import com.ancevt.d2d2.D2D2;
+import com.ancevt.d2d2.D2D2_legacy;
 import com.ancevt.d2d2.engine.desktop.render.DesktopRenderer;
 import com.ancevt.d2d2.scene.Group;
 import com.ancevt.d2d2.scene.texture.Texture;
@@ -85,7 +85,7 @@ public class RenderTargetTexture {
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        DesktopRenderer renderer = (DesktopRenderer) D2D2.getEngine().getRenderer();
+        DesktopRenderer renderer = (DesktopRenderer) D2D2_legacy.getEngine().getRenderer();
 
         renderer.renderGroupToCurrentFrameBuffer(group, width, height); // ⬅️ тебе надо этот метод добавить
 
@@ -95,7 +95,7 @@ public class RenderTargetTexture {
 
         Texture result = new Texture(texId, width, height);
 
-        DesktopTextureManager desktopTextureManager = (DesktopTextureManager) D2D2.getTextureManager();
+        DesktopTextureManager desktopTextureManager = (DesktopTextureManager) D2D2_legacy.getTextureManager();
 
         // do not use getter getLoadedTexture, it will return the copy of map
         desktopTextureManager.loadedTextures.put(texId, result);

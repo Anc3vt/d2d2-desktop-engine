@@ -1,6 +1,6 @@
 package com.ancevt.d2d2.engine.desktop;
 
-import com.ancevt.d2d2.D2D2;
+import com.ancevt.d2d2.D2D2_legacy;
 import com.ancevt.d2d2.lifecycle.D2D2PropertyConstants;
 import com.ancevt.d2d2.scene.text.BitmapFont;
 import com.ancevt.d2d2.scene.text.FontBuilder;
@@ -23,7 +23,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.ancevt.d2d2.D2D2.log;
+import static com.ancevt.d2d2.D2D2_legacy.log;
 
 public class AwtBitmapFontGenerator {
 
@@ -158,7 +158,7 @@ public class AwtBitmapFontGenerator {
             log.info(AwtBitmapFontGenerator.class, "BMF written %s/%s".formatted(destinationPath, fileName));
         }
 
-        return D2D2.getBitmapFontManager().loadBitmapFont(
+        return D2D2_legacy.getBitmapFontManager().loadBitmapFont(
                 new ByteArrayInputStream(charsDataBytes),
                 new ByteArrayInputStream(pngDataBytes),
                 builder.getName()

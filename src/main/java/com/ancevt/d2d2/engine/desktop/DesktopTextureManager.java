@@ -1,6 +1,6 @@
 package com.ancevt.d2d2.engine.desktop;
 
-import com.ancevt.d2d2.D2D2;
+import com.ancevt.d2d2.D2D2_legacy;
 import com.ancevt.d2d2.asset.Asset;
 import com.ancevt.d2d2.engine.desktop.render.GlContextManager;
 import com.ancevt.d2d2.scene.Group;
@@ -202,7 +202,7 @@ public class DesktopTextureManager implements TextureManager {
 
     public void shutdown() {
         loadedTextures.forEach((id, texture) -> {
-            D2D2.log.debug(getClass(), "Unload texture id " + id);
+            D2D2_legacy.log.debug(getClass(), "Unload texture id " + id);
             glDeleteTextures(id);
         });
 
@@ -234,7 +234,7 @@ public class DesktopTextureManager implements TextureManager {
             char firstChar = line.charAt(0);
             if (firstChar == ':') {
                 String tileSetName = line.substring(1);
-                currentTexture = D2D2.getEngine().getTextureManager().loadTexture(tileSetName);
+                currentTexture = D2D2_legacy.getEngine().getTextureManager().loadTexture(tileSetName);
                 return;
             }
 

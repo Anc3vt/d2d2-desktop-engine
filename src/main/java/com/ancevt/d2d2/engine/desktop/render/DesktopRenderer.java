@@ -1,6 +1,6 @@
 package com.ancevt.d2d2.engine.desktop.render;
 
-import com.ancevt.d2d2.D2D2;
+import com.ancevt.d2d2.D2D2_legacy;
 import com.ancevt.d2d2.engine.desktop.CanvasControl;
 import com.ancevt.d2d2.engine.desktop.DesktopEngine;
 import com.ancevt.d2d2.engine.desktop.DesktopTextureManager;
@@ -264,7 +264,7 @@ public class DesktopRenderer implements Renderer {
             }
         }
 
-        ((DesktopTextureManager) D2D2.getTextureManager()).shutdown();
+        ((DesktopTextureManager) D2D2_legacy.getTextureManager()).shutdown();
         GLFW.glfwTerminate();
     }
 

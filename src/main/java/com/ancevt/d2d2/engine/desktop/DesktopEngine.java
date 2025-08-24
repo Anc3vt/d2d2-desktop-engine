@@ -1,5 +1,7 @@
 package com.ancevt.d2d2.engine.desktop;
 
+import com.ancevt.d2d2.ApplicationConfig;
+import com.ancevt.d2d2.ApplicationContext;
 import com.ancevt.d2d2.engine.Engine;
 import com.ancevt.d2d2.engine.NodeFactory;
 import com.ancevt.d2d2.engine.desktop.node.DesktopNodeFactory;
@@ -12,6 +14,7 @@ import com.ancevt.d2d2.log.Log;
 import com.ancevt.d2d2.scene.Stage;
 import com.ancevt.d2d2.scene.shader.ShaderProgram;
 import com.ancevt.d2d2.scene.text.BitmapFont;
+import com.ancevt.d2d2.scene.text.BitmapFontManager;
 import com.ancevt.d2d2.scene.text.FontBuilder;
 import lombok.Getter;
 import org.lwjgl.glfw.GLFW;
@@ -40,26 +43,49 @@ public class DesktopEngine extends EventDispatcherImpl implements Engine {
     private NodeFactory nodeFactory;
     @Getter
     private DesktopTextureManager textureManager;
+    @Getter
+    private BitmapFontManager bitmapFontManager;
+
     private int timerCheckFrameFrequency;
 
-    public DesktopEngine(int initialWidth, int initialHeight, String initialTitle) {
+    private ApplicationConfig applicationConfig;
+
+    public DesktopEngine(ApplicationConfig applicationConfig, int initialWidth, int initialHeight, String initialTitle) {
         this.initialWidth = initialWidth;
         this.initialHeight = initialHeight;
+        this.applicationConfig = applicationConfig;
         CanvasControl.init(initialWidth, initialHeight, initialTitle);
-
     }
 
     @Override
-    public void init() {
+    public ApplicationContext createContext() {
+        if (stage != null) throw new IllegalStateException("Context already created");
+
         stage = new Stage();
         stage.setSize(initialWidth, initialHeight);
         renderer = new DesktopRenderer(this);
         displayManager = new DesktopDisplayManager();
         soundManager = new DesktopSoundManager();
-        nodeFactory = new DesktopNodeFactory();
         textureManager = new DesktopTextureManager();
+        nodeFactory = new DesktopNodeFactory(textureManager);
 
         CanvasControl.createAndSetupGlfwWindow(this);
+
+        bitmapFontManager = new BitmapFontManager();
+
+        ApplicationContext applicationContext = new DesktopApplicationContext(
+                this,
+                applicationConfig,
+                textureManager,
+                displayManager,
+                soundManager,
+                bitmapFontManager,
+                nodeFactory,
+                stage,
+                renderer
+        );
+
+        return applicationContext;
     }
 
     @Override
